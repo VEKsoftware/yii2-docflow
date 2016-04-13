@@ -6,9 +6,9 @@ use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
 /**
- * StatusesDoctypesSearch represents the model behind the search form about `statuses\models\StatusesDoctypes`.
+ * DocTypesSearch represents the model behind the search form about `statuses\models\DocTypes`.
  */
-class StatusesDoctypesSearch extends StatusesDoctypes
+class DocTypesSearch extends DocTypes
 {
     /**
      * {@inheritdoc}
@@ -39,7 +39,7 @@ class StatusesDoctypesSearch extends StatusesDoctypes
      */
     public function search($params)
     {
-        $query = StatusesDoctypes::find();
+        $query = DocTypes::find();
 
         $dataProvider = new ActiveDataProvider([
             'query' => $query,

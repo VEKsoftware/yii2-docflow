@@ -14,54 +14,14 @@ use yii\helpers\ArrayHelper;
  * @property string $symbolic_id
  * @property Statuses[] $statuses
  */
-class StatusesDoctypes extends CommonRecord
+class DocTypes extends CommonRecord
 {
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return '{{%statuses_doctypes}}';
-    }
-
-    /**
-     * @return static[] List of doc types
-     */
-    public static function listDocs()
-    {
-        return static::findDocs()->all();
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public static function findDocs()
-    {
-        return static::find();
-    }
-
-    /**
-     * @param $doc_string
-     * @return static
-     */
-    public static function findDoc($doc_string)
-    {
-        return static::find()->where(['symbolic_id' => $doc_string])->one();
-    }
-
-    /**
-     * Create list [ $this->id => $this->name ]
-     *
-     * @return array
-     */
-    public static function createDropdown()
-    {
-        $models = self::find()->all();
-        if (!empty($models)) {
-            return ArrayHelper::map($models, 'id', 'name');
-        }
-
-        return [];
+        return '{{%doc_types}}';
     }
 
     /**
@@ -75,6 +35,15 @@ class StatusesDoctypes extends CommonRecord
             [['symbolic_id'], 'unique'],
             ['symbolic_id', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
         ];
+    }
+
+    /**
+     * @param $doc_string
+     * @return static
+     */
+    public static function findDoc($doc_string)
+    {
+        return static::find()->where(['symbolic_id' => $doc_string])->one();
     }
 
     /**
@@ -99,6 +68,22 @@ class StatusesDoctypes extends CommonRecord
                 'class' => \statuses\Statuses::getInstance()->accessClass,
             ],
         ];
+    }
+
+    /**
+     * @return static[] List of doc types
+     */
+    public static function listDocs()
+    {
+        return static::findDocs()->all();
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public static function findDocs()
+    {
+        return static::find();
     }
 
     /**

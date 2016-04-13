@@ -1,9 +1,9 @@
 <?php
 
-namespace statuses\controllers;
+namespace docflow\controllers;
 
-use statuses\models\StatusesDoctypes;
-use statuses\models\StatusesDoctypesSearch;
+use docflow\models\DocTypes;
+use docflow\models\DocTypesSearch;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
@@ -12,9 +12,9 @@ use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
 /**
- * StatusesDoctypesController implements the CRUD actions for StatusesDoctypes model.
+ * DocTypesController implements the CRUD actions for DocTypes model.
  */
-class StatusesDoctypesController extends Controller
+class DocTypesController extends Controller
 {
     public function behaviors()
     {
@@ -38,13 +38,13 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Lists all StatusesDoctypes models.
+     * Lists all DocTypes models.
      * @return mixed
      * @throws ForbiddenHttpException
      */
     public function actionIndex()
     {
-        $searchModel = new StatusesDoctypesSearch();
+        $searchModel = new DocTypesSearch();
 
         if (!$searchModel->isAllowed('statuses.doctypes.view')) {
             throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
@@ -59,7 +59,7 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Displays a single StatusesDoctypes model.
+     * Displays a single DocTypes model.
      *
      * @param int $id
      * @return mixed
@@ -80,18 +80,18 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Finds the StatusesDoctypes model based on its primary key value.
+     * Finds the DocTypes model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      *
      * @param int $id
      *
-     * @return StatusesDoctypes the loaded model
+     * @return DocTypes the loaded model
      *
      * @throws NotFoundHttpException if the model cannot be found
      */
     protected function findModel($id)
     {
-        if (($model = StatusesDoctypes::findOne($id)) !== null) {
+        if (($model = DocTypes::findOne($id)) !== null) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
@@ -99,14 +99,14 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Creates a new StatusesDoctypes model.
+     * Creates a new DocTypes model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      * @throws ForbiddenHttpException
      */
     public function actionCreate()
     {
-        $model = new StatusesDoctypes();
+        $model = new DocTypes();
 
         if (!$model->isAllowed('statuses.doctypes.create')) {
             throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
@@ -122,7 +122,7 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Updates an existing StatusesDoctypes model.
+     * Updates an existing DocTypes model.
      * If update is successful, the browser will be redirected to the 'view' page.
      *
      * @param int $id
@@ -148,7 +148,7 @@ class StatusesDoctypesController extends Controller
     }
 
     /**
-     * Deletes an existing StatusesDoctypes model.
+     * Deletes an existing DocTypes model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      *
      * @param int $id

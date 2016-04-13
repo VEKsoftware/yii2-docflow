@@ -17,13 +17,13 @@ class m160401_000000_init extends Migration
 
         $this->createTable('doc_statuses', [
             'id' => $this->primaryKey(),
-            'doc_type' => $this->integer()->notNull(),
+            'doc_type_id' => $this->integer()->notNull(),
             'tag' => $this->string(128)->notNull()->unique(),
             'name' => $this->string(128)->notNull()->unique(),
             'description' => $this->string(512),
         ], null);
 
-        $this->addForeignKey('doc_statuses_doc_type_fkey', 'doc_statuses', 'doc_type', 'doc_types', 'id', 'CASCADE', 'CASCADE');
+        $this->addForeignKey('doc_statuses_doc_type_fkey', 'doc_statuses', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
 
         $this->createTable('doc_statuses_links', [
             'status_from' => $this->integer()->notNull(),
@@ -33,6 +33,18 @@ class m160401_000000_init extends Migration
 
         $this->addForeignKey('doc_statuses_links_statuses_id_fk1', 'doc_statuses_links', 'status_from', 'doc_statuses', 'id', 'CASCADE', 'CASCADE');
         $this->addForeignKey('doc_statuses_links_statuses_id_fk2', 'doc_statuses_links', 'status_to', 'doc_statuses', 'id', 'CASCADE', 'CASCADE');
+
+        // ????????
+        $this->createTable('doc_dynafields', [
+            'id' => $this->primaryKey(),
+            'doc_type_id' => $this->integer()->notNull(),
+            'tag' => $this->string(128)->notNull(), // field tag
+            'name' => $this->string(128)->notNull(), // Human readable name of the property
+            'description' => $this->string(512),
+        ], null);
+
+        $this->addForeignKey('doc_dynafields_doc_type_fkey', 'doc_dynafields', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
+
     }
 
     public function safeDown()

@@ -17,5 +17,8 @@
         "psr-4": {
             "docflow\\": ""
         }
+    },
+    "extra": {
+        "bootstrap": "docflow\\components\\InitDocflow"
     }
 }

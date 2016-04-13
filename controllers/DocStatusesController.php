@@ -1,11 +1,11 @@
 <?php
 
-namespace statuses\controllers;
+namespace docflow\controllers;
 
-use statuses\models\Statuses;
-use statuses\models\StatusesLinks;
-use statuses\models\StatusesLinksSearch;
-use statuses\models\StatusesSearch;
+use docflow\models\Statuses;
+use docflow\models\StatusesLinks;
+use docflow\models\StatusesLinksSearch;
+use docflow\models\StatusesSearch;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;

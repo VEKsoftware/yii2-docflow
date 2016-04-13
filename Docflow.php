@@ -46,8 +46,8 @@ class Statuses extends Module
     protected function checkAccessClassConfig()
     {
         $reflectionClass = new \ReflectionClass($this->accessClass);
-        if ($reflectionClass->implementsInterface('\statuses\StatusesAccessInterface') === false) {
-            throw new ErrorException('\statuses\Statuses::$accessClass must implement \statuses\StatusesAccessInterface.');
+        if ($reflectionClass->implementsInterface('\docflow\AccessInterface') === false) {
+            throw new ErrorException('\docflow\Docflow::$accessClass must implement \docflow\AccessInterface.');
         }
     }
 
@@ -56,12 +56,12 @@ class Statuses extends Module
      */
     public function registerTranslations()
     {
-        \Yii::$app->i18n->translations['statuses'] = [
+        \Yii::$app->i18n->translations['docflow'] = [
             'class' => 'yii\i18n\PhpMessageSource',
             'sourceLanguage' => 'en',
-            'basePath' => '@statuses/messages',
+            'basePath' => '@docflow/messages',
             'fileMap' => [
-                'statuses' => 'statuses.php',
+                'docflow' => 'docflow.php',
             ],
         ];
     }

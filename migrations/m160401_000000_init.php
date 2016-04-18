@@ -45,6 +45,28 @@ class m160401_000000_init extends Migration
 
         $this->addForeignKey('doc_dynafields_doc_type_fkey', 'doc_dynafields', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
 
+        // ????????
+        $this->createTable('doc_structure', [
+            'id' => $this->primaryKey(),
+            'doc_type_id' => $this->integer()->notNull(),
+            'tag' => $this->string(128)->notNull(), // category tag
+            'name' => $this->string(128)->notNull(), // Human readable name of the category
+            'description' => $this->string(512),
+        ], null);
+
+        $this->addForeignKey('doc_dynafields_doc_type_fkey', 'doc_dynafields', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
+
+        // ????????
+        $this->createTable('doc_structure_links', [
+            'id' => $this->primaryKey(),
+            'doc_type_id' => $this->integer()->notNull(),
+            'tag' => $this->string(128)->notNull(), // category tag
+            'name' => $this->string(128)->notNull(), // Human readable name of the category
+            'description' => $this->string(512),
+        ], null);
+
+        $this->addForeignKey('doc_dynafields_doc_type_fkey', 'doc_dynafields', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
+
     }
 
     public function safeDown()

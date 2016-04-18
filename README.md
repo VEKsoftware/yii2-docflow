@@ -1,4 +1,4 @@
-Statuses module
+Yii2 Docflow module
 ================================
 Description
 

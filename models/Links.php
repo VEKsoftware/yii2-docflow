@@ -215,14 +215,52 @@ abstract class Links extends CommonRecord
      */
     public function beforeDelete()
     {
+        $from = array_values(static::$_linkFrom)[0];
+        $to = array_values(static::$_linkTo)[0];
+        $level = static::$_levelField;
+        $type = static::$_typeField;
+
+        if($this->$type === self::LINK_TYPE_FLTREE) {
+
+            // $from may be NULL (the toppest level)
+            $from_old = $this->getOldAttribute($from);
+            if($from_old) {
+                $this->upperLinksOld = static::findUpperLinks($from_old, $this->extraWhere())->all();
+            }
+            $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
+        }
+
+        if(! parent::beforeSave($insert)) return false;
+
+        return true;
         return parent::beforeDelete();
     }
 
     /**
      * @inheritdoc
      */
-    public function afterSave()
+    public function afterDelete()
     {
+        $from = array_values(static::$_linkFrom)[0];
+        $to = array_values(static::$_linkTo)[0];
+        $level = static::$_levelField;
+        $type = static::$_typeField;
+
+        if($this->$type === self::LINK_TYPE_FLTREE) {
+
+            $lower = array_push($this->lowerLinks, $this->getOldAttribute($from));
+
+            // Here we delete old unnecessary links
+            if(!empty($this->upperLinksOld) && !empty($lower)) {
+                static::deleteAll(
+                    array_merge(
+                        ['and', [$from => $this->upperLinksOld], [$to => $this->lowerLinks], [$type => self::LINK_TYPE_FLTREE]],
+                        $this->extraWhere()
+                    )
+                );
+            }
+        }
+
         return parent::afterSave();
     }
 }

@@ -12,18 +12,23 @@ use yii\helpers\ArrayHelper;
  * This is an abstract class for handling relations between documents.
  *
  * @property int $id
- * @property int $doc_type
- * @property string $name
- * @property string $description
- * @property StatusesLinks[] $statusesLinks
- * @property StatusesLinks[] statusesLinksTo
- * @property string docTypeName
- * @property string symbolic_id
  * @property string fullName
  */
 abstract class Links extends CommonRecord
 {
+    const LINK_TYPE_SIMPLE = 'simple'; // Simple link one-to-one
+    const LINK_TYPE_FLTREE = 'fltree'; // Extended tree link where each model contains likns with each upper level model
+
     private static $_statuses;
+    protected static $_baseClass;
+    protected static $_linkFrom; // ['id' => 'upper_id']
+    protected static $_linkTo;   // ['id' => 'lower_id']
+    protected static $_levelField;
+    protected static $_typeField;
+
+    protected $upperLinksOld;
+    protected $upperLinksNew;
+    protected $lowerLinks;
 
     /**
      * {@inheritdoc}
@@ -34,127 +39,190 @@ abstract class Links extends CommonRecord
     }
 
     /**
-     * BaseClass is the class Links class handles relations for
+     * {@inheritdoc}
      */
-    public static function baseClass();
+    public static function transactions()
+    {
+        return [
+            'default' => OP_ALL,
+        ];
+    }
+
+    /**
+     * Return relation to source model this link refers to
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getBaseFrom()
+    {
+        return $this->hasOne(static::$_baseClass, static::$_linkFrom);
+    }
+
+    /**
+     * Return relation to destination model this link refers to
+     *
+     * @return \yii\db\ActiveQuery
+     */
+    public function getBaseTo()
+    {
+        $config = static::configLink();
+        return $this->hasOne($config['baseClass'], $config['linkTo']);
+    }
+
+    /**
+     * This method is used by child classes to enstrict the where clause of the queries like select and delete.
+     *
+     * @param mixed $param Whatever you want to send to this method
+     * @return minxed Structure as in [[yii\db\QueryInterface::where()]]
+     */
+    public function extraWhere()
+    {
+        return [];
+    }
+
+    /**
+     * For Flat Tree links return all lower level links
+     *
+     * @param mixed $id base model id for which we look for the lower level links
+     * @param mixed $param Extra where parameters in format of [[yii\db\QueryInterface::where()]]
+     * @return \yii\db\ActiveQuery
+     */
+    public static function findLowerLinks($id, $andWhere = NULL)
+    {
+        $from = array_values(static::$_linkFrom)[0];
+        $to = array_values(static::$_linkTo)[0];
+        $level = static::$_levelField;
+        $type = static::$_typeField;
+
+        $query = static::find()->where([$from => $id, $type => self::LINK_TYPE_FLTREE]);
+        if(! empty($andWhere)) {
+            $query->andWhere($andWhere);
+        }
+        return $query;
+    }
+
+    /**
+     * For Flat Tree links return all upper level links
+     *
+     * @param mixed $id base model id for which we look for the upper level links
+     * @param mixed $param Extra where parameters in format of [[yii\db\QueryInterface::where()]]
+     * @return \yii\db\ActiveQuery
+     */
+    public static function findUpperLinks($id, $andWhere = NULL)
+    {
+        $from = array_values(static::$_linkFrom)[0];
+        $to = array_values(static::$_linkTo)[0];
+        $level = static::$_levelField;
+        $type = static::$_typeField;
+
+        $query = static::find()->where([$to => $id, $type => self::LINK_TYPE_FLTREE]);
+        if(! empty($andWhere)) {
+            $query->andWhere($andWhere);
+        }
+        return $query;
+    }
 
     /**
      * @inheritdoc
      */
-    public static function instantiate($row)
+    public function beforeSave($insert)
     {
-        if(isset($row['link_type']))
-    }
+        $from = array_values(static::$_linkFrom)[0];
+        $to = array_values(static::$_linkTo)[0];
+        $level = static::$_levelField;
+        $type = static::$_typeField;
 
-    /**
-     * Find all statuses for the specific doc type.
-     *
-     * @param string $docType The symbolic tag of the document type
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public static function findStatuses($docType)
-    {
-        return static::find()
-            ->joinWith('docType')
-            ->where(['[[statuses_doctypes.symbolic_id]]' => $docType]);
-    }
-
-    /**
-     * Find all statuses allowed by access rights.
-     *
-     * @param string $docType The symbolic tag of the document type
-     * @param string|array $rightTag Right tag
-     * @return \yii\db\ActiveQuery
-     * @internal param string|string[] $symbolicId The symbolic tags of the rights
-     *
-     */
-    public static function findAvailableStatuses($docType, $rightTag)
-    {
-        return static::findStatuses($docType)
-            ->joinWith('linksTo')
-            ->andWhere(['[[linksTo.right_tag]]' => $rightTag]);
-    }
-
-    /**
-     * Return an array of all statuses for the specific doc type.
-     *
-     * @param string $docTypeId The symbolic id of the document type
-     * @return Statuses[]
-     */
-    public static function listStatuses($docTypeId)
-    {
-        if (!isset(static::$_statuses[$docTypeId])) {
-            static::$_statuses[$docTypeId] = static::findStatuses($docTypeId)->all();
+        // Prevent changing the type of link
+        if($this->oldAttributes[$type] !== $this->$type) {
+            throw new ErrorException('You cannot change the type of link. Only delete and create new.');
         }
 
-        return static::$_statuses[$docTypeId];
-    }
+        if($this->$type === self::LINK_TYPE_FLTREE) {
 
-    /**
-     * Return relation to DocType
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getDocType()
-    {
-        return $this->hasOne(StatusesDoctypes::className(), ['id' => 'doc_type']);
-    }
+            if($this->$to !== $this->getOldAttribute($to)) {
+                throw new ErrorException('Cannot change child. Only change parent is allowed.');
+            }
 
-    /**
-     * @return string|integer
-     */
-    public function getDocTypeName()
-    {
-        $list = $this->docTypeLabels();
-
-        if (!empty($list) && isset($list[$this->doc_type])) {
-            return $list[$this->doc_type];
+            // $from may be NULL (the toppest level)
+            if($this->$from) {
+                $this->upperLinksNew = static::findUpperLinks($this->$from, $this->extraWhere())->all();
+            }
+            $from_old = $this->getOldAttribute($from);
+            if($from_old) {
+                $this->upperLinksOld = static::findUpperLinks($from_old, $this->extraWhere())->all();
+            }
+            $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
         }
 
-        return $this->doc_type;
+        if(! parent::beforeSave($insert)) return false;
+
+        return true;
     }
 
     /**
-     * Doc types labels.
-     *
-     * @return array
+     * @inheritdoc
      */
-    public function docTypeLabels()
+    public function afterSave($insert, $changed_attributes)
     {
-        return StatusesDoctypes::createDropdown();
-    }
+        $config = static::configLink();
+        $from = array_values($config['linkFrom'])[0];
+        $to = array_values($config['linkTo'])[0];
+        $level = $config['level_field'];
+        $link_type = $config['type_field'];
+        parent::afterSave($insert, $changed_attributes);
 
-    public function getAvailableStatuses($rightIds = null)
-    {
-        return $this->hasMany(self::className(), ['id' => 'status_to'])
-            ->via('linksFrom', function ($q) use ($rightIds) {
-                /** @var ActiveQueryInterface $q */
-                $q->andFilterWhere(['right_tag' => $rightIds]);
-            });
+        if($this->$type === self::LINK_TYPE_FLTREE) {
+
+            // If parent is unchagned, we just stop here. Change of child is not allowed as yet.
+            if($this->$from === $this->getOldAttribute($from)) return;
+
+            $lower = array_push($this->lowerLinks, $this->getOldAttribute($from));
+
+            // Here we delete old unnecessary links
+            if(!empty($this->upperLinksOld) && !empty($lower)) {
+                static::deleteAll(
+                    array_merge(
+                        ['and', [$from => $this->upperLinksOld], [$to => $this->lowerLinks], [$type => self::LINK_TYPE_FLTREE]],
+                        $this->extraWhere()
+                    )
+                );
+            }
+
+            // And then we add new relations
+            if(!empty($this->upperLinksNew) && !empty($lower)) {
+                $inserts = [];
+                $attributes = $this->attributes;
+
+                // if there is a serial field id, we remove it from the array
+                unset($attributes['id']);
+
+                foreach($this->upperLinksNew as $boss) {
+                    foreach($lower as $dept) {
+                        if(! $boss) continue;
+                        $attributes[$from] = $boss->$to;
+                        $attributes[$to] = $dept->$to;
+                        $attributes[$level] = $boss->$level + $dept->$level; // +1;?
+                        array_push($inserts, array_values($attributes));
+                    }
+                }
+                static::getDb()->createCommand()->batchInsert(static::tableName(), array_keys($attributes), $inserts)->execute();
+            }
+        }
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @inheritdoc
      */
-    public function getLinksFrom()
+    public function beforeDelete()
     {
-        return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id']);
+        return parent::beforeDelete();
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @inheritdoc
      */
-    public function getLinksTo()
+    public function afterSave()
     {
-        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id']);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getFullName()
-    {
-        return $this->docTypeName . ' - ' . $this->symbolic_id . ' - ' . $this->name;
+        return parent::afterSave();
     }
 }

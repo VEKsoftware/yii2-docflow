@@ -22,7 +22,7 @@ use yii\helpers\ArrayHelper;
  * @property string $changedByField         Field in the table to store the author of the changes (Yii::$app->user->id). Default: changed_by
  * @property string $timeField              Field where the time of last change is stored. Default: atime
  */
-class MultipleLog extends Log
+class LogMultiple extends Log
 {
     protected static $_eventSwitched = false;
 

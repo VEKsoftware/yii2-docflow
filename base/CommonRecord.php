@@ -1,16 +1,16 @@
 <?php
-namespace statuses\components;
+namespace docflow\base;
 
 use Yii;
 use yii\db\ActiveRecord;
 use yii\base\ErrorException;
 
-use statuses\Statuses;
+use docflow\Docflow;
 
 class CommonRecord extends ActiveRecord
 {
     public static function getDb() {
-        $instance = Statuses::getInstance();
+        $instance = Docflow::getInstance();
         if($instance === NULL) {
             throw new ErrorException('You should use this class through yii2-status module.');
         } elseif(!$instance->db) {

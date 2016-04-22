@@ -2,7 +2,7 @@
 
 namespace statuses\models;
 
-use statuses\components\CommonRecord;
+use docflow\base\CommonRecord;
 use Yii;
 use yii\base\InvalidParamException;
 use yii\db\ActiveQueryInterface;

@@ -10,7 +10,7 @@ class InitDocflow extends Component implements BootstrapInterface
     public function bootstrap($app) {
         parent::init();
 
-        $app->on(\yii\base\Application::EVENT_BEFORE_REQUEST, function ($event) use $app {
+        $app->on(\yii\base\Application::EVENT_BEFORE_REQUEST, function ($event) use ($app) {
             $app->set('doc', 'docflow\components\DocComponent');
         });
     }

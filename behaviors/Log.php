@@ -1,6 +1,6 @@
 <?php
 
-namespace log\behaviors;
+namespace docflow\behaviors;
 
 use Yii;
 use yii\base\Behavior;

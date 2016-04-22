@@ -1,8 +1,8 @@
 <?php
 
-namespace statuses\models;
+namespace docflow\models;
 
-use statuses\components\CommonRecord;
+use docflow\base\CommonRecord;
 use Yii;
 use yii\helpers\ArrayHelper;
 

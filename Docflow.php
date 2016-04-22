@@ -1,24 +1,23 @@
 <?php
 
-namespace statuses;
+namespace docflow;
 
 use yii\base\ErrorException;
 use yii\base\Module;
 
 /**
- * Main class for Statuses module.
+ * Main class for yii2-docflow module.
  */
-class Statuses extends Module
+class Docflow extends Module
 {
     /**
-     * @inherit
+     * @inheritdoc
      */
-    public $controllerNamespace = 'statuses\controllers';
+    public $controllerNamespace = 'docflow\controllers';
 
     /** @var string $db Database component to use in the module */
     public $db;
 
-    /** @var StatusesAccessInterface $accessClass Class for access methods, implements StatusesAccessInterface */
     public $accessClass;
 
     /**
@@ -27,7 +26,7 @@ class Statuses extends Module
     public function init()
     {
         parent::init();
-        $this->checkAccessClassConfig();
+//        $this->checkAccessClassConfig();
         $this->registerTranslations();
     }
 

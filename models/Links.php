@@ -54,13 +54,24 @@ abstract class Links extends CommonRecord
     }
 
     /**
+     * This method is used by child classes to enstrict the where clause of the queries like select and delete.
+     *
+     * @param mixed $param Whatever you want to send to this method
+     * @return minxed Structure as in [[yii\db\QueryInterface::where()]]
+     */
+    public function extraWhere()
+    {
+        return [];
+    }
+
+    /**
      * Return relation to source model this link refers to
      *
      * @return \yii\db\ActiveQuery
      */
     public function getBaseFrom()
     {
-        return $this->hasOne(static::$_baseClass, static::$_linkFrom);
+        return $this->hasOne(static::$_baseClass, static::$_linkFrom)->andFilterWhere($this->extraWhere());
     }
 
     /**
@@ -70,19 +81,7 @@ abstract class Links extends CommonRecord
      */
     public function getBaseTo()
     {
-        $config = static::configLink();
-        return $this->hasOne($config['baseClass'], $config['linkTo']);
-    }
-
-    /**
-     * This method is used by child classes to enstrict the where clause of the queries like select and delete.
-     *
-     * @param mixed $param Whatever you want to send to this method
-     * @return minxed Structure as in [[yii\db\QueryInterface::where()]]
-     */
-    public function extraWhere()
-    {
-        return [];
+        return $this->hasOne(static::$_baseClass, static::$_linkTo)->andFilterWhere($this->extraWhere());
     }
 
     /**
@@ -144,6 +143,10 @@ abstract class Links extends CommonRecord
 
         if($this->$type === self::LINK_TYPE_FLTREE) {
             if($insert) $this->$level = 1;
+
+            if($this->$level !== 1) {
+                throw new ErrorException('You cannot change supplementary link (whith level > 1)');
+            }
 
             if(! $insert && $this->$to !== $this->getOldAttribute($to)) {
                 throw new ErrorException('Cannot change child. Only change parent is allowed.');
@@ -236,6 +239,10 @@ abstract class Links extends CommonRecord
 
         if($this->$type === self::LINK_TYPE_FLTREE) {
 
+            if($this->$level !== 1) {
+                throw new ErrorException('You cannot delete supplementary link (whith level > 1)');
+            }
+
             // $from may be NULL (the toppest level)
             $from_old = $this->getOldAttribute($from);
             if($from_old) {
@@ -267,7 +274,7 @@ abstract class Links extends CommonRecord
 
             // Here we delete old unnecessary links
             if(!empty($this->upperLinksOld) && !empty($lower)) {
-                $upper = ArrayHelper::getColumn($this->upperLinksOld, $to);
+                $upper = ArrayHelper::getColumn($this->upperLinksOld, $from);
                 static::deleteAll(
                     array_merge(
                         [

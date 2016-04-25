@@ -141,6 +141,8 @@ abstract class Links extends CommonRecord
             throw new ErrorException('You cannot change the type of link. Only delete and create new.');
         }
 
+        if(! parent::beforeSave($insert)) return false;
+
         if($this->$type === self::LINK_TYPE_FLTREE) {
             if($insert) $this->$level = 1;
 
@@ -148,7 +150,7 @@ abstract class Links extends CommonRecord
                 throw new ErrorException('You cannot change supplementary link (whith level > 1)');
             }
 
-            if(! $insert && $this->$to !== $this->getOldAttribute($to)) {
+            if(! $insert && $this->$to != $this->getOldAttribute($to)) {
                 throw new ErrorException('Cannot change child. Only change parent is allowed.');
             }
 
@@ -162,9 +164,31 @@ abstract class Links extends CommonRecord
                 $this->upperLinksOld = static::findUpperLinks($this->from_old, $this->extraWhere())->all();
             }
             $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
+
+            // If parent is unchagned, we just stop here. Change of child is not allowed as yet.
+            if($this->from_new === $this->from_old) return;
+
+            $lower = ArrayHelper::getColumn($this->lowerLinks,$to);
+            array_push($lower, $this->getOldAttribute($to));
+            $upperOld = $this->upperLinksOld ? ArrayHelper::getColumn($this->upperLinksOld,$from) : NULL;
+
+            // Here we delete old unnecessary links
+            if(!empty($upperOld) && !empty($lower)) {
+                static::deleteAll(
+                    array_merge(
+                        [
+                            'and',
+                            [$from => $upperOld],
+                            [$to => $lower],
+                            [$type => self::LINK_TYPE_FLTREE]
+                        ],
+                        [$this->extraWhere()]
+                    )
+                );
+            }
+
         }
 
-        if(! parent::beforeSave($insert)) return false;
 
         return true;
     }
@@ -187,23 +211,7 @@ abstract class Links extends CommonRecord
 
             $lower = ArrayHelper::getColumn($this->lowerLinks,$to);
             array_push($lower, $this->getOldAttribute($to));
-            $upperOld = $this->upperLinksOld ? ArrayHelper::getColumn($this->upperLinksOld,$from) : NULL;
             $upperNew = $this->upperLinksNew ? ArrayHelper::getColumn($this->upperLinksNew,$from) : NULL;
-
-            // Here we delete old unnecessary links
-            if(!empty($upperOld) && !empty($lower)) {
-                static::deleteAll(
-                    array_merge(
-                        [
-                            'and',
-                            [$from => $upperOld],
-                            [$to => $lower],
-                            [$type => self::LINK_TYPE_FLTREE]
-                        ],
-                        [$this->extraWhere()]
-                    )
-                );
-            }
 
             // And then we add new relations
             if(!empty($upperNew) && !empty($lower)) {

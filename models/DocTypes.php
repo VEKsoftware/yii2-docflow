@@ -2,10 +2,12 @@
 
 namespace docflow\models;
 
-use docflow\base\CommonRecord;
 use Yii;
 use yii\helpers\ArrayHelper;
 
+use docflow\base\CommonRecord;
+use docflow\Docflow;
+use docflow\models\Statuses;
 /**
  * This is the model class for table "statuses_doctypes".
  *
@@ -16,6 +18,8 @@ use yii\helpers\ArrayHelper;
  */
 class DocTypes extends CommonRecord
 {
+    protected static $_doctypes;
+
     /**
      * {@inheritdoc}
      */
@@ -30,20 +34,11 @@ class DocTypes extends CommonRecord
     public function rules()
     {
         return [
-            [['name', 'symbolic_id'], 'required'],
-            [['name', 'symbolic_id'], 'string', 'max' => 200],
-            [['symbolic_id'], 'unique'],
-            ['symbolic_id', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
+            [['name', 'tag'], 'required'],
+            [['name', 'tag'], 'string', 'max' => 128],
+            [['tag'], 'unique'],
+            ['tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
         ];
-    }
-
-    /**
-     * @param $doc_string
-     * @return static
-     */
-    public static function findDoc($doc_string)
-    {
-        return static::find()->where(['symbolic_id' => $doc_string])->one();
     }
 
     /**
@@ -53,8 +48,8 @@ class DocTypes extends CommonRecord
     {
         return [
             'id' => Yii::t('statuses', 'ID'),
-            'name' => Yii::t('statuses', 'Statuses Doctypes Name'),
-            'symbolic_id' => Yii::t('statuses', 'Statuses Doctypes Symbolic ID'),
+            'name' => Yii::t('statuses', 'Document Name'),
+            'tag' => Yii::t('statuses', 'Document Tag'),
         ];
     }
 
@@ -65,17 +60,33 @@ class DocTypes extends CommonRecord
     {
         return [
             'access' => [
-                'class' => \statuses\Statuses::getInstance()->accessClass,
+                'class' => Docflow::getInstance()->accessClass,
             ],
         ];
     }
 
     /**
-     * @return static[] List of doc types
+     * @param $doc_string
+     * @return static
      */
-    public static function listDocs()
+    public static function getDoc($doc_string)
     {
-        return static::findDocs()->all();
+        $doctypes = static::getDocs();
+        if(isset($doctypes[$doc_string])) {
+            return $doctypes[$doc_string];
+        }
+        return NULL;
+    }
+
+    /**
+     * @return static[] array of doc types
+     */
+    public static function getDocs()
+    {
+        if(empty(static::$_doctypes)) {
+            static::$_doctypes = static::findDocs()->all();
+        }
+        return static::$_doctypes;
     }
 
     /**
@@ -83,7 +94,7 @@ class DocTypes extends CommonRecord
      */
     public static function findDocs()
     {
-        return static::find();
+        return static::find()->indexBy('tag');
     }
 
     /**
@@ -91,6 +102,6 @@ class DocTypes extends CommonRecord
      */
     public function getStatuses()
     {
-        return $this->hasMany(\statuses\models\Statuses::className(), ['doc_type' => 'id'])->indexBy('symbolic_id');
+        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->indexBy('tag')->inverseOf('docType');
     }
 }

@@ -1,9 +1,12 @@
 <?php
 
-namespace statuses\models;
+namespace docflow\models;
 
-use docflow\base\CommonRecord;
 use Yii;
+
+use docflow\Docflow;
+use docflow\models\Links;
+use docflow\models\Statuses;
 
 /**
  * This is the model class for table "statuses_links".
@@ -14,22 +17,20 @@ use Yii;
  * @property Statuses $statusFrom
  * @property Statuses $statusTo
  */
-class StatusesLinks extends CommonRecord
+class StatusesLinks extends Links
 {
+    protected static $_baseClass = 'docflow\models\Statuses';
+    protected static $_linkFrom = ['id' => 'status_from']; // ['id' => 'upper_id']
+    protected static $_linkTo = ['id' => 'status_to'];   // ['id' => 'lower_id']
+    protected static $_levelField = 'level';
+    protected static $_typeField = 'link_type';
+
     /**
      * {@inheritdoc}
      */
     public static function tableName()
     {
-        return '{{%statuses_links}}';
-    }
-
-    /**
-     * list of primary keys for model identification.
-     */
-    public static function primaryKey()
-    {
-        return ['status_from', 'status_to', 'right_tag'];
+        return '{{%doc_statuses_links}}';
     }
 
     /**
@@ -42,27 +43,8 @@ class StatusesLinks extends CommonRecord
             [['status_from', 'status_to'], 'integer'],
             [['right_tag'], 'string'],
             ['right_tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
-            [['status_from', 'status_to', 'right_tag'], 'validateExists'],
-            ['right_tag', 'unique',],
+            [['status_from', 'status_to'], 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'id'],
         ];
-    }
-
-    /**
-     * check DB for unique link (exists or not).
-     */
-    public function validateExists()
-    {
-        $link = self::find()
-            ->where([
-                'status_from' => $this->status_from,
-                'status_to' => $this->status_to,
-                'right_tag' => $this->right_tag,
-            ])
-            ->one();
-
-        if (!is_null($link)) {
-            $this->addError('status_from', Yii::t('statuses', 'Statuses Links is exists.'));
-        }
     }
 
     /**
@@ -71,15 +53,12 @@ class StatusesLinks extends CommonRecord
     public function attributeLabels()
     {
         return [
-            'status_from' => Yii::t('statuses', 'Statuses Links Status From'),
-            'status_to' => Yii::t('statuses', 'Statuses Links Status To'),
-            'right_tag' => Yii::t('statuses', 'Statuses Links Right'),
-
-            'statusName' => Yii::t('statuses', 'Statuses Links Status To'),
-            'rightName' => Yii::t('statuses', 'Statuses Links Right ID'),
-
-            'right' => Yii::t('statuses', 'Statuses Links Right'),
-        ];
+            'status_from' => Yii::t('docflow', 'Source Status'),
+            'status_to' => Yii::t('docflow', 'Destination Status'),
+            'right_tag' => Yii::t('docflow', 'Access Right Tag'),
+            'level' => Yii::t('docflow', 'Link Level'),
+            'type' => Yii::t('docflow', 'Link Type'),
+        ] + parent::attributeLabels();
     }
 
     /**
@@ -89,32 +68,9 @@ class StatusesLinks extends CommonRecord
     {
         return [
             'access' => [
-                'class' => \statuses\Statuses::getInstance()->accessClass,
+                'class' => Docflow::getInstance()->accessClass,
             ],
         ];
     }
 
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusFrom()
-    {
-        return $this->hasOne(Statuses::className(), ['id' => 'status_from']);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusTo()
-    {
-        return $this->hasOne(Statuses::className(), ['id' => 'status_to']);
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function getStatusName()
-    {
-        return $this->statusTo->symbolic_id . ' - ' . $this->statusTo->name;
-    }
 }

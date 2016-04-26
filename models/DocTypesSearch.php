@@ -1,12 +1,12 @@
 <?php
 
-namespace statuses\models;
+namespace docflow\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
 /**
- * DocTypesSearch represents the model behind the search form about `statuses\models\DocTypes`.
+ * DocTypesSearch represents the model behind the search form about `docflow\models\DocTypes`.
  */
 class DocTypesSearch extends DocTypes
 {
@@ -17,17 +17,8 @@ class DocTypesSearch extends DocTypes
     {
         return [
             [['id'], 'integer'],
-            [['name', 'symbolic_id'], 'string'],
+            [['name', 'tag'], 'string'],
         ];
-    }
-
-    /**
-     * {@inheritdoc}
-     */
-    public function scenarios()
-    {
-        // bypass scenarios() implementation in the parent class
-        return Model::scenarios();
     }
 
     /**
@@ -48,8 +39,7 @@ class DocTypesSearch extends DocTypes
         $this->load($params);
 
         if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
+            $query->where('0=1');
             return $dataProvider;
         }
 
@@ -58,7 +48,8 @@ class DocTypesSearch extends DocTypes
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'symbolic_id', $this->symbolic_id]);
+            ->andFilterWhere(['like', 'tag', $this->name])
+        ;
 
         return $dataProvider;
     }

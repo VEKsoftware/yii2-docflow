@@ -16,7 +16,7 @@ use yii\web\NotFoundHttpException;
 /**
  * StatusesController implements the CRUD actions for Statuses model.
  */
-class StatusesController extends Controller
+class DocStatusesController extends Controller
 {
     public function behaviors()
     {

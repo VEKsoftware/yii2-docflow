@@ -2,6 +2,7 @@
 
 use yii\helpers\Html;
 use yii\widgets\DetailView;
+use yii\grid\GridView;
 
 /* @var $this yii\web\View */
 /* @var $model statuses\models\DocTypes */
@@ -30,8 +31,30 @@ $this->params['breadcrumbs'][] = $this->title;
         'attributes' => [
             'id',
             'name',
-            'symbolic_id',
+            'tag',
+            'status.name',
         ],
     ]) ?>
 
+    <p>
+        <?= Html::a(Yii::t('statuses', 'Create Statuses'), ['create'], ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        'filterModel' => $searchModel,
+        'columns' => [
+            ['class' => 'yii\grid\SerialColumn'],
+            'tag',
+            'name',
+            'description',
+            [
+                'label' => '',
+                'format' => 'raw',
+                'value' => function ($model, $key) {
+                    return Html::a(Yii::t('statuses', 'View Statuses'), ['view', 'id' => $key]);
+                },
+            ],
+        ],
+    ]); ?>
 </div>

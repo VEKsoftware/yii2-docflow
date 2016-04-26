@@ -13,7 +13,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'doc_type')->dropDownList($model->docTypeLabels()); ?>
 
-    <?= $form->field($model, 'symbolic_id')
+    <?= $form->field($model, 'tag')
         ->textInput(['maxlength' => true])
         ->hint(Yii::t('statuses', 'Allowed symbols: a-Z, dot, underscore, dash'));
     ?>

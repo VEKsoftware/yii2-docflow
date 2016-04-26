@@ -8,7 +8,7 @@ use yii\db\ActiveQueryInterface;
 use yii\helpers\ArrayHelper;
 
 use docflow\Docflow;
-use docflow\base\CommonRecord;
+use docflow\models\Document;
 
 /**
  * This is the model class for table "statuses". It is user through model DocTypes.
@@ -21,10 +21,10 @@ use docflow\base\CommonRecord;
  * @property StatusesLinks[] $statusesLinks
  * @property StatusesLinks[] statusesLinksTo
  * @property string docTypeName
- * @property string symbolic_id
+ * @property string tag
  * @property string fullName
  */
-class Statuses extends CommonRecord
+class Statuses extends Document
 {
 
     /**
@@ -33,6 +33,14 @@ class Statuses extends CommonRecord
     public static function tableName()
     {
         return '{{%doc_statuses}}';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function docTag()
+    {
+        return 'status';
     }
 
     /**
@@ -77,16 +85,6 @@ class Statuses extends CommonRecord
     }
 
     /**
-     * Return relation to DocType
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getDocType()
-    {
-        return $this->hasOne(DocTypes::className(), ['id' => 'doc_type_id']);
-    }
-
-    /**
      * List of statuses available for transition to with the ceratin access right.
      *
      * @return \yii\db\ActiveQuery
@@ -94,16 +92,26 @@ class Statuses extends CommonRecord
     public function getAvailableStatuses($rightIds = null)
     {
         return $this->hasMany(self::className(), ['id' => 'status_to'])
-            ->via('linksFrom', function ($q) use ($rightIds) {
+            ->via('linksTo', function ($q) use ($rightIds) {
                 /** @var ActiveQueryInterface $q */
                 $q->andFilterWhere(['right_tag' => $rightIds]);
             });
     }
 
     /**
+     * The method returns a list of links leading to the source statuses of the current one
      * @return \yii\db\ActiveQuery
      */
     public function getLinksFrom()
+    {
+        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id']);
+    }
+
+    /**
+     * The method returns a list of links leading to the target statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksTo()
     {
         return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id']);
     }
@@ -111,9 +119,62 @@ class Statuses extends CommonRecord
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getLinksTo()
+    public function getStatusesTo()
     {
-        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id']);
+        return $this->hasMany(static::className(), ['id' => 'status_to'])
+            ->via('linksTo')
+        ;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusesLower()
+    {
+        return $this->hasMany(static::className(), ['id' => 'status_to'])
+            ->via('linksTo', function($q){
+                $q->andWhere(['type' => static::LINK_TYPE_FLTREE]);
+            })
+        ;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusesUpper()
+    {
+        return $this->hasMany(static::className(), ['id' => 'status_from'])
+            ->via('linksFrom', function($q){
+                $q->andWhere(['type' => static::LINK_TYPE_FLTREE]);
+            })
+        ;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getDocType()
+    {
+        return $this->hasOne(DocType::className(), ['id' => 'doc_type_id']);
+    }
+
+    /**
+     * Check if the target status allowed
+     * @return boolean is the target status allowed to be set?
+     */
+    public function rightsForStatusTo($statusTag)
+    {
+        $docType = $this->docType;
+
+        /** @var \docflow\models\Statuses $statusTo */
+        $statusTo = ArrayHelper::getValue($docType->statuses, $statusTag);
+        if (!isset($statusTo)) {
+            return [];
+        }
+
+        // Получаем ссылки где status_to равен нашему $statusTo
+        $linksTo = $statusTo->linksTo;
+        return array_unique(array_filter(ArrayHelper::getColumn($linksTo, 'right_tag')));
     }
 
 }

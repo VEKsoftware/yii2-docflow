@@ -41,7 +41,7 @@ $this->params['breadcrumbs'][] = $this->title;
                 'format' => 'raw',
                 'value' => $model->docTypeName,
             ],
-            'symbolic_id',
+            'tag',
             'name',
             'description',
         ],
@@ -88,6 +88,28 @@ $this->params['breadcrumbs'][] = $this->title;
                         'status_to' => $model->status_to,
                         'right_tag' => $model->right_tag,
                     ]);
+                },
+            ],
+        ],
+    ]); ?>
+
+    <p>
+        <?= Html::a(Yii::t('docflow', 'Create Status'), ['create'], ['class' => 'btn btn-success']) ?>
+    </p>
+
+    <?= GridView::widget([
+        'dataProvider' => $dataProvider,
+        'filterModel' => $searchModel,
+        'columns' => [
+            ['class' => 'yii\grid\SerialColumn'],
+            'tag',
+            'name',
+            'description',
+            [
+                'label' => '',
+                'format' => 'raw',
+                'value' => function ($model, $key) {
+                    return Html::a(Yii::t('docflow', 'View Statuses'), ['view', 'id' => $key]);
                 },
             ],
         ],

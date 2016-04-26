@@ -1,6 +1,6 @@
 <?php
 
-namespace statuses\models;
+namespace docflow\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -17,8 +17,8 @@ class StatusesSearch extends Statuses
     public function rules()
     {
         return [
-            [['id', 'doc_type'], 'integer'],
-            [['name', 'description', 'symbolic_id'], 'string'],
+            [['id', 'doc_type_id'], 'integer'],
+            [['name', 'description', 'tag'], 'string'],
         ];
     }
 
@@ -53,11 +53,11 @@ class StatusesSearch extends Statuses
 
         $query->andFilterWhere([
             'id' => $this->id,
-            'doc_type' => $this->doc_type,
+            'doc_type_id' => $this->doc_type_id,
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
-        ->andFilterWhere(['like', 'symbolic_id', $this->symbolic_id]);
+        ->andFilterWhere(['like', 'tag', $this->tag]);
 
         return $dataProvider;
     }
@@ -73,7 +73,7 @@ class StatusesSearch extends Statuses
             ->where([
                 'and',
                 ['not', ['id' => $model->id]],
-                ['doc_type' => $model->doc_type],
+                ['doc_type_id' => $model->doc_type_id],
             ]);
 
         $dataProvider = new ActiveDataProvider([
@@ -86,7 +86,7 @@ class StatusesSearch extends Statuses
         }
 
         $query->andFilterWhere(['like', 'name', $this->name])
-        ->andFilterWhere(['like', 'symbolic_id', $this->symbolic_id]);
+        ->andFilterWhere(['like', 'tag', $this->tag]);
 
         return $dataProvider;
     }

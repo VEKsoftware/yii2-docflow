@@ -5,7 +5,7 @@ namespace docflow\models;
 use Yii;
 
 use docflow\Docflow;
-use docflow\models\Links;
+use docflow\models\Link;
 use docflow\models\Statuses;
 
 /**
@@ -17,7 +17,7 @@ use docflow\models\Statuses;
  * @property Statuses $statusFrom
  * @property Statuses $statusTo
  */
-class StatusesLinks extends Links
+class StatusesLinks extends Link
 {
     protected static $_baseClass = 'docflow\models\Statuses';
     protected static $_linkFrom = ['id' => 'status_from']; // ['id' => 'upper_id']
@@ -73,4 +73,18 @@ class StatusesLinks extends Links
         ];
     }
 
+    public static function instantiate($row)
+    {
+        if(! isset($row['type'])) {
+            throw new ErrorException('You need pass doc_statuses type in the $row parameter for instantiation of the StatusesLinks model');
+        }
+        switch($row['type']) {
+        case(static::LINK_TYPE_SIMPLE):
+            return new StatusesLinksTransitions($row);
+        case(static::LINK_TYPE_FLTREE):
+            return new StatusesLinksStructure($row);
+        default:
+            throw new ErrorException('Unknonw doc_statuses_links link type');
+        }
+    }
 }

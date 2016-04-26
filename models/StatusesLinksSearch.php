@@ -1,13 +1,13 @@
 <?php
 
-namespace statuses\models;
+namespace docflow\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveQuery;
 
 /**
- * StatusesLinksSearch represents the model behind the search form about `statuses\models\Statuses`.
+ * StatusesLinksSearch represents the model behind the search form about `docflow\models\Statuses`.
  */
 class StatusesLinksSearch extends StatusesLinks
 {
@@ -64,8 +64,8 @@ class StatusesLinksSearch extends StatusesLinks
                 /** @var ActiveQuery $query */
                 $query->where([
                     'or',
-                    '"statuses"."name" LIKE ' . "'%" . $this->statusName . "%'",
-                    '"statuses"."symbolic_id" LIKE ' . "'%" . $this->statusName . "%'",
+                    ['like','doc_statuses.name', $this->statusName],
+                    ['like','doc_statuses.tag', $this->statusName],
                 ]);
             }]);
 //            ->joinWith(['right' => function ($query) {
@@ -77,10 +77,10 @@ class StatusesLinksSearch extends StatusesLinks
             'attributes' => [
                 'statusName' => [
                     'asc' => [
-                        'statuses.name' => SORT_ASC,
+                        'doc_statuses.name' => SORT_ASC,
                     ],
                     'desc' => [
-                        'statuses.name' => SORT_DESC,
+                        'doc_statuses.name' => SORT_DESC,
                     ],
                     'default' => SORT_ASC,
                 ],

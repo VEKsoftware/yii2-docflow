@@ -19,7 +19,7 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name') ?>
 
-    <?= $form->field($model, 'symbolic_id') ?>
+    <?= $form->field($model, 'tag') ?>
 
     <div class="form-group">
         <?= Html::submitButton(Yii::t('statuses', 'Search'), ['class' => 'btn btn-primary']) ?>

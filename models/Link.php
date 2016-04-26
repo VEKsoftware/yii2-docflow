@@ -2,7 +2,6 @@
 
 namespace docflow\models;
 
-use docflow\base\CommonRecord;
 use Yii;
 
 use yii\base\InvalidParamException;
@@ -11,13 +10,15 @@ use yii\base\ErrorException;
 use yii\db\ActiveQueryInterface;
 use yii\helpers\ArrayHelper;
 
+use docflow\base\CommonRecord;
+
 /**
  * This is an abstract class for handling relations between documents.
  *
  * @property int $id
  * @property string fullName
  */
-abstract class Links extends CommonRecord
+abstract class Link extends CommonRecord
 {
     const LINK_TYPE_SIMPLE = 'simple'; // Simple link one-to-one
     const LINK_TYPE_FLTREE = 'fltree'; // Extended tree link where each model contains likns with each upper level model

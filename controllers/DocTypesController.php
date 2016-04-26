@@ -2,14 +2,22 @@
 
 namespace docflow\controllers;
 
-use docflow\models\DocTypes;
-use docflow\models\DocTypesSearch;
 use Yii;
+
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
+
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
+
+use docflow\models\DocTypes;
+use docflow\models\DocTypesSearch;
+
+use docflow\models\Statuses;
+use docflow\models\StatusesLinks;
+use docflow\models\StatusesLinksSearch;
+use docflow\models\StatusesSearch;
 
 /**
  * DocTypesController implements the CRUD actions for DocTypes model.
@@ -46,9 +54,9 @@ class DocTypesController extends Controller
     {
         $searchModel = new DocTypesSearch();
 
-        if (!$searchModel->isAllowed('statuses.doctypes.view')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
-        }
+//        if (!$searchModel->isAllowed('statuses.doctypes.view')) {
+//            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+//        }
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -74,8 +82,17 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
         }
 
+        $searchModel = new StatusesSearch(['doc_type_id' => $id]);
+        if (!$searchModel->isAllowed('statuses.statuses.view')) {
+            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        }
+
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+
         return $this->render('view', [
             'model' => $model,
+            'searchModel' => $searchModel,
+            'dataProvider' => $dataProvider,
         ]);
     }
 

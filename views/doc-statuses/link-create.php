@@ -48,7 +48,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         'filter' => false,
                     ],
                     [
-                        'attribute' => 'symbolic_id',
+                        'attribute' => 'tag',
                     ],
                     [
                         'attribute' => 'name',

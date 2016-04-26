@@ -33,7 +33,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
                 },
             ],
-            'symbolic_id',
+            'tag',
             'name',
             'description',
             [

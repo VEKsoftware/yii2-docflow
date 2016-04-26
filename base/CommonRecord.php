@@ -2,12 +2,12 @@
 namespace docflow\base;
 
 use Yii;
-use yii\db\ActiveRecord;
 use yii\base\ErrorException;
 
 use docflow\Docflow;
+use docflow\base\MultipleActiveRecord;
 
-class CommonRecord extends ActiveRecord
+class CommonRecord extends MultipleActiveRecord
 {
     public static function getDb() {
         $instance = Docflow::getInstance();

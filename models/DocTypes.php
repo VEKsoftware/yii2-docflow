@@ -8,6 +8,7 @@ use yii\helpers\ArrayHelper;
 use docflow\Docflow;
 use docflow\models\Document;
 use docflow\models\Statuses;
+use docflow\behaviors\StatusBehavior;
 /**
  * This is the model class for table "statuses_doctypes".
  *
@@ -36,8 +37,8 @@ class DocTypes extends Document
         return [
             [['name', 'tag'], 'required'],
             [['name', 'tag'], 'string', 'max' => 128],
-            ['statusTag', 'string', 'max' => 128],
-            ['statusTag', 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'tag', 'filter' => ['doc_type_id' => $this->id]],
+//            ['statusTag', 'string', 'max' => 128],
+//            ['statusTag', 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'tag', 'filter' => ['doc_type_id' => $this->id]],
             [['tag'], 'unique'],
             ['tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
         ];
@@ -76,10 +77,13 @@ class DocTypes extends Document
             'access' => [
                 'class' => $module->accessClass,
             ],
+/*
             [
-                'class' => '\docflow\behaviors\StatusBehavior',
+                'class' => StatusBehavior::className(),
                 'statusIdField' => 'status_id',
+                'newStatusTag' => 'active',
             ],
+*/
         ];
     }
 

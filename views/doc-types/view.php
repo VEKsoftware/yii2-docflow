@@ -1,5 +1,7 @@
 <?php
 
+use Yii;
+
 use yii\helpers\Html;
 use yii\helpers\Url;
 
@@ -15,7 +17,7 @@ use execut\widget\TreeView;
 /* @var $model statuses\models\DocTypes */
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('statuses', 'Statuses Doctypes'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses Doctypes'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-doctypes-view">
@@ -23,11 +25,11 @@ $this->params['breadcrumbs'][] = $this->title;
     <h1><?= Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a(Yii::t('statuses', 'Update'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a(Yii::t('statuses', 'Delete'), ['delete', 'id' => $model->id], [
+        <?= Html::a(Yii::t('docflow', 'Update'), ['update', 'doc' => $model->tag], ['class' => 'btn btn-primary']) ?>
+        <?= Html::a(Yii::t('docflow', 'Delete'), ['delete', 'doc' => $model->tag], [
             'class' => 'btn btn-danger',
             'data' => [
-                'confirm' => Yii::t('statuses', 'Are you sure you want to delete this item?'),
+                'confirm' => Yii::t('docflow', 'Are you sure you want to delete this item?'),
                 'method' => 'post',
             ],
         ]) ?>
@@ -39,12 +41,11 @@ $this->params['breadcrumbs'][] = $this->title;
             'id',
             'name',
             'tag',
-            'status.name',
         ],
     ]) ?>
 
     <p>
-        <?= Html::a(Yii::t('statuses', 'Create Statuses'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('docflow', 'Create Statuses'), ['create-status', 'doc' => $model->tag], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?= GridView::widget([
@@ -56,12 +57,25 @@ $this->params['breadcrumbs'][] = $this->title;
             'name',
             'description',
             [
+                'class' => 'yii\grid\ActionColumn',
+/*
+                'urlCreator' => function( $action, $model, $key, $index ){
+                    $params = is_array($key) ? $key : ['doc' => (string) $model->tag];
+                    $params[0] = Yii::$app->controller ? '/' . Yii::$app->controller->uniqueId . '/' . $action : $action;
+
+                    return Url::toRoute($params);
+                },
+*/
+            ],
+/*
+            [
                 'label' => '',
                 'format' => 'raw',
                 'value' => function ($model, $key) {
-                    return Html::a(Yii::t('statuses', 'View Statuses'), ['view', 'id' => $key]);
+                    return Html::a(Yii::t('docflow', 'View Statuses'), ['view', 'id' => $key]);
                 },
             ],
+*/
         ],
     ]); ?>
 
@@ -70,7 +84,7 @@ Pjax::begin([
     'id' => 'pjax-container',
 ]);
 
-echo \yii::$app->request->get('page');
+echo Yii::$app->request->get('page');
 
 Pjax::end();
 

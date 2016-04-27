@@ -73,7 +73,7 @@ class Log extends Behavior
     protected $_changed_attributes = [];
 
     /**
-     * @inherit
+     * @inheritdoc
      */
     public function events()
     {

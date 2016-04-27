@@ -16,8 +16,6 @@ use yii\widgets\ActiveForm;
 
     <?= $form->field($model, 'name')->textInput() ?>
 
-    <?= $form->field($model, 'status_id')->dropDownList(ArrayHelper::map(array_merge([$model->status],$model->allowedStatuses), 'tag', 'name')) ?>
-
     <?= $form->field($model, 'tag')->textInput() ?>
 
     <div class="form-group">

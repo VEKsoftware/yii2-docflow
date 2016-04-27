@@ -9,6 +9,7 @@ use yii\helpers\ArrayHelper;
 
 use docflow\Docflow;
 use docflow\models\Document;
+use docflow\models\DocTypes;
 
 /**
  * This is the model class for table "statuses". It is user through model DocTypes.
@@ -155,7 +156,7 @@ class Statuses extends Document
      */
     public function getDocType()
     {
-        return $this->hasOne(DocType::className(), ['id' => 'doc_type_id']);
+        return $this->hasOne(DocTypes::className(), ['id' => 'doc_type_id']);
     }
 
     /**

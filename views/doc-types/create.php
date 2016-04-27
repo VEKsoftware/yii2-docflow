@@ -6,7 +6,7 @@ use yii\helpers\Html;
 /* @var $model statuses\models\DocTypes */
 
 $this->title = Yii::t('statuses', 'Create Statuses Doctypes');
-$this->params['breadcrumbs'][] = ['label' => Yii::t('statuses', 'Statuses Doctypes'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Document Types'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-doctypes-create">

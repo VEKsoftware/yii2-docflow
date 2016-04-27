@@ -54,9 +54,9 @@ class DocTypesController extends Controller
     {
         $searchModel = new DocTypesSearch();
 
-//        if (!$searchModel->isAllowed('statuses.doctypes.view')) {
-//            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
-//        }
+        if (!$searchModel->isAllowed('docflow.doctypes.view')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
@@ -69,22 +69,25 @@ class DocTypesController extends Controller
     /**
      * Displays a single DocTypes model.
      *
-     * @param int $id
+     * @param int $doc type_doc tag
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionView($doc)
     {
-        $model = $this->findModel($id);
-
-        if (!$model->isAllowed('statuses.doctypes.view')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        $model = $this->findModel($doc);
+        if(empty($model)) {
+            throw new NotFoundHttpException('The requested page does not exist.');
         }
 
-        $searchModel = new StatusesSearch(['doc_type_id' => $id]);
-        if (!$searchModel->isAllowed('statuses.statuses.view')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        if (!$model->isAllowed('docflow.doctypes.view')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
+
+        $searchModel = new StatusesSearch(['doc_type_id' => $model->id]);
+        if (!$searchModel->isAllowed('docflow.statuses.view')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
@@ -100,15 +103,15 @@ class DocTypesController extends Controller
      * Finds the DocTypes model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      *
-     * @param int $id
+     * @param int $doc doc_type tag
      *
      * @return DocTypes the loaded model
      *
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel($doc)
     {
-        if (($model = DocTypes::findOne($id)) !== null) {
+        if (! empty(($model = DocTypes::getDocType($doc)))) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
@@ -125,8 +128,8 @@ class DocTypesController extends Controller
     {
         $model = new DocTypes();
 
-        if (!$model->isAllowed('statuses.doctypes.create')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        if (!$model->isAllowed('docflow.doctypes.create')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -142,17 +145,17 @@ class DocTypesController extends Controller
      * Updates an existing DocTypes model.
      * If update is successful, the browser will be redirected to the 'view' page.
      *
-     * @param int $id
+     * @param int $doc type_doc tag
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
-    public function actionUpdate($id)
+    public function actionUpdate($doc)
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel($doc);
 
-        if (!$model->isAllowed('statuses.doctypes.update')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        if (!$model->isAllowed('docflow.doctypes.update')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
@@ -168,22 +171,55 @@ class DocTypesController extends Controller
      * Deletes an existing DocTypes model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
      *
-     * @param int $id
+     * @param int $doc doc_type tag
      * @return mixed
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \Exception
      */
-    public function actionDelete($id)
+    public function actionDelete($doc)
     {
-        $model = $this->findModel($id);
+        $model = $this->findModel($doc);
 
-        if (!$model->isAllowed('statuses.doctypes.delete')) {
-            throw new ForbiddenHttpException(Yii::t('statuses', 'Access restricted'));
+        if (!$model->isAllowed('docflow.doctypes.delete')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
         $model->delete();
 
         return $this->redirect(['index']);
     }
+
+// ------------------------------- STATUSES ---------------------------------
+
+    /**
+     * Creates a new Statuses model.
+     * If creation is successful, the browser will be redirected to the 'view' page.
+     * @param string $tag the tag of the doc_type
+     * @return mixed
+     * @throws ForbiddenHttpException
+     */
+    public function actionCreateStatus($doc)
+    {
+        $docObj = DocTypes::getDocType($doc);
+        if(empty($docObj)) {
+            throw new NotFoundHttpException('The doc_type does not exist.');
+        }
+
+        $model = new Statuses(['doc_type_id' => $docObj->id]);
+
+        if (!$model->isAllowed('docflow.statuses.create')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['view', 'id' => $model->id]);
+        } else {
+            return $this->render('create-status', [
+                'doc' => $docObj,
+                'model' => $model,
+            ]);
+        }
+    }
+
 }

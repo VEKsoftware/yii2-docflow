@@ -26,17 +26,63 @@ class StatusBehavior extends Behavior
      * @var ActiveRecord the owner of this behavior
      */
     public $owner;
+
+    /**
+     * @var string The name of a field in the table for ID of the status
+     */
     public $statusIdField = 'status_id';
+
+    /**
+     * @var string Status tag for new document
+     */
+    public $newStatusTag;
 
     /**
      * @inheritdoc
      */
     public function attach($owner)
     {
+        parent::attach($owner);
+
         if(! $owner instanceOf Document) {
             throw new ErrorException('You can attach StatusesBehavior only to instances of docflow\models\Document');
         }
-        parent::attach($owner);
+
+        if(empty($this->newStatusTag)) {
+            throw new ErrorException('StatusBehavior: You have to set status tag for new instance of the model '.$owner->className());
+        }
+
+        // To avoid infinit loop
+        if(! $owner instanceOf DocTypes) {
+            if(! isset($owner->doc->statuses[$this->newStatusTag])) {
+                throw new ErrorException('StatusBehavior: wrong initial status: '.$this->newStatusTag);
+            }
+        }
+
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function events()
+    {
+        return [
+            ActiveRecord::EVENT_INIT          => 'statusInit',
+        ];
+    }
+
+    /**
+     * Sets initial status for the new document
+     *
+     * @param Event $event
+     */
+    public function statusInit($event)
+    {
+        if($this->owner->docTag() !== 'doc_type') {
+            $statusesObj = $this->owner->doc->statuses;
+            $statusObj = $statusesObj[$this->newStatusTag];
+            $this->owner->{$this->statusIdField} = $statusObj->id;
+        }
     }
 
     /**
@@ -86,6 +132,7 @@ class StatusBehavior extends Behavior
      */
     public function getAllowedStatuses()
     {
+        var_dump($this->owner->status);die();
         $statusesTo = $this->owner->status->statusesTo;
         $result = [];
         foreach($statusesTo as $status) {

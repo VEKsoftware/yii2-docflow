@@ -125,7 +125,22 @@ class DocTypes extends Document
      */
     public function getStatuses()
     {
-        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->indexBy('tag')->inverseOf('docType');
+        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with('statusesLower')->indexBy('tag')->inverseOf('docType');
+    }
+
+    /**
+     * List of all statuses related to the doctype
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusesTop()
+    {
+        return $this->getStatuses()->joinWith('linksFrom')->andWhere(['status_from' => NULL]);
+    }
+
+    public function getStatusesStructure()
+    {
+        $statuses = $this->getStatuses()->with();
+        for
     }
 
     public function setStatusTag($tag)

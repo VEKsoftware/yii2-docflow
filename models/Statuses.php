@@ -27,6 +27,7 @@ use docflow\models\DocTypes;
  */
 class Statuses extends Document
 {
+    public $level;
 
     /**
      * {@inheritdoc}
@@ -100,7 +101,7 @@ class Statuses extends Document
     }
 
     /**
-     * The method returns a list of links leading to the source statuses of the current one
+     * The method returns a list of all links leading to the source statuses of the current one
      * @return \yii\db\ActiveQuery
      */
     public function getLinksFrom()
@@ -109,12 +110,66 @@ class Statuses extends Document
     }
 
     /**
-     * The method returns a list of links leading to the target statuses of the current one
+     * The method returns a list of all links leading to the target statuses of the current one
      * @return \yii\db\ActiveQuery
      */
     public function getLinksTo()
     {
         return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id']);
+    }
+
+    /**
+     * The method returns a list of structure links leading to the source statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksStructureFrom()
+    {
+        return $this->getLinksFrom()->andWhere(['type' => StatusesLinks::LINK_TYPE_FLTREE]);
+    }
+
+    /**
+     * The method returns a list of structure links leading to the target statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksStructureTo()
+    {
+        return $this->getLinksTo()->andWhere(['type' => StatusesLinks::LINK_TYPE_FLTREE]);
+    }
+
+    /**
+     * The method returns a structure link with level=1 leading to the source statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksParent()
+    {
+        return $this->getLinksStructureFrom()->andWhere(['level' => 1]);
+    }
+
+    /**
+     * The method returns a list of structure links with level=1 leading to the target statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksChildren()
+    {
+        return $this->getLinksStructureTo()->andWhere(['level' => 1]);
+    }
+
+    /**
+     * The method returns a list of transition links leading to the source statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksTransitionsFrom()
+    {
+        return $this->getLinksFrom()->andWhere(['type' => StatusesLinks::LINK_TYPE_SIMPLE]);
+    }
+
+    /**
+     * The method returns a list of transition links leading to the target statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksTransitionsTo()
+    {
+        return $this->getLinksTo()->andWhere(['type' => StatusesLinks::LINK_TYPE_SIMPLE]);
     }
 
     /**
@@ -133,9 +188,7 @@ class Statuses extends Document
     public function getStatusesLower()
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTo', function($q){
-                $q->andWhere(['type' => static::LINK_TYPE_FLTREE]);
-            })
+            ->via('linksStructureTo')
         ;
     }
 
@@ -145,9 +198,7 @@ class Statuses extends Document
     public function getStatusesUpper()
     {
         return $this->hasMany(static::className(), ['id' => 'status_from'])
-            ->via('linksFrom', function($q){
-                $q->andWhere(['type' => static::LINK_TYPE_FLTREE]);
-            })
+            ->via('linksStructureFrom')
         ;
     }
 
@@ -157,6 +208,40 @@ class Statuses extends Document
     public function getDocType()
     {
         return $this->hasOne(DocTypes::className(), ['id' => 'doc_type_id']);
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusParent()
+    {
+        return $this->hasOne(Statuses::className(), ['id' => 'status_from'])
+            ->via('linksParent')
+        ;
+    }
+
+    /**
+     * @param \docflow\models\Statuses
+     */
+    public function setStatusParent($newParent)
+    {
+        $parentLink = $this->linksParent;
+        if($newParent instanceOf self) {
+            $parentLink->status_from = $newParent->id;
+        } elseif(is_null($newParent)) {
+            $parentLink->status_from = NULL;
+        }
+        $parentLink->save();
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusChildren()
+    {
+        return $this->hasMany(Statuses::className(), ['id' => 'status_to'])
+            ->via('linksChildren')
+        ;
     }
 
     /**

@@ -15,7 +15,6 @@ use docflow\models\DocTypes;
  */
 abstract class Document extends CommonRecord
 {
-
     /**
      * This function returns the document tag. This tag is used to get
      * all information about the doument type from the database.
@@ -32,5 +31,22 @@ abstract class Document extends CommonRecord
     {
         return DocTypes::getDocType(static::docTag());
     }
+
+    /**
+     * This function returns the structure containing access rights tags.
+     *
+     * @return mixed Structure is the following
+     *  [
+     *        'value' => 'view',
+     *        'label' => 'Просматривать шаблоны',
+     *        'items' => [
+     *            [
+     *                'value' => 'all',
+     *                'label' => 'Все шаблоны',
+     *            ],
+     *        ],
+     *  ],
+     */
+    abstract public static function accessData();
 
 }

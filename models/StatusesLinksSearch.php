@@ -58,10 +58,9 @@ class StatusesLinksSearch extends StatusesLinks
         }
 
         /* TODO  здесь нужно создать условия для фильтрации элементов единиц StatusLink по именам связанных статусов и прав */
-        /** @var ActiveQuery $query */
+/*
         $query
-            ->joinWith(['statusTo' => function ($query) {
-                /** @var ActiveQuery $query */
+            ->joinWith(['baseTo' => function ($query) {
                 $query->where([
                     'or',
                     ['like','doc_statuses.name', $this->statusName],
@@ -69,9 +68,10 @@ class StatusesLinksSearch extends StatusesLinks
                 ]);
             }]);
 //            ->joinWith(['right' => function ($query) {
-//                /** @var ActiveQuery $query */
 //                $query->where('"ref_rights"."name" LIKE ' . "'%" . $this->rightName . "%'");
 //            }]);
+
+*/
 
         $dataProvider->setSort([
             'attributes' => [

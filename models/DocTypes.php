@@ -125,7 +125,7 @@ class DocTypes extends Document
      */
     public function getStatuses()
     {
-        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with('statusesLower')->indexBy('tag')->inverseOf('docType');
+        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with(['statusParent', 'statusChildren'])->indexBy('tag')->inverseOf('docType');
     }
 
     /**
@@ -134,13 +134,19 @@ class DocTypes extends Document
      */
     public function getStatusesTop()
     {
-        return $this->getStatuses()->joinWith('linksFrom')->andWhere(['status_from' => NULL]);
+        return $this->getStatuses()->joinWith(['linksStructureFrom'])->andWhere(['l_from.status_from' => NULL]);
     }
 
     public function getStatusesStructure()
     {
-        $statuses = $this->getStatuses()->with();
-        for
+        $statuses = $this->statuses;
+        $tree = [];
+        foreach($statuses as $status) {
+            if($status->statusParent === NULL) {
+                $tree[] = $status;
+            }
+        }
+        return $tree;
     }
 
     public function setStatusTag($tag)

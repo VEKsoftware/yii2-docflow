@@ -222,4 +222,51 @@ class DocTypesController extends Controller
         }
     }
 
+    /**
+     * Displays a single Statuses model.
+     *
+     * @param int $doc status tag
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionStatusView($doc, $tag)
+    {
+        $model = $this->findStatusModel($doc, $tag);
+        if(empty($model)) {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+
+        if (!$model->isAllowed('docflow.status.view')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
+
+        $searchModel = new StatusesLinksSearch();
+        $dataProvider = $searchModel->search($model->id, Yii::$app->request->queryParams);
+
+        if(Yii::$app->request->isAjax) {
+            return $this->renderPartial('view-status', [
+                'model' => $model,
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        } else {
+            return $this->render('view-status', [
+                'model' => $model,
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+            ]);
+        }
+    }
+
+    protected function findStatusModel($doc,$tag)
+    {
+        $doc_model = $this->findModel($doc);
+        if (! empty($doc_model->statuses[$tag])) {
+            return $doc_model->statuses[$tag];
+        } else {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+    }
+
 }

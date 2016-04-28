@@ -4,12 +4,12 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 
 use yii\widgets\DetailView;
-use yii\widgets\Pjax;
+//use yii\widgets\Pjax;
 
 use yii\grid\GridView;
 
 use yii\web\JsExpression;
-use execut\widget\TreeView;
+use docflow\assets\TreeViewAsset;
 
 /* @var $this yii\web\View */
 /* @var $model statuses\models\DocTypes */
@@ -46,96 +46,67 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('docflow', 'Create Statuses'), ['create-status', 'doc' => $model->tag], ['class' => 'btn btn-success']) ?>
     </p>
 
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            'tag',
-            'name',
-            'description',
-            [
-                'class' => 'yii\grid\ActionColumn',
-/*
-                'urlCreator' => function( $action, $model, $key, $index ){
-                    $params = is_array($key) ? $key : ['doc' => (string) $model->tag];
-                    $params[0] = Yii::$app->controller ? '/' . Yii::$app->controller->uniqueId . '/' . $action : $action;
-
-                    return Url::toRoute($params);
-                },
-*/
-            ],
-/*
-            [
-                'label' => '',
-                'format' => 'raw',
-                'value' => function ($model, $key) {
-                    return Html::a(Yii::t('docflow', 'View Statuses'), ['view', 'id' => $key]);
-                },
-            ],
-*/
-        ],
-    ]); ?>
+<div class="row">
+    <div class="col-sm-3">
+        <h3> <?=Yii::t('docflow', 'List of statuses')?> </h3>
+        <div id="tree"></div>
+    </div>
+    <div class="col-sm-9">
+        <div id="tree-leaf"></div>
+    </div>
+</div>
 
 <?php
-Pjax::begin([
-    'id' => 'pjax-container',
-]);
+function treeBranch($val) {
+    return [
+        'text' => $val->name,
+        'href' => Url::to(['status-view', 'doc' => $val->docType->tag, 'tag' => $val->tag]),
+    ] + (empty($val->statusChildren) ? [] : [
+        'nodes' => array_map('treeBranch', $val->statusChildren),
+    ]);
+}
 
-echo Yii::$app->request->get('page');
+$items = array_map('treeBranch', $model->statusesStructure);
 
-Pjax::end();
+$data = json_encode($items);
+$this->registerJs("var data = $data");
 
-$onSelect = new JsExpression(<<<JS
-function (undefined, item) {
+TreeViewAsset::register($this);
+
+$this->registerJs(<<<'JS'
+var onSelect = function (undefined, item) {
     if (item.href !== location.pathname) {
-        $.pjax({
-            container: '#pjax-container',
-            url: item.href,
-            timeout: null
-        });
+        $("#tree-leaf").load(item.href);
     }
+}
 
-    var otherTreeWidgetEl = $('.treeview.small').not($(this)),
-        otherTreeWidget = otherTreeWidgetEl.data('treeview'),
-        selectedEl = otherTreeWidgetEl.find('.node-selected');
-    if (selectedEl.length) {
-        otherTreeWidget.unselectNode(Number(selectedEl.attr('data-nodeid')));
-    }
+var onUnselect = function (undefined, item) {
+    $("#tree-leaf").html('');
+}
+
+var $searchableTree = $('#tree').treeview({
+    data: data,
+    onNodeSelected: onSelect,
+    onNodeUnselected: onUnselect
+});
+
+var search = function(e) {
+    var pattern = $('#input-search').val();
+    var options = {
+        ignoreCase: $('#chk-ignore-case').is(':checked'),
+        exactMatch: $('#chk-exact-match').is(':checked'),
+        revealResults: $('#chk-reveal-results').is(':checked')
+    };
+    var results = $searchableTree.treeview('search', [ pattern, options ]);
+
+    var output = '<p>' + results.length + ' matches found</p>';
+    $.each(results, function (index, result) {
+        output += '<p>- ' + result.text + '</p>';
+    });
+    $('#search-output').html(output);
 }
 JS
 );
-
-$items = [
-    [
-        'text' => 'Parent 1',
-        'href' => Url::to(['', 'page' => 'parent1']),
-        'nodes' => [
-            [
-                'text' => 'Child 1',
-                'href' => Url::to(['', 'page' => 'child1']),
-                'nodes' => [
-                    [
-                        'text' => 'Grandchild 1',
-                        'href' => Url::to(['', 'page' => 'grandchild1'])
-                    ],
-                    [
-                        'text' => 'Grandchild 2',
-                        'href' => Url::to(['', 'page' => 'grandchild2'])
-                    ]
-                ]
-            ],
-        ],
-    ],
-];
-
-echo TreeView::widget([
-    'data' => $items,
-    'size' => TreeView::SIZE_SMALL,
-    'clientOptions' => [
-        'onNodeSelected' => $onSelect,
-    ],
-]);
 ?>
 
 </div>

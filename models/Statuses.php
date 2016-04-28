@@ -106,7 +106,7 @@ class Statuses extends Document
      */
     public function getLinksFrom()
     {
-        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id']);
+        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id'])->from('doc_statuses_links l_from');
     }
 
     /**
@@ -115,7 +115,7 @@ class Statuses extends Document
      */
     public function getLinksTo()
     {
-        return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id']);
+        return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id'])->from('doc_statuses_links l_to');
     }
 
     /**
@@ -124,7 +124,7 @@ class Statuses extends Document
      */
     public function getLinksStructureFrom()
     {
-        return $this->getLinksFrom()->andWhere(['type' => StatusesLinks::LINK_TYPE_FLTREE]);
+        return $this->getLinksFrom()->andOnCondition(['l_from.type' => StatusesLinks::LINK_TYPE_FLTREE]);
     }
 
     /**
@@ -133,7 +133,25 @@ class Statuses extends Document
      */
     public function getLinksStructureTo()
     {
-        return $this->getLinksTo()->andWhere(['type' => StatusesLinks::LINK_TYPE_FLTREE]);
+        return $this->getLinksTo()->andOnCondition(['l_to.type' => StatusesLinks::LINK_TYPE_FLTREE]);
+    }
+
+    /**
+     * The method returns a list of Transitions links leading to the source statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksTransitionsFrom()
+    {
+        return $this->getLinksFrom()->andOnCondition(['l_from.type' => StatusesLinks::LINK_TYPE_SIMPLE]);
+    }
+
+    /**
+     * The method returns a list of Transitions links leading to the target statuses of the current one
+     * @return \yii\db\ActiveQuery
+     */
+    public function getLinksTransitionsTo()
+    {
+        return $this->getLinksTo()->andOnCondition(['l_to.type' => StatusesLinks::LINK_TYPE_SIMPLE]);
     }
 
     /**
@@ -142,7 +160,7 @@ class Statuses extends Document
      */
     public function getLinksParent()
     {
-        return $this->getLinksStructureFrom()->andWhere(['level' => 1]);
+        return $this->getLinksStructureFrom()->andOnCondition(['l_from.level' => 1]);
     }
 
     /**
@@ -151,25 +169,7 @@ class Statuses extends Document
      */
     public function getLinksChildren()
     {
-        return $this->getLinksStructureTo()->andWhere(['level' => 1]);
-    }
-
-    /**
-     * The method returns a list of transition links leading to the source statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsFrom()
-    {
-        return $this->getLinksFrom()->andWhere(['type' => StatusesLinks::LINK_TYPE_SIMPLE]);
-    }
-
-    /**
-     * The method returns a list of transition links leading to the target statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsTo()
-    {
-        return $this->getLinksTo()->andWhere(['type' => StatusesLinks::LINK_TYPE_SIMPLE]);
+        return $this->getLinksStructureTo()->andOnCondition(['l_to.level' => 1]);
     }
 
     /**
@@ -178,8 +178,7 @@ class Statuses extends Document
     public function getStatusesTo()
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTo')
-        ;
+            ->via('linksTo');
     }
 
     /**
@@ -241,6 +240,7 @@ class Statuses extends Document
     {
         return $this->hasMany(Statuses::className(), ['id' => 'status_to'])
             ->via('linksChildren')
+            ->inverseOf('statusParent')
         ;
     }
 

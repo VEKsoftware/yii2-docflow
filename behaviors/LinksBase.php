@@ -20,7 +20,7 @@ use docflow\models\StatusesLinks;
  * @property integer statusIdField Название поля со статусом в таблице
  * @property \statuses\models\Statuses status
  */
-class StatusBehavior extends Behavior
+class LinksBase extends Behavior
 {
     /**
      * @var ActiveRecord the owner of this behavior
@@ -28,14 +28,24 @@ class StatusBehavior extends Behavior
     public $owner;
 
     /**
-     * @var string The name of a field in the table for ID of the status
+     * @var string The name of the class containing links for the owner model
      */
-    public $statusIdField = 'status_id';
+    public $classLinks;
 
     /**
-     * @var string Status tag for new document
+     * @var string The field in the base table
      */
-    public $newStatusTag;
+    public $linkBaseIdField;
+
+    /**
+     * @var array Link array ['base_id' => 'link_from_id']
+     */
+    public $linkFromField;
+
+    /**
+     * @var array Link array ['base_id' => 'link_from_id']
+     */
+    public $linkToField;
 
     /**
      * @inheritdoc

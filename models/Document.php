@@ -15,6 +15,9 @@ use docflow\models\DocTypes;
  */
 abstract class Document extends CommonRecord
 {
+    protected static $statusIdField = 'status_id';
+    protected static $newStatusTag = 'active';
+
     /**
      * This function returns the document tag. This tag is used to get
      * all information about the doument type from the database.
@@ -37,14 +40,24 @@ abstract class Document extends CommonRecord
      *
      * @return mixed Structure is the following
      *  [
-     *        'value' => 'view',
-     *        'label' => 'Просматривать шаблоны',
-     *        'items' => [
+     *     [
+     *        'operation' => 'view', // This is the name of operation. It will be refered in the access check methods like $user->can(operation)
+     *        'label' => 'View document',
+     *        'conditions' => [ // These conditions are handled in the document model and are set up in the access settings page
      *            [
-     *                'value' => 'all',
-     *                'label' => 'Все шаблоны',
+     *                'condition' => 'own',
+     *                'label' => 'Only my',
+     *            ],
+     *            [
+     *                'condition' => 'all',
+     *                'label' => 'All',
      *            ],
      *        ],
+     *    ],
+     *    [
+     *      ...
+     *    ],
+     *    ...
      *  ],
      */
     abstract public static function accessData();

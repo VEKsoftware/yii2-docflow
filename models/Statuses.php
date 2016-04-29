@@ -87,6 +87,45 @@ class Statuses extends Document
     }
 
     /**
+     * @inheritdoc
+     */
+    public static function accessData()
+    {
+        return [
+            [
+                'operation' => 'view',
+                'label' => Yii::t('docflow','View'),
+                'conditions' => [
+                    [
+                        'condition' => 'own',
+                        'label' => 'Only my',
+                    ],
+                    [
+                        'condition' => 'all',
+                        'label' => 'All',
+                    ],
+                ],
+            ],
+        ];
+    }
+
+    /**
+     * [[static::statusAccessTags]] returns a list of tags which are used for access right check.
+     *
+     * @return string[] List of tags which are used for access check
+     */
+    public static function statusAccessTags($statuses)
+    {
+        $result = [];
+        foreach($statuses as $status_from) {
+            foreach($statuses as $status_to) {
+                $result[] = $status_from->tag . '-' . $status_to->tag;
+            }
+        }
+        return $result;
+    }
+
+    /**
      * List of statuses available for transition to with the ceratin access right.
      *
      * @return \yii\db\ActiveQuery

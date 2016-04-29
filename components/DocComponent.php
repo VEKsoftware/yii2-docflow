@@ -6,15 +6,14 @@ use yii\base\Component;
 
 class DocComponent extends Component
 {
-    protected $_docs;
-
     /**
      * @inheritdoc
      */
     public function init()
     {
         parent::init();
-        $this->_docs = DocTypes::listDocs();
+
+        DocTypes::getDocTypes();
     }
 
     /**
@@ -25,6 +24,6 @@ class DocComponent extends Component
      */
     public function getTypes()
     {
-        return $this->_docs;
+        return DocTypes::getDocTypes();
     }
 }

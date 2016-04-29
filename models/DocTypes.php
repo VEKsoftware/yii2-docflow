@@ -6,7 +6,7 @@ use Yii;
 use yii\helpers\ArrayHelper;
 
 use docflow\Docflow;
-use docflow\models\Document;
+use docflow\base\CommonRecord;
 use docflow\models\Statuses;
 use docflow\behaviors\StatusBehavior;
 /**
@@ -17,7 +17,7 @@ use docflow\behaviors\StatusBehavior;
  * @property string $tag
  * @property Statuses[] $statuses
  */
-class DocTypes extends Document
+class DocTypes extends CommonRecord
 {
     protected static $_doctypes;
 
@@ -47,14 +47,6 @@ class DocTypes extends Document
     /**
      * {@inheritdoc}
      */
-    public static function docTag()
-    {
-        return 'doc_type';
-    }
-
-    /**
-     * {@inheritdoc}
-     */
     public function attributeLabels()
     {
         return [
@@ -77,13 +69,29 @@ class DocTypes extends Document
             'access' => [
                 'class' => $module->accessClass,
             ],
-/*
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public static function accessData()
+    {
+        return [
             [
-                'class' => StatusBehavior::className(),
-                'statusIdField' => 'status_id',
-                'newStatusTag' => 'active',
+                'operation' => 'view',
+                'label' => Yii::t('docflow','View'),
+                'conditions' => [
+                    [
+                        'condition' => 'own',
+                        'label' => 'Only my',
+                    ],
+                    [
+                        'condition' => 'all',
+                        'label' => 'All',
+                    ],
+                ],
             ],
-*/
         ];
     }
 
@@ -111,6 +119,16 @@ class DocTypes extends Document
         return static::$_doctypes;
     }
 
+    /**
+     * [[static::statusAccessTags]] returns a list of tags which are used for access right check.
+     *
+     * @return string[] List of tags which are used for access check
+     */
+    public static function statusAccessTags()
+    {
+        $statuses = static::getDoc()->statuses;
+        return Statuses::statusesAccessTags($statuses);
+    }
     /**
      * @return \yii\db\ActiveQuery
      */

@@ -17,7 +17,7 @@ use Yii;
  * @property UsersLinks[] $usersLinks0
  * @property UsersLog[] $usersLogs
  */
-class Users extends \yii\db\ActiveRecord
+class Users extends \docflow\models\Document
 {
     /**
      * @inheritdoc
@@ -25,6 +25,14 @@ class Users extends \yii\db\ActiveRecord
     public static function tableName()
     {
         return '{{%users}}';
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public static function docTag()
+    {
+        return 'user';
     }
 
     /**
@@ -81,6 +89,28 @@ class Users extends \yii\db\ActiveRecord
         ];
     }
 
+    /**
+     * @inheritdoc
+     */
+    public static function accessData()
+    {
+        return [
+            [
+                'operation' => 'view',
+                'label' => Yii::t('docflow','View'),
+                'conditions' => [
+                    [
+                        'condition' => 'own',
+                        'label' => 'Only my',
+                    ],
+                    [
+                        'condition' => 'all',
+                        'label' => 'All',
+                    ],
+                ],
+            ],
+        ];
+    }
     /**
      * @return \yii\db\ActiveQuery
      */

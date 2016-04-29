@@ -33,7 +33,7 @@ class m160401_000000_init extends Migration
             'tag' => $this->string(128)->notNull()->unique(),
             'name' => $this->string(128)->notNull(),
             'description' => $this->string(512),
-            'status_id' => $this->integer()->notNull(),
+            'status_id' => $this->integer(),
             'class' => $this->string(128), // Name of the class handling the document
             'table' => $this->string(128), // Name of the table containging the documents
         ], null);
@@ -42,20 +42,10 @@ class m160401_000000_init extends Migration
 
         $this->insert('doc_types', [
             'id' => 1,
-            'tag' => 'doc_type',
-            'name' => Yii::t('docflow', 'Document Types'),
-            'description' => Yii::t('docflow', ''),
-            'status_id' => 1,
-            'class' => DocTypes::className(),
-            'table' => 'doc_types',
-        ]);
-
-        $this->insert('doc_types', [
-            'id' => 2,
             'tag' => 'status',
             'name' => Yii::t('docflow', 'Status'),
             'description' => Yii::t('docflow', 'Status of the document'),
-            'status_id' => 2,
+            'status_id' => 1,
             'class' => Statuses::className(),
             'table' => 'doc_statuses',
         ]);
@@ -71,14 +61,6 @@ class m160401_000000_init extends Migration
         $this->insert('doc_statuses', [
             'id' => 1,
             'doc_type_id' => 1,
-            'tag' => 'active',
-            'name' => Yii::t('docflow', 'Active'),
-            'description' => Yii::t('docflow', 'Active document'),
-        ]);
-
-        $this->insert('doc_statuses', [
-            'id' => 2,
-            'doc_type_id' => 2,
             'tag' => 'active',
             'name' => Yii::t('docflow', 'Active'),
             'description' => Yii::t('docflow', 'Active document'),

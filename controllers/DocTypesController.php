@@ -133,7 +133,7 @@ class DocTypesController extends Controller
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['view', 'doc' => $model->tag]);
         } else {
             return $this->render('create', [
                 'model' => $model,
@@ -159,7 +159,7 @@ class DocTypesController extends Controller
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['view', 'doc' => $model->tag]);
         } else {
             return $this->render('update', [
                 'model' => $model,
@@ -213,7 +213,7 @@ class DocTypesController extends Controller
         }
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->redirect(['view', 'doc' => $docObj->tag, 'tag' => $model->tag]);
         } else {
             return $this->render('create-status', [
                 'doc' => $docObj,

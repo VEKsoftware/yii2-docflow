@@ -97,12 +97,28 @@ class Statuses extends Document
                 'label' => Yii::t('docflow','View'),
                 'conditions' => [
                     [
-                        'condition' => 'own',
-                        'label' => 'Only my',
+                        'condition' => 'any',
+                        'label' => Yii::t('docflow', 'Any'),
                     ],
+                ],
+            ],
+            [
+                'operation' => 'create',
+                'label' => Yii::t('docflow','Create'),
+                'conditions' => [
                     [
-                        'condition' => 'all',
-                        'label' => 'All',
+                        'condition' => 'any',
+                        'label' => Yii::t('docflow', 'Any'),
+                    ],
+                ],
+            ],
+            [
+                'operation' => 'update',
+                'label' => Yii::t('docflow','Update'),
+                'conditions' => [
+                    [
+                        'condition' => 'any',
+                        'label' => Yii::t('docflow', 'Any'),
                     ],
                 ],
             ],

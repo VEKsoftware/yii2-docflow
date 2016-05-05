@@ -62,4 +62,16 @@ abstract class Document extends CommonRecord
      */
     abstract public static function accessData();
 
+    /**
+     * This method resolves the relation names between $this object and that is set as an argument.
+     *
+     * @param class $obj Some class instance which is used to resolve the relation to the current object.
+     *    Normally, this is a \yii\web\User instance.
+     * @return string[] List of condition names those listed in [[self::accessData()]]. Default is ['any'].
+     */
+    public function resolveRelationTo($obj)
+    {
+        return ['any'];
+    }
+
 }

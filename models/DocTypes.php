@@ -83,9 +83,13 @@ class DocTypes extends CommonRecord
                 'label' => Yii::t('docflow','View'),
                 'conditions' => [
                     [
-                        'condition' => 'own',
-                        'label' => 'Only my',
+                        'condition' => 'all',
+                        'label' => 'All',
                     ],
+                ],
+                'operation' => 'statuses_links_edit',
+                'label' => Yii::t('docflow','Change statuses links'),
+                'conditions' => [
                     [
                         'condition' => 'all',
                         'label' => 'All',

@@ -9,7 +9,7 @@ use yii\grid\GridView;
 /* @var $searchModel statuses\models\DocTypesSearch */
 /* @var $dataProvider yii\data\ActiveDataProvider */
 
-$this->title = Yii::t('statuses', 'Statuses Doctypes');
+$this->title = Yii::t('statuses', 'Document Types');
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-doctypes-index">
@@ -18,7 +18,7 @@ $this->params['breadcrumbs'][] = $this->title;
     <?php // echo $this->render('_search', ['model' => $searchModel]); ?>
 
     <p>
-        <?= Html::a(Yii::t('statuses', 'Create Statuses Doctypes'), ['create'], ['class' => 'btn btn-success']) ?>
+        <?= Html::a(Yii::t('statuses', 'Create Document Type'), ['create'], ['class' => 'btn btn-success']) ?>
     </p>
 
     <?= GridView::widget([

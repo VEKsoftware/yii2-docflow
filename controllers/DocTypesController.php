@@ -241,11 +241,11 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
-        $searchModel = new StatusesLinksSearch();
-        $dataProvider = $searchModel->search($model->id, Yii::$app->request->queryParams);
+        $searchModel = new StatusesSearch(['doc_type_id' => $model->docType->id]);
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         if(Yii::$app->request->isAjax) {
-            return $this->renderPartial('view-status', [
+            return $this->renderAjax('view-status', [
                 'model' => $model,
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
@@ -257,6 +257,20 @@ class DocTypesController extends Controller
                 'dataProvider' => $dataProvider,
             ]);
         }
+    }
+
+    /**
+     * Updates current status of a status transition link: linked or unlinked
+     *
+     * @param int $doc status tag
+     * @return mixed
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
+     */
+    public function actionAjaxUpdateLink($doc, $status_from, $status_to, $linked)
+    {
+        Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+        return ['linked' => true];
     }
 
     protected function findStatusModel($doc,$tag)

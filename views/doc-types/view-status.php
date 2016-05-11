@@ -1,9 +1,9 @@
 <?php
 
-use yii\grid\GridView;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
+use yii\widgets\ListView;
 
 /* @var $this yii\web\View */
 /* @var $model statuses\models\Statuses */
@@ -47,64 +47,46 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h3><?= Html::encode(Yii::t('statuses', 'Statuses Links')) ?></h3>
 
-    <p>
-        <?= Html::a(Yii::t('statuses', 'Create Statuses Link'), ['link-create', 'id' => $model->id], ['class' => 'btn btn-success']) ?>
-    </p>
-    <?= GridView::widget([
+    <?= ListView::widget([
+        'id' => 'statuses-to-list',
         'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            'statusName',
-            'right_tag',
-            [
-                'class' => 'yii\grid\ActionColumn',
-                'buttons' => [
-                    'view' => function ($url, $model, $key) {
-                        return;
-                    },
-                    'update' => function ($url, $model, $key) {
-                        return;
-                    },
-                    'delete' => function ($url, $model, $key) {
-                        return Html::a(Yii::t('statuses', 'Delete'), $url, [
-                            'data' => [
-                                'confirm' => Yii::t('statuses', 'Are you sure you want to delete this item?'),
-                                'method' => 'post',
-                            ],
-                        ]);
-                    },
-                ],
-                'urlCreator' => function ($action, $model, $key, $index) {
-                    return Url::toRoute(['statuses/link-delete',
-                        'status_from' => $model->status_from,
-                        'status_to' => $model->status_to,
-                        'right_tag' => $model->right_tag,
-                    ]);
-                },
-            ],
-        ],
+        'itemView' => function ($item, $key, $index, $widget) use($model){
+            $statusesTo = $model->statusesTransitionTo;
+            $model->activeLinks[$item->tag] = isset($statusesTo[$item->tag]);
+            return Html::activeCheckbox($model,'activeLinks['.$item->tag.']',
+                    ($model->tag === $item->tag || ! $model->docType->isAllowed('statuses_links_edit') ? ['disabled' => 'disabled'] : []) + [
+                    'label' => $item->name,
+                    'data' => [
+                        'tag' => $item->tag,
+                    ],
+                ]);
+        },
     ]); ?>
 
-    <p>
-        <?= Html::a(Yii::t('docflow', 'Create Status'), ['create'], ['class' => 'btn btn-success']) ?>
-    </p>
-
-    <?= GridView::widget([
-        'dataProvider' => $dataProvider,
-        'filterModel' => $searchModel,
-        'columns' => [
-            ['class' => 'yii\grid\SerialColumn'],
-            'tag',
-            'name',
-            'description',
-            [
-                'label' => '',
-                'format' => 'raw',
-                'value' => function ($model, $key) {
-                    return Html::a(Yii::t('docflow', 'View Statuses'), ['view', 'id' => $key]);
-                },
-            ],
-        ],
-    ]); ?>
 </div>
+<?php
+$this->registerJs("
+    var status_to_check_url = '" . Url::toRoute(['ajax-update-link']) . "';
+    var current_doc_type = '" . $model->docType->tag . "';
+    var current_status = '" . $model->tag . "';
+");
+$this->registerJs(<<<JS
+
+$('#statuses-to-list input[type=checkbox]').click(function(event){
+
+    var checkbox_element = this;
+    $.get(status_to_check_url,
+        {
+            doc: current_doc_type,
+            status_from: current_status,
+            status_to: checkbox_element.dataset.tag,
+            linked: checkbox_element.checked
+        }, function(data) {
+            checkbox_element.checked = data.linked;
+        }
+    )
+});
+
+JS
+);
+?>

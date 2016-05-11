@@ -28,6 +28,7 @@ use docflow\models\DocTypes;
 class Statuses extends Document
 {
     public $level;
+    public $activeLinks;
 
     /**
      * {@inheritdoc}
@@ -233,7 +234,9 @@ class Statuses extends Document
     public function getStatusesTo()
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTo');
+            ->via('linksTo')
+            ->indexBy('tag')
+        ;
     }
 
     /**
@@ -243,6 +246,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
             ->via('linksStructureTo')
+            ->indexBy('tag')
         ;
     }
 
@@ -253,6 +257,29 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_from'])
             ->via('linksStructureFrom')
+            ->indexBy('tag')
+        ;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusesTransitionTo()
+    {
+        return $this->hasMany(static::className(), ['id' => 'status_to'])
+            ->via('linksTransitionsTo')
+            ->indexBy('tag')
+        ;
+    }
+
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getStatusesTransitionFrom()
+    {
+        return $this->hasMany(static::className(), ['id' => 'status_to'])
+            ->via('linksTransitionsFrom')
+            ->indexBy('tag')
         ;
     }
 

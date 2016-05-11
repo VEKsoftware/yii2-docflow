@@ -270,7 +270,8 @@ class DocTypesController extends Controller
     public function actionAjaxUpdateLink($doc, $status_from, $status_to, $linked)
     {
         Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
-        return ['linked' => true];
+        $model = $this->findStatusModel($doc, $status_from);
+        return ['result' => 'success', 'linked' => true];
     }
 
     protected function findStatusModel($doc,$tag)

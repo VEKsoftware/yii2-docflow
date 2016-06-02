@@ -55,6 +55,7 @@ class m160401_000000_init extends Migration
             'tag' => $this->string(128)->notNull(),
             'name' => $this->string(128)->notNull(),
             'description' => $this->string(512),
+            'order_idx' => 'serial NOT NULL',
         ], null);
 
         $this->insert('doc_statuses', [

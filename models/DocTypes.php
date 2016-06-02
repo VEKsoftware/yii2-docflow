@@ -9,12 +9,13 @@ use docflow\Docflow;
 use docflow\base\CommonRecord;
 use docflow\models\Statuses;
 use docflow\behaviors\StatusBehavior;
+
 /**
  * This is the model class for table "statuses_doctypes".
  *
- * @property int $id
- * @property string $name
- * @property string $tag
+ * @property int        $id
+ * @property string     $name
+ * @property string     $tag
  * @property Statuses[] $statuses
  */
 class DocTypes extends CommonRecord
@@ -40,7 +41,7 @@ class DocTypes extends CommonRecord
 //            ['statusTag', 'string', 'max' => 128],
 //            ['statusTag', 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'tag', 'filter' => ['doc_type_id' => $this->id]],
             [['tag'], 'unique'],
-            ['tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
+            ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
         ];
     }
 
@@ -50,9 +51,9 @@ class DocTypes extends CommonRecord
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('statuses', 'ID'),
-            'name' => Yii::t('statuses', 'Document Name'),
-            'tag' => Yii::t('statuses', 'Document Tag'),
+            'id' => Yii::t('docflow', 'ID'),
+            'name' => Yii::t('docflow', 'Document Name'),
+            'tag' => Yii::t('docflow', 'Document Tag'),
         ];
     }
 
@@ -62,9 +63,10 @@ class DocTypes extends CommonRecord
     public function behaviors()
     {
         $module = Docflow::getInstance();
-        if(! $module) {
+        if (!$module) {
             throw new ErrorException('Load docflow module');
         }
+
         return [
             'access' => [
                 'class' => $module->accessClass,
@@ -80,15 +82,17 @@ class DocTypes extends CommonRecord
         return [
             [
                 'operation' => 'view',
-                'label' => Yii::t('docflow','View'),
+                'label' => Yii::t('docflow', 'View'),
                 'conditions' => [
                     [
                         'condition' => 'all',
                         'label' => 'All',
                     ],
                 ],
+            ],
+            [
                 'operation' => 'statuses_links_edit',
-                'label' => Yii::t('docflow','Change statuses links'),
+                'label' => Yii::t('docflow', 'Change statuses links'),
                 'conditions' => [
                     [
                         'condition' => 'all',
@@ -106,10 +110,11 @@ class DocTypes extends CommonRecord
     public static function getDocType($doc_string)
     {
         $doctypes = static::getDoctypes();
-        if(isset($doctypes[$doc_string])) {
+        if (isset($doctypes[$doc_string])) {
             return $doctypes[$doc_string];
         }
-        return NULL;
+
+        return null;
     }
 
     /**
@@ -117,9 +122,10 @@ class DocTypes extends CommonRecord
      */
     public static function getDocTypes()
     {
-        if(empty(static::$_doctypes)) {
+        if (empty(static::$_doctypes)) {
             static::$_doctypes = static::findDocTypes()->with('statuses')->all();
         }
+
         return static::$_doctypes;
     }
 
@@ -131,8 +137,10 @@ class DocTypes extends CommonRecord
     public static function statusAccessTags()
     {
         $statuses = static::getDoc()->statuses;
+
         return Statuses::statusesAccessTags($statuses);
     }
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -147,7 +155,10 @@ class DocTypes extends CommonRecord
      */
     public function getStatuses()
     {
-        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with(['statusParent', 'statusChildren'])->indexBy('tag')->inverseOf('docType');
+        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with([
+            'statusParent',
+            'statusChildren'
+        ])->indexBy('tag')->inverseOf('docType');
     }
 
     /**
@@ -156,18 +167,19 @@ class DocTypes extends CommonRecord
      */
     public function getStatusesTop()
     {
-        return $this->getStatuses()->joinWith(['linksStructureFrom'])->andWhere(['l_from.status_from' => NULL]);
+        return $this->getStatuses()->joinWith(['linksStructureFrom'])->andWhere(['l_from.status_from' => null]);
     }
 
     public function getStatusesStructure()
     {
         $statuses = $this->statuses;
         $tree = [];
-        foreach($statuses as $status) {
-            if($status->statusParent === NULL) {
+        foreach ($statuses as $status) {
+            if ($status->statusParent === null) {
                 $tree[] = $status;
             }
         }
+
         return $tree;
     }
 

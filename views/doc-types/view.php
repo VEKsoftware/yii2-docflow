@@ -12,7 +12,7 @@ use yii\web\JsExpression;
 use docflow\assets\TreeViewAsset;
 
 /* @var $this yii\web\View */
-/* @var $model statuses\models\DocTypes */
+/* @var $model docflow\models\DocTypes */
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses Doctypes'), 'url' => ['index']];

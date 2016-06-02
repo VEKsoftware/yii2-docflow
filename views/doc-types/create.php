@@ -3,9 +3,9 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model statuses\models\DocTypes */
+/* @var $model docflow\models\DocTypes */
 
-$this->title = Yii::t('statuses', 'Create Statuses Doctypes');
+$this->title = Yii::t('docflow', 'Create Statuses Doctypes');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Document Types'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>

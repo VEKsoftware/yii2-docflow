@@ -79,11 +79,11 @@ class Statuses extends Document
     public function attributeLabels()
     {
         return [
-            'id' => Yii::t('statuses', 'ID'),
-            'doc_type_id' => Yii::t('statuses', 'Document Type'),
-            'name' => Yii::t('statuses', 'Status Name'),
-            'description' => Yii::t('statuses', 'Status Description'),
-            'tag' => Yii::t('statuses', 'Status Tag'),
+            'id' => Yii::t('docflow', 'ID'),
+            'doc_type_id' => Yii::t('docflow', 'Document Type'),
+            'name' => Yii::t('docflow', 'Status Name'),
+            'description' => Yii::t('docflow', 'Status Description'),
+            'tag' => Yii::t('docflow', 'Status Tag'),
         ];
     }
 

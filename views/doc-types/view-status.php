@@ -6,10 +6,11 @@ use yii\widgets\DetailView;
 use yii\widgets\ListView;
 
 /* @var $this yii\web\View */
-/* @var $model statuses\models\Statuses */
+/* @var $model docflow\models\Statuses */
+/* @var $doc string */
 
 $this->title = $model->name;
-$this->params['breadcrumbs'][] = ['label' => Yii::t('statuses', 'Statuses'), 'url' => ['index']];
+$this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-view">
@@ -19,13 +20,13 @@ $this->params['breadcrumbs'][] = $this->title;
     <p>
     <div class="row">
         <div class="col-xs-6">
-            <?= Html::a(Yii::t('statuses', 'Update Statuses'), ['update', 'id' => $model->id], ['class' => 'btn btn-primary']) ?>
+            <?= Html::a(Yii::t('docflow', 'Update Statuses'), ['status-update', 'doc' => $doc, 'status' => $model->tag], ['class' => 'btn btn-primary']) ?>
         </div>
         <div class="col-xs-6 text-right">
-            <?= Html::a(Yii::t('statuses', 'Delete'), ['delete', 'id' => $model->id], [
+            <?= Html::a(Yii::t('docflow', 'Delete'), ['status-delete', 'doc' => $doc, 'status' => $model->tag], [
                 'class' => 'btn btn-danger',
                 'data' => [
-                    'confirm' => Yii::t('statuses', 'Are you sure you want to delete this item?'),
+                    'confirm' => Yii::t('docflow', 'Are you sure you want to delete this item?'),
                     'method' => 'post',
                 ],
             ]) ?>
@@ -45,7 +46,7 @@ $this->params['breadcrumbs'][] = $this->title;
 </div>
 <div class="statuses-index">
 
-    <h3><?= Html::encode(Yii::t('statuses', 'Statuses Links')) ?></h3>
+    <h3><?= Html::encode(Yii::t('docflow', 'Statuses Links')) ?></h3>
 
     <?= ListView::widget([
         'id' => 'statuses-to-list',

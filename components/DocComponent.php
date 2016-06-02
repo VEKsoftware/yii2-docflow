@@ -3,6 +3,7 @@ namespace docflow\components;
 
 use Yii;
 use yii\base\Component;
+use docflow\models\DocTypes;
 
 class DocComponent extends Component
 {

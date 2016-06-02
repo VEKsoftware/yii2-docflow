@@ -3,7 +3,7 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model statuses\models\DocTypes */
+/* @var $model docflow\models\DocTypes */
 
 $this->title = Yii::t('docflow', 'Update {modelClass}: ', [
     'modelClass' => 'Status',
@@ -16,7 +16,7 @@ $this->params['breadcrumbs'][] = Yii::t('docflow', 'Update');
 
     <h1><?= Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
+    <?= $this->render('_form-status', [
         'model' => $model,
     ]) ?>
 

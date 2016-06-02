@@ -77,7 +77,7 @@ class DocTypesController extends Controller
     public function actionView($doc)
     {
         $model = $this->findModel($doc);
-        if(empty($model)) {
+        if (empty($model)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
@@ -111,7 +111,7 @@ class DocTypesController extends Controller
      */
     protected function findModel($doc)
     {
-        if (! empty(($model = DocTypes::getDocType($doc)))) {
+        if (!empty(($model = DocTypes::getDocType($doc)))) {
             return $model;
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
@@ -202,7 +202,7 @@ class DocTypesController extends Controller
     public function actionCreateStatus($doc)
     {
         $docObj = DocTypes::getDocType($doc);
-        if(empty($docObj)) {
+        if (empty($docObj)) {
             throw new NotFoundHttpException('The doc_type does not exist.');
         }
 
@@ -211,6 +211,7 @@ class DocTypesController extends Controller
         if (!$model->isAllowed('docflow.statuses.create')) {
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
+
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'doc' => $docObj->tag, 'tag' => $model->tag]);
@@ -233,7 +234,7 @@ class DocTypesController extends Controller
     public function actionStatusView($doc, $tag)
     {
         $model = $this->findStatusModel($doc, $tag);
-        if(empty($model)) {
+        if (empty($model)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
@@ -244,14 +245,16 @@ class DocTypesController extends Controller
         $searchModel = new StatusesSearch(['doc_type_id' => $model->docType->id]);
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        if(Yii::$app->request->isAjax) {
+        if (Yii::$app->request->isAjax) {
             return $this->renderAjax('view-status', [
+                'doc' => $doc,
                 'model' => $model,
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
             ]);
         } else {
             return $this->render('view-status', [
+                'doc' => $doc,
                 'model' => $model,
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
@@ -269,19 +272,65 @@ class DocTypesController extends Controller
      */
     public function actionAjaxUpdateLink($doc, $status_from, $status_to, $linked)
     {
-        Yii::$app->response->format = yii\web\Response::FORMAT_JSON;
+        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $model = $this->findStatusModel($doc, $status_from);
+
         return ['result' => 'success', 'linked' => true];
     }
 
-    protected function findStatusModel($doc,$tag)
+    protected function findStatusModel($doc, $tag)
     {
         $doc_model = $this->findModel($doc);
-        if (! empty($doc_model->statuses[$tag])) {
+        if (!empty($doc_model->statuses[$tag])) {
             return $doc_model->statuses[$tag];
         } else {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+    }
+
+    /**
+     * Обновляем статус документа
+     * @param string $doc Тэг документа
+     * @param string $status Тэг статуса документа
+     * @return string|\yii\web\Response
+     * @throws \yii\web\ForbiddenHttpException
+     * @throws \yii\web\NotFoundHttpException
+     */
+    public function actionStatusUpdate($doc, $status) {
+        $model = $this->findStatusModel($doc, $status);
+
+        if (!$model->isAllowed('docflow.docstatuses.update')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
+
+        if ($model->load(Yii::$app->request->post()) && $model->save()) {
+            return $this->redirect(['status-view', 'doc' => $doc, 'tag' => $model->tag]);
+        } else {
+            return $this->render('update-status', [
+                'model' => $model,
+            ]);
+        }
+    }
+
+    /**
+     * Удаляем статус документа
+     * @param string $doc Тэг документа
+     * @param string $status Тэг Статуса документа
+     * @return \yii\web\Response
+     * @throws \Exception
+     * @throws \yii\web\ForbiddenHttpException
+     * @throws \yii\web\NotFoundHttpException
+     */
+    public function actionStatusDelete($doc, $status) {
+        $model = $this->findStatusModel($doc, $status);
+
+        if (!$model->isAllowed('docflow.docstatuses.delete')) {
+            throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
+        }
+
+        $model->delete();
+
+        return $this->redirect(['view', 'doc' => $doc]);
     }
 
 }

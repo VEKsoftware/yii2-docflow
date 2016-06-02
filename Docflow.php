@@ -28,6 +28,8 @@ class Docflow extends Module
         parent::init();
 //        $this->checkAccessClassConfig();
         $this->registerTranslations();
+
+        $this->defaultRoute = 'doc-types/index';
     }
 
     /**

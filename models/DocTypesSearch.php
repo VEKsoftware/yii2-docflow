@@ -48,7 +48,7 @@ class DocTypesSearch extends DocTypes
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'tag', $this->name])
+            ->andFilterWhere(['like', 'tag', $this->tag])
         ;
 
         return $dataProvider;

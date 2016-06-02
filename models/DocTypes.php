@@ -123,7 +123,13 @@ class DocTypes extends CommonRecord
     public static function getDocTypes()
     {
         if (empty(static::$_doctypes)) {
-            static::$_doctypes = static::findDocTypes()->with('statuses')->all();
+            static::$_doctypes = static::findDocTypes()
+                ->with([
+                    'statuses' => function (\yii\db\ActiveQuery $query) {
+                        $query->orderBy(['order_idx' => SORT_ASC]);
+                    },
+                ])
+                ->all();
         }
 
         return static::$_doctypes;

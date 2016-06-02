@@ -57,13 +57,17 @@ $this->params['breadcrumbs'][] = $this->title;
 </div>
 
 <?php
-function treeBranch($val) {
-    return [
-        'text' => $val->name,
-        'href' => Url::to(['status-view', 'doc' => $val->docType->tag, 'tag' => $val->tag]),
-    ] + (empty($val->statusChildren) ? [] : [
-        'nodes' => array_map('treeBranch', $val->statusChildren),
-    ]);
+function treeBranch($val)
+{
+    return array_merge(
+        [
+            'text' => $val->name,
+            'href' => Url::to(['status-view', 'doc' => $val->docType->tag, 'tag' => $val->tag]),
+        ],
+        (empty($val->statusChildren))
+            ? []
+            : ['nodes' => array_map('treeBranch', $val->statusChildren)]
+    );
 }
 
 $items = array_map('treeBranch', $model->statusesStructure);

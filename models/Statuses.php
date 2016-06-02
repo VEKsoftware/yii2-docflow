@@ -320,7 +320,7 @@ class Statuses extends Document
      */
     public function getStatusChildren()
     {
-        return $this->hasMany(Statuses::className(), ['id' => 'status_to'])
+        return $this->hasMany(Statuses::className(), ['id' => 'status_to'])->orderBy(['order_idx' => SORT_ASC])
             ->via('linksChildren')
             ->inverseOf('statusParent')
         ;

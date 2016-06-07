@@ -3,6 +3,7 @@
 namespace docflow\models;
 
 use Yii;
+use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\db\ActiveQueryInterface;
 use yii\helpers\ArrayHelper;
@@ -15,15 +16,15 @@ use docflow\models\DocTypes;
  * This is the model class for table "statuses". It is user through model DocTypes.
  * To get list of available statuses just type: ``$list_of_statuses = DocTypes::getDoc('document')->statuses;``
  *
- * @property int $id
- * @property int $doc_type
- * @property string $name
- * @property string $description
+ * @property int             $id
+ * @property int             $doc_type
+ * @property string          $name
+ * @property string          $description
  * @property StatusesLinks[] $statusesLinks
  * @property StatusesLinks[] statusesLinksTo
- * @property string docTypeName
- * @property string tag
- * @property string fullName
+ * @property string          docTypeName
+ * @property string          tag
+ * @property string          fullName
  */
 class Statuses extends Document
 {
@@ -69,7 +70,7 @@ class Statuses extends Document
             [['name', 'tag'], 'string', 'max' => 128],
             [['description'], 'string', 'max' => 512],
             ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
-            ['tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
+            ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
         ];
     }
 
@@ -95,7 +96,7 @@ class Statuses extends Document
         return [
             [
                 'operation' => 'view',
-                'label' => Yii::t('docflow','View'),
+                'label' => Yii::t('docflow', 'View'),
                 'conditions' => [
                     [
                         'condition' => 'any',
@@ -105,7 +106,7 @@ class Statuses extends Document
             ],
             [
                 'operation' => 'create',
-                'label' => Yii::t('docflow','Create'),
+                'label' => Yii::t('docflow', 'Create'),
                 'conditions' => [
                     [
                         'condition' => 'any',
@@ -115,7 +116,7 @@ class Statuses extends Document
             ],
             [
                 'operation' => 'update',
-                'label' => Yii::t('docflow','Update'),
+                'label' => Yii::t('docflow', 'Update'),
                 'conditions' => [
                     [
                         'condition' => 'any',
@@ -134,11 +135,12 @@ class Statuses extends Document
     public static function statusAccessTags($statuses)
     {
         $result = [];
-        foreach($statuses as $status_from) {
-            foreach($statuses as $status_to) {
+        foreach ($statuses as $status_from) {
+            foreach ($statuses as $status_to) {
                 $result[] = $status_from->tag . '-' . $status_to->tag;
             }
         }
+
         return $result;
     }
 
@@ -235,8 +237,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
             ->via('linksTo')
-            ->indexBy('tag')
-        ;
+            ->indexBy('tag');
     }
 
     /**
@@ -246,8 +247,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
             ->via('linksStructureTo')
-            ->indexBy('tag')
-        ;
+            ->indexBy('tag');
     }
 
     /**
@@ -257,8 +257,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_from'])
             ->via('linksStructureFrom')
-            ->indexBy('tag')
-        ;
+            ->indexBy('tag');
     }
 
     /**
@@ -268,8 +267,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
             ->via('linksTransitionsTo')
-            ->indexBy('tag')
-        ;
+            ->indexBy('tag');
     }
 
     /**
@@ -279,8 +277,7 @@ class Statuses extends Document
     {
         return $this->hasMany(static::className(), ['id' => 'status_to'])
             ->via('linksTransitionsFrom')
-            ->indexBy('tag')
-        ;
+            ->indexBy('tag');
     }
 
     /**
@@ -297,8 +294,7 @@ class Statuses extends Document
     public function getStatusParent()
     {
         return $this->hasOne(Statuses::className(), ['id' => 'status_from'])
-            ->via('linksParent')
-        ;
+            ->via('linksParent');
     }
 
     /**
@@ -307,10 +303,10 @@ class Statuses extends Document
     public function setStatusParent($newParent)
     {
         $parentLink = $this->linksParent;
-        if($newParent instanceOf self) {
+        if ($newParent instanceOf self) {
             $parentLink->status_from = $newParent->id;
-        } elseif(is_null($newParent)) {
-            $parentLink->status_from = NULL;
+        } elseif (is_null($newParent)) {
+            $parentLink->status_from = null;
         }
         $parentLink->save();
     }
@@ -322,8 +318,7 @@ class Statuses extends Document
     {
         return $this->hasMany(Statuses::className(), ['id' => 'status_to'])->orderBy(['order_idx' => SORT_ASC])
             ->via('linksChildren')
-            ->inverseOf('statusParent')
-        ;
+            ->inverseOf('statusParent');
     }
 
     /**
@@ -342,7 +337,88 @@ class Statuses extends Document
 
         // Получаем ссылки где status_to равен нашему $statusTo
         $linksTo = $statusTo->linksTo;
+
         return array_unique(array_filter(ArrayHelper::getColumn($linksTo, 'right_tag')));
     }
 
+    /**
+     * Получаем Статус по тэгу
+     *
+     * @param string $tag                - тэг статуса
+     * @param bool   $needFromIdAndLevel - false - возвращает объект Statuses,
+     *                                     true - возвращаем массив с данными поg\ перемещаемому Статусу
+     *                                     и в каком статусе непосредственно (1 уровень) находится перемещаемый статус
+     *
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getStatusForTag($tag, $needFromIdAndLevel = false)
+    {
+        $query = self::find()
+            ->select([
+                'id' => 'doc_statuses.id',
+                'doc_type_id' => 'doc_statuses.doc_type_id',
+                'tag' => 'doc_statuses.tag',
+                'name' => 'doc_statuses.name',
+                'description' => 'doc_statuses.description',
+                'order_idx' => 'doc_statuses.order_idx'
+            ])
+            ->where(['=', 'doc_statuses.tag', $tag])
+            ->limit(1);
+
+        if ($needFromIdAndLevel === true) {
+            $query->addSelect([
+                'fromId' => 'd_s_l.status_from',
+                'level' => 'd_s_l.level',
+            ]);
+            $query->leftJoin(
+                'doc_statuses_links d_s_l',
+                'doc_statuses.id = d_s_l.status_to and d_s_l.type = \'fltree\' and d_s_l.level = 1'
+            );
+            $query->asArray(true);
+        }
+
+        return $query->one();
+    }
+
+    /**
+     * Получаем массив со статусами в уровне, где находится перемещаемый статус
+     *
+     * @param integer $fromId    - id статуса, в котором находится перемещаемый статус
+     * @param integer $level     - уровень, в котором находится перемещаемый статус
+     * @param integer $docTypeId - id документа, которому принадлежит перемещаемый статус
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getStatusesForLevel($fromId, $level, $docTypeId)
+    {
+        $query = static::find()
+            ->select(['orderIdx' => 'doc_statuses.order_idx', 'tag' => 'doc_statuses.tag'])
+            ->orderBy(['order_idx' => SORT_ASC])
+            ->asArray(true);
+
+        if (!empty($level)) {
+            $query->innerJoin(
+                'doc_statuses_links d_s_l',
+                'doc_statuses.id = d_s_l.status_to and d_s_l.status_from = :from',
+                [':from' => $fromId]
+            );
+            $query->where([
+                'and',
+                ['=', 'd_s_l.level', $level],
+                ['=', 'doc_statuses.doc_type_id', $docTypeId]
+            ]);
+        } else {
+            $query->leftJoin(
+                'doc_statuses_links d_s_l',
+                'doc_statuses.id = d_s_l.status_to'
+            );
+            $query->where([
+                'and',
+                ['is', 'd_s_l.status_to', null],
+                ['=', 'doc_statuses.doc_type_id', $docTypeId]
+            ]);
+        }
+
+        return $query->all();
+    }
 }

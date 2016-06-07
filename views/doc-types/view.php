@@ -49,6 +49,7 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="row">
     <div class="col-sm-3">
         <h3> <?=Yii::t('docflow', 'List of statuses')?> </h3>
+        <span id="tree-change-status"></span>
         <div id="tree"></div>
     </div>
     <div class="col-sm-9">
@@ -80,7 +81,9 @@ TreeViewAsset::register($this);
 $this->registerJs(<<<'JS'
 var onSelect = function (undefined, item) {
     if (item.href !== location.pathname) {
-        $("#tree-leaf").load(item.href);
+        $("#tree-leaf").load(item.href, function() {
+            $("#tree-leaf").trigger("domChanged");
+        });
     }
 }
 

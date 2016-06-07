@@ -2,8 +2,12 @@
 
 namespace docflow\controllers;
 
+use docflow\Docflow;
+use docflow\models\StatusTreePosition;
 use Yii;
 
+use yii\base\ErrorException;
+use yii\di\Instance;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
@@ -18,6 +22,7 @@ use docflow\models\Statuses;
 use docflow\models\StatusesLinks;
 use docflow\models\StatusesLinksSearch;
 use docflow\models\StatusesSearch;
+use yii\web\Response;
 
 /**
  * DocTypesController implements the CRUD actions for DocTypes model.
@@ -290,13 +295,14 @@ class DocTypesController extends Controller
 
     /**
      * Обновляем статус документа
-     * @param string $doc Тэг документа
+     * @param string $doc    Тэг документа
      * @param string $status Тэг статуса документа
      * @return string|\yii\web\Response
      * @throws \yii\web\ForbiddenHttpException
      * @throws \yii\web\NotFoundHttpException
      */
-    public function actionStatusUpdate($doc, $status) {
+    public function actionStatusUpdate($doc, $status)
+    {
         $model = $this->findStatusModel($doc, $status);
 
         if (!$model->isAllowed('docflow.docstatuses.update')) {
@@ -314,14 +320,15 @@ class DocTypesController extends Controller
 
     /**
      * Удаляем статус документа
-     * @param string $doc Тэг документа
+     * @param string $doc    Тэг документа
      * @param string $status Тэг Статуса документа
      * @return \yii\web\Response
      * @throws \Exception
      * @throws \yii\web\ForbiddenHttpException
      * @throws \yii\web\NotFoundHttpException
      */
-    public function actionStatusDelete($doc, $status) {
+    public function actionStatusDelete($doc, $status)
+    {
         $model = $this->findStatusModel($doc, $status);
 
         if (!$model->isAllowed('docflow.docstatuses.delete')) {
@@ -333,4 +340,72 @@ class DocTypesController extends Controller
         return $this->redirect(['view', 'doc' => $doc]);
     }
 
+    /**
+     * Перемещаем статус на позицию выше (в пределах своего уровня вложенности)
+     *
+     * @param string $statusTag - Тэг статуса
+     *
+     * @return mixed
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxStatusTreeUp($statusTag)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+
+        return $treePositionsClass->setStatusInTreeVertical($statusTag, 'Up');
+    }
+
+    /**
+     * Перемещаем статус на позицию ниже в древе (в пределах своего уровня вложенности)
+     *
+     * @param string $statusTag - Тэг статуса
+     *
+     * @return mixed
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxStatusTreeDown($statusTag)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+
+        return $treePositionsClass->setStatusInTreeVertical($statusTag, 'Down');
+    }
+
+    /**
+     * Получаем древо по Ajax запросу
+     *
+     * @param string $docTag - Тэг документа
+     *
+     * @return array
+     *
+     * @throws \yii\web\NotFoundHttpException
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxTree($docTag)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+
+        /**
+         * @var DocTypes $model
+         */
+        $model = $this->findModel($docTag);
+        if (empty($model)) {
+            throw new NotFoundHttpException('The requested page does not exist.');
+        }
+
+        return $treePositionsClass->getTree($model->statusesStructure);
+    }
 }

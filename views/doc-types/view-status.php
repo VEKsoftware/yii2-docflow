@@ -19,10 +19,68 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <p>
     <div class="row">
-        <div class="col-xs-6">
+        <div class="col-xs-2 text-left">
             <?= Html::a(Yii::t('docflow', 'Update Statuses'), ['status-update', 'doc' => $doc, 'status' => $model->tag], ['class' => 'btn btn-primary']) ?>
         </div>
-        <div class="col-xs-6 text-right">
+        <div class="col-xs-8 text-center" id="actions-tree-buttons">
+            <?php echo Html::tag(
+                'div',
+                Yii::t('docflow', 'Up in Tree'),
+                [
+                    'name' => 'up-in-tree',
+                    'data-href' => Url::toRoute(
+                        [
+                            'ajax-status-tree-up',
+                            'statusTag' => $model->tag
+                        ]
+                    ),
+                    'class' => 'btn btn-primary'
+                ]
+            ) ?>
+            <?php echo Html::tag(
+                'div',
+                Yii::t('docflow', 'Down in Tree'),
+                [
+                    'name' => 'down-in-tree',
+                    'data-href' => Url::toRoute(
+                        [
+                            'ajax-status-tree-down',
+                            'statusTag' => $model->tag
+                        ]
+                    ),
+                    'class' => 'btn btn-primary'
+                ]
+            ) ?>
+            <?php echo Html::tag(
+                'div',
+                Yii::t('docflow', 'Right in Tree'),
+                [
+                    'name' => 'right-in-tree',
+                    'data-href' => Url::toRoute(
+                        [
+                            'ajax-status-tree-right',
+                            'statusTag' => $model->tag
+                        ]
+                    ),
+                    'class' => 'btn btn-primary'
+                ]
+            ) ?>
+            <?php echo Html::tag(
+                'div',
+                Yii::t('docflow', 'Left in Tree'),
+                [
+                    'name' => 'left-in-tree',
+                    'data-href' => Url::toRoute(
+                        [
+                            'ajax-status-tree-left',
+                            'statusTag' => $model->tag
+                        ]
+                    ),
+                    'class' => 'btn btn-primary'
+                ]
+            ) ?>
+        </div>
+        <div class="col-xs-2 text-right">
             <?= Html::a(Yii::t('docflow', 'Delete'), ['status-delete', 'doc' => $doc, 'status' => $model->tag], [
                 'class' => 'btn btn-danger',
                 'data' => [

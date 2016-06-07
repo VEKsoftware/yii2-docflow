@@ -1,0 +1,15 @@
+.error-tree-change {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: red;
+}
+
+.success-tree-change {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: green;
+}
+
+.hidden {
+    display: none;
+}

@@ -119,9 +119,9 @@ function setTreeChangeStatus(status, text) {
     var $statusTreeChange = $(document).find("#tree-change-status");
 
     if (status === 'success') {
-        $statusTreeChange.text(text).addClass('success-tree-change');
+        $statusTreeChange.text(text).addClass('success-tree-change').removeClass('error-tree-change');
     } else {
-        $statusTreeChange.text(text).addClass('error-tree-change');
+        $statusTreeChange.text(text).addClass('error-tree-change').removeClass('success-tree-change');
     }
 }
 

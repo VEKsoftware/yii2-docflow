@@ -13,6 +13,7 @@ use Yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\base\Model;
+use yii\di\Instance;
 use yii\helpers\Url;
 
 class StatusTreePosition extends Model
@@ -24,7 +25,19 @@ class StatusTreePosition extends Model
      */
     protected function initStatuses()
     {
-        return new Statuses();
+        return Instance::ensure([], Statuses::className());
+    }
+
+    /**
+     * Инициируем класс ссылок статусов
+     *
+     * @return \docflow\models\StatusesLinks
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    protected function initStatusesLinks()
+    {
+        return Instance::ensure([], StatusesLinks::className());
     }
 
     /**
@@ -35,7 +48,7 @@ class StatusTreePosition extends Model
      *
      * @return array
      */
-    protected function changeStatusPositionIinTreeOnUpOrDown($changeArray, $currentStatus)
+    protected function changeStatusPositionIinTreeOnUpOrDown(array $changeArray, $currentStatus)
     {
         $statusClass = $this->initStatuses();
 
@@ -57,7 +70,7 @@ class StatusTreePosition extends Model
                     throw new ErrorException('Позиция не изменена');
                 }
             });
-            $return = ['success' => 'Позиция изменена', 'changeName' => $changeStatus->name];
+            $return = ['success' => 'Позиция изменена'];
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         } catch (InvalidParamException $e) {
@@ -113,7 +126,7 @@ class StatusTreePosition extends Model
      *
      * @return array
      */
-    protected function getChangeArrayForActionInTree($currentOrderIdx, $array, $action)
+    protected function getChangeArrayForActionInTree($currentOrderIdx, array $array, $action)
     {
         try {
             $position = $this->checkPositionInTreeArray($currentOrderIdx, $array);
@@ -150,7 +163,7 @@ class StatusTreePosition extends Model
     protected function checkPositionInTreeArray($currentOrderIdx, $array)
     {
         $position = '';
-
+        //TODO переписать
         foreach ($array as $key => $value) {
             if ((string)$value['orderIdx'] === (string)$currentOrderIdx) {
                 $position = $key;
@@ -169,7 +182,7 @@ class StatusTreePosition extends Model
      *
      * @return array
      */
-    protected function getStructureForUp($array, $position)
+    protected function getStructureForUp(array $array, $position)
     {
         $changePosition = ($position - 1);
 
@@ -190,7 +203,7 @@ class StatusTreePosition extends Model
      *
      * @return array
      */
-    protected function getStructureForDown($array, $position)
+    protected function getStructureForDown(array $array, $position)
     {
         $changePosition = ($position + 1);
 
@@ -212,7 +225,7 @@ class StatusTreePosition extends Model
      *
      * @return array
      */
-    protected function getStructure($array, $position, $changePosition)
+    protected function getStructure(array $array, $position, $changePosition)
     {
         return [
             'current' => [
@@ -256,5 +269,177 @@ class StatusTreePosition extends Model
                 ? []
                 : ['nodes' => array_map([$this, 'treeBranch'], $val->statusChildren)]
         );
+    }
+
+    /**
+     * Перемещение статуса во внутрь(вложенный уровень) другого статуса или вынесение из вложенного уровня во внешний
+     *
+     * @param string $statusTag    - Тэг статуса
+     * @param string $docTag       - Тэг документа
+     * @param string $actionInTree - действие Right - во внутренний уровень, действие Left - во внешний уровень
+     *
+     * @return array
+     */
+    public function setStatusInTreeHorizontal($statusTag, $docTag, $actionInTree)
+    {
+        $statusesClass = $this->initStatuses();
+        $statusesLinksClass = $this->initStatusesLinks();
+
+        $return = [];
+
+        $statusArray = $statusesClass->getStatusForTag($statusTag, true);
+        $statusChildArray = $statusesLinksClass->getChildStatusesForStatus($statusArray['id']);
+
+        try {
+            if (count($statusChildArray) > 0) {
+                throw new ErrorException('Запрещено перемещать узлы');
+            }
+
+            switch ($actionInTree) {
+                case 'Left':
+                    $flTreeLinks = $statusesLinksClass->getFlTreeLinkForStatusForLevel1And2($statusArray['id']);
+                    $return = $this->setStatusInTreeLeft($flTreeLinks);
+                    break;
+                case 'Right':
+                    $statusLinksArray = $statusesClass->getStatusesForLevel(
+                        $statusArray['fromId'],
+                        $statusArray['level'],
+                        $statusArray['doc_type_id']
+                    );
+                    $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusArray['id']);
+                    $paramsNewLink = [
+                        'status_to' => $statusArray['id'],
+                        'doc_tag' => $docTag,
+                        'to_tag' => $statusArray['tag'],
+                        'type' => 'fltree',
+                        'level' => 1,
+                    ];
+                    $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink);
+                    break;
+            }
+        } catch (ErrorException $e) {
+            $return = ['error' => $e->getMessage()];
+        }
+
+        return $return;
+    }
+
+    /**
+     * Перемещаем статус внутрь уровня верхлежащего статуса
+     *
+     * @param array                               $params           - массив с данными для перемещения перемещаемого статуса
+     * @param array                               $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
+     * @param \docflow\models\StatusesLinks|array $flTreeLink       - ссылка 1-го уровня для перемещаемого статуса
+     *
+     * @return array
+     */
+    protected function setStatusInTreeRight(array $params, array  $statusLinksArray, $flTreeLink)
+    {
+        try {
+            if (count($statusLinksArray) < 2) {
+                throw new ErrorException('Переход невозможен');
+            }
+
+            if ($statusLinksArray[0]['id'] === $params['status_to']) {
+                throw new ErrorException('Переход невозможен');
+            }
+
+            $valueFrom = $this->getStatusFrom($params['status_to'], $statusLinksArray);
+
+            if (empty($flTreeLink)) {
+                $newStatusLink = $this->initStatusesLinks();
+
+                $newStatusLink->status_from = $valueFrom['id'];
+                $newStatusLink->status_to = $params['status_to'];
+                $newStatusLink->type = $params['type'];
+                $newStatusLink->right_tag = $params['doc_tag'] . '.' . $params['to_tag'] . '.' . $valueFrom['tag'];
+                $newStatusLink->level = $params['level'];
+
+                $result = $newStatusLink->save();
+            } else {
+                $flTreeLink->status_from = $valueFrom['id'];
+
+                $result = $flTreeLink->save();
+            }
+
+            $return = $this->moveResult($result);
+        } catch (ErrorException $e) {
+            $return = ['error' => $e->getMessage()];
+        }
+
+        return $return;
+    }
+
+    /**
+     * Возвращяем сообщение в зависимости от результата
+     *
+     * @param bool $result - результат перемещения
+     *
+     * @return array
+     */
+    protected function moveResult($result)
+    {
+        $return = ['error' => 'Ошибка перемещения'];
+
+        if ($result === true) {
+            $return = ['success' => 'Позиция изменена'];
+        }
+
+        return $return;
+    }
+
+    /**
+     * Получаем массив с данными о статусе в который перемещается перемещаемый статус
+     *
+     * @param integer $id               - id перемещаемого статуса
+     * @param array   $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
+     *
+     * @return array
+     */
+    protected function getStatusFrom($id, array $statusLinksArray)
+    {
+        $oldValue = [];
+        //TODO переписать
+        foreach ($statusLinksArray as $value) {
+            if ($value['id'] === $id) {
+                break;
+            }
+
+            $oldValue = $value;
+        }
+
+        return $oldValue;
+    }
+
+    /**
+     * Перемещаем статус из внутренного уровня во внешний
+     *
+     * @param array $flTreeLinks - массив с ссылками 1 и 2 уровня перемещаемого статуса
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    protected function setStatusInTreeLeft(array $flTreeLinks)
+    {
+        if (array_key_exists(2, $flTreeLinks)) {
+            /**
+             * @var StatusesLinks $link
+             */
+            $link = $flTreeLinks[1];
+
+            $link->status_from = $flTreeLinks[2]['status_from'];
+            $result = $link->save();
+        } elseif (array_key_exists(1, $flTreeLinks)) {
+            /**
+             * @var StatusesLinks $link
+             */
+            $link = $flTreeLinks[1];
+            $result = (bool)$link->delete();
+        } else {
+            $result = false;
+        }
+
+        return $this->moveResult($result);
     }
 }

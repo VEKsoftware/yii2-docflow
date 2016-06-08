@@ -23,7 +23,7 @@ class StatusesLinks extends Link
     protected static $_linkFrom = ['id' => 'status_from']; // ['id' => 'upper_id']
     protected static $_linkTo = ['id' => 'status_to'];   // ['id' => 'lower_id']
     protected static $_levelField = 'level';
-    protected static $_typeField = 'link_type';
+    protected static $_typeField = 'type';
 
     /**
      * {@inheritdoc}
@@ -42,7 +42,7 @@ class StatusesLinks extends Link
             [['status_from', 'status_to', 'right_tag'], 'required'],
             [['status_from', 'status_to'], 'integer'],
             [['right_tag'], 'string'],
-            ['right_tag', 'match', 'pattern'=>'/^[a-zA-Z0-9-_\.]+$/'],
+            ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [['status_from', 'status_to'], 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'id'],
         ];
     }
@@ -86,5 +86,67 @@ class StatusesLinks extends Link
         default:
             throw new ErrorException('Unknonw doc_statuses_links link type');
         }
+    }
+
+    /**
+     * Получаем ccылку на ближайшего родителя (1 уровень)
+     *
+     * @param integer $statusId - id статуса
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getFlTreeLinkForStatusForLevel1($statusId)
+    {
+        return static::find()
+            ->where(
+                [
+                    'and',
+                    ['=', 'status_to', $statusId],
+                    ['=', 'type', 'fltree'],
+                    ['=', 'level', 1]
+                ]
+            )
+            ->one();
+    }
+
+    /**
+     * Получаем ccылку на родителя родителя (2 уровень)
+     *
+     * @param integer $statusId - id статуса
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getFlTreeLinkForStatusForLevel1And2($statusId)
+    {
+        return static::find()
+            ->where(
+                [
+                    'and',
+                    ['=', 'status_to', $statusId],
+                    ['=', 'type', 'fltree'],
+                    ['in', 'level', [1,2]]
+                ]
+            )
+            ->indexBy('level')
+            ->all();
+    }
+
+    /**
+     * Получаем массив с данными о наличии "детей" - вложенных статусов
+     *
+     * @param integer $statusId - id Статуса1, у которого имем вложенные статусы
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getChildStatusesForStatus($statusId)
+    {
+        return static::find()
+            ->where([
+                'and',
+                ['=', 'type', 'fltree'],
+                ['=', 'status_from', $statusId],
+            ])
+            ->asArray(true)
+            ->all();
     }
 }

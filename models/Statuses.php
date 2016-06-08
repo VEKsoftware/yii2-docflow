@@ -392,7 +392,7 @@ class Statuses extends Document
     public function getStatusesForLevel($fromId, $level, $docTypeId)
     {
         $query = static::find()
-            ->select(['orderIdx' => 'doc_statuses.order_idx', 'tag' => 'doc_statuses.tag'])
+            ->select(['orderIdx' => 'doc_statuses.order_idx', 'tag' => 'doc_statuses.tag', 'id' => 'doc_statuses.id'])
             ->orderBy(['order_idx' => SORT_ASC])
             ->asArray(true);
 

@@ -25,13 +25,28 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-xs-8 text-center" id="actions-tree-buttons">
             <?php echo Html::tag(
                 'div',
+                Yii::t('docflow', 'Left in Tree'),
+                [
+                    'name' => 'left-in-tree',
+                    'data-href' => Url::toRoute(
+                        [
+                            'ajax-status-tree-left',
+                            'statusTag' => $model->tag,
+                            'docTag' => $doc,
+                        ]
+                    ),
+                    'class' => 'btn btn-primary'
+                ]
+            ) ?>
+            <?php echo Html::tag(
+                'div',
                 Yii::t('docflow', 'Up in Tree'),
                 [
                     'name' => 'up-in-tree',
                     'data-href' => Url::toRoute(
                         [
                             'ajax-status-tree-up',
-                            'statusTag' => $model->tag
+                            'statusTag' => $model->tag,
                         ]
                     ),
                     'class' => 'btn btn-primary'
@@ -45,7 +60,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'data-href' => Url::toRoute(
                         [
                             'ajax-status-tree-down',
-                            'statusTag' => $model->tag
+                            'statusTag' => $model->tag,
                         ]
                     ),
                     'class' => 'btn btn-primary'
@@ -59,21 +74,8 @@ $this->params['breadcrumbs'][] = $this->title;
                     'data-href' => Url::toRoute(
                         [
                             'ajax-status-tree-right',
-                            'statusTag' => $model->tag
-                        ]
-                    ),
-                    'class' => 'btn btn-primary'
-                ]
-            ) ?>
-            <?php echo Html::tag(
-                'div',
-                Yii::t('docflow', 'Left in Tree'),
-                [
-                    'name' => 'left-in-tree',
-                    'data-href' => Url::toRoute(
-                        [
-                            'ajax-status-tree-left',
-                            'statusTag' => $model->tag
+                            'statusTag' => $model->tag,
+                            'docTag' => $doc,
                         ]
                     ),
                     'class' => 'btn btn-primary'

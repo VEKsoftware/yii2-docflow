@@ -408,4 +408,46 @@ class DocTypesController extends Controller
 
         return $treePositionsClass->getTree($model->statusesStructure);
     }
+
+    /**
+     * Перемещение стутуса из текущего уровня во внутренний верх лежащего статуса
+     *
+     * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
+     *
+     * @return array
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxStatusTreeRight($statusTag, $docTag)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+
+        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, $docTag, 'Right');
+    }
+
+    /**
+     * Перемещение статуса из текущего уровня родительского статуса во внешний уровень, к родительскому статусу
+     *
+     * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
+     *
+     * @return array
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxStatusTreeLeft($statusTag, $docTag)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+
+        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, $docTag, 'Left');
+    }
 }

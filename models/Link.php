@@ -138,58 +138,75 @@ abstract class Link extends CommonRecord
         $type = static::$_typeField;
 
         // Prevent changing the type of link
-        if(! $insert && $this->getOldAttribute($type) !== $this->$type) {
+        if (!$insert && $this->getOldAttribute($type) !== $this->$type) {
             throw new ErrorException('You cannot change the type of link. Only delete and create new.');
         }
 
-        if(! parent::beforeSave($insert)) return false;
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
 
-        if($this->$type === self::LINK_TYPE_FLTREE) {
-            if($insert) $this->$level = 1;
+        if ($this->$type === self::LINK_TYPE_FLTREE) {
+            if ($insert) {
+                $this->$level = 1;
+            }
 
-            if($this->$level !== 1) {
+            if ($this->$level !== 1) {
                 throw new ErrorException('You cannot change supplementary link (whith level > 1)');
             }
 
-            if(! $insert && $this->$to != $this->getOldAttribute($to)) {
+            if (!$insert && $this->$to != $this->getOldAttribute($to)) {
                 throw new ErrorException('Cannot change child. Only change parent is allowed.');
             }
 
-            // $from may be NULL (the toppest level)
             $this->from_new = $this->$from;
-            if($this->from_new) {
+            if ($this->from_new) {
                 $this->upperLinksNew = static::findUpperLinks($this->from_new, $this->extraWhere())->all();
+                $this->upperLinksNew = array_merge(
+                    $this->upperLinksNew,
+                    [
+                        (object)[
+                            'status_from' => $this->from_new,
+                            'level' => 0
+                        ]
+                    ]
+                );
             }
-            $this->from_old = $this->getOldAttribute($from);
-            if($this->from_old) {
+
+            $this->from_old = ($this->isNewRecord) ? [] : $this->getOldAttribute($to);
+            if ($this->from_old) {
                 $this->upperLinksOld = static::findUpperLinks($this->from_old, $this->extraWhere())->all();
             }
+
             $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
 
-            // If parent is unchagned, we just stop here. Change of child is not allowed as yet.
-            if($this->from_new === $this->from_old) return;
-
-            $lower = ArrayHelper::getColumn($this->lowerLinks,$to);
+            $lower = ArrayHelper::getColumn($this->lowerLinks, $to);
             array_push($lower, $this->getOldAttribute($to));
-            $upperOld = $this->upperLinksOld ? ArrayHelper::getColumn($this->upperLinksOld,$from) : NULL;
+            $upperOld = $this->upperLinksOld ? ArrayHelper::getColumn($this->upperLinksOld, $from) : null;
 
             // Here we delete old unnecessary links
-            if(!empty($upperOld) && !empty($lower)) {
+            if (!empty($upperOld) && !empty($lower)) {
                 static::deleteAll(
                     array_merge(
                         [
                             'and',
                             [$from => $upperOld],
                             [$to => $lower],
-                            [$type => self::LINK_TYPE_FLTREE]
+                            [$type => self::LINK_TYPE_FLTREE],
+                            [
+                                'not',
+                                [
+                                    'and',
+                                    ['=', 'level', 1],
+                                    ['=', 'status_to', $this->getOldAttribute($to)]
+                                ]
+                            ],
                         ],
                         [$this->extraWhere()]
                     )
                 );
             }
-
         }
-
 
         return true;
     }
@@ -205,33 +222,57 @@ abstract class Link extends CommonRecord
         $type = static::$_typeField;
         parent::afterSave($insert, $changed_attributes);
 
-        if($this->$type === self::LINK_TYPE_FLTREE) {
+        if ($this->$type === self::LINK_TYPE_FLTREE) {
 
             // If parent is unchagned, we just stop here. Change of child is not allowed as yet.
-            if($this->from_new === $this->from_old) return;
+            if ($this->from_new === $this->from_old) {
+                return;
+            }
 
-            $lower = ArrayHelper::getColumn($this->lowerLinks,$to);
+            $lower = ArrayHelper::getColumn($this->lowerLinks, $to);
             array_push($lower, $this->getOldAttribute($to));
-            $upperNew = $this->upperLinksNew ? ArrayHelper::getColumn($this->upperLinksNew,$from) : NULL;
+            $upperNew = $this->upperLinksNew ? ArrayHelper::getColumn($this->upperLinksNew, $from) : null;
 
             // And then we add new relations
-            if(!empty($upperNew) && !empty($lower)) {
+            if (!empty($upperNew) && !empty($lower)) {
                 $inserts = [];
                 $attributes = $this->attributes;
 
                 // if there is a serial field id, we remove it from the array
                 unset($attributes['id']);
 
-                foreach($this->upperLinksNew as $boss) {
-                    foreach(array_merge($this->lowerLinks,[$this]) as $dept) {
-                        if(! $boss) continue;
+                foreach ($this->upperLinksNew as $boss) {
+                    foreach ($this->lowerLinks as $dept) {
+                        if (!$boss) {
+                            continue;
+                        }
+
                         $attributes[$from] = $boss->$from;
                         $attributes[$to] = $dept->$to;
-                        $attributes[$level] = $boss->$level + $dept->$level; // +1;?
+                        $attributes[$level] = ($boss->$level + $dept->$level + 1);
                         array_push($inserts, array_values($attributes));
                     }
+
+                    if ($boss->$from !== $this->$from) {
+                        foreach ([$this] as $dept) {
+                            if (!$boss) {
+                                continue;
+                            }
+
+                            $attributes[$from] = $boss->$from;
+                            $attributes[$to] = $dept->$to;
+                            $attributes[$level] = ($boss->$level + $dept->$level);
+                            array_push($inserts, array_values($attributes));
+                        }
+                    }
                 }
-                static::getDb()->createCommand()->batchInsert(static::tableName(), array_keys($attributes), $inserts)->execute();
+
+                if (!empty($inserts)) {
+                    static::getDb()
+                        ->createCommand()
+                        ->batchInsert(static::tableName(), array_keys($attributes), $inserts)
+                        ->execute();
+                }
             }
         }
     }
@@ -246,21 +287,23 @@ abstract class Link extends CommonRecord
         $level = static::$_levelField;
         $type = static::$_typeField;
 
-        if($this->$type === self::LINK_TYPE_FLTREE) {
-
-            if($this->$level !== 1) {
+        if ($this->$type === self::LINK_TYPE_FLTREE) {
+            if ($this->$level !== 1) {
                 throw new ErrorException('You cannot delete supplementary link (whith level > 1)');
             }
 
             // $from may be NULL (the toppest level)
             $from_old = $this->getOldAttribute($from);
-            if($from_old) {
-                $this->upperLinksOld = static::findUpperLinks($from_old, $this->extraWhere())->all();
+            if ($from_old) {
+                $this->upperLinksOld = static::findLowerLinks($from_old, $this->extraWhere())->all();
             }
+
             $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
         }
 
-        if(! parent::beforeDelete()) return false;
+        if (!parent::beforeDelete()) {
+            return false;
+        }
 
         return true;
     }
@@ -276,13 +319,12 @@ abstract class Link extends CommonRecord
         $level = static::$_levelField;
         $type = static::$_typeField;
 
-        if($this->$type === self::LINK_TYPE_FLTREE) {
-
-            $lower = ArrayHelper::getColumn($this->lowerLinks,$to);
+        if ($this->$type === self::LINK_TYPE_FLTREE) {
+            $lower = ArrayHelper::getColumn($this->lowerLinks, $to);
             array_push($lower, $this->$to);
 
             // Here we delete old unnecessary links
-            if(!empty($this->upperLinksOld) && !empty($lower)) {
+            if (!empty($this->upperLinksOld) && !empty($lower)) {
                 $upper = ArrayHelper::getColumn($this->upperLinksOld, $from);
                 static::deleteAll(
                     array_merge(

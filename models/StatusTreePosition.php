@@ -18,6 +18,10 @@ use yii\helpers\Url;
 
 class StatusTreePosition extends Model
 {
+    const LINK_TYPE_SIMPLE = 'simple';
+
+    const LINK_TYPE_FLTREE = 'fltree';
+
     /**
      * Инициируем класс статуса
      *
@@ -288,37 +292,28 @@ class StatusTreePosition extends Model
         $return = [];
 
         $statusArray = $statusesClass->getStatusForTag($statusTag, true);
-        $statusChildArray = $statusesLinksClass->getChildStatusesForStatus($statusArray['id']);
 
-        try {
-            if (count($statusChildArray) > 0) {
-                throw new ErrorException('Запрещено перемещать узлы');
-            }
-
-            switch ($actionInTree) {
-                case 'Left':
-                    $flTreeLinks = $statusesLinksClass->getFlTreeLinkForStatusForLevel1And2($statusArray['id']);
-                    $return = $this->setStatusInTreeLeft($flTreeLinks);
-                    break;
-                case 'Right':
-                    $statusLinksArray = $statusesClass->getStatusesForLevel(
-                        $statusArray['fromId'],
-                        $statusArray['level'],
-                        $statusArray['doc_type_id']
-                    );
-                    $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusArray['id']);
-                    $paramsNewLink = [
-                        'status_to' => $statusArray['id'],
-                        'doc_tag' => $docTag,
-                        'to_tag' => $statusArray['tag'],
-                        'type' => 'fltree',
-                        'level' => 1,
-                    ];
-                    $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink);
-                    break;
-            }
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
+        switch ($actionInTree) {
+            case 'Left':
+                $flTreeLinks = $statusesLinksClass->getFlTreeLinkForStatusForLevel1And2($statusArray['id']);
+                $return = $this->setStatusInTreeLeft($flTreeLinks);
+                break;
+            case 'Right':
+                $statusLinksArray = $statusesClass->getStatusesForLevel(
+                    $statusArray['fromId'],
+                    $statusArray['level'],
+                    $statusArray['doc_type_id']
+                );
+                $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusArray['id']);
+                $paramsNewLink = [
+                    'status_to' => $statusArray['id'],
+                    'doc_tag' => $docTag,
+                    'to_tag' => $statusArray['tag'],
+                    'type' => 'fltree',
+                    'level' => 1,
+                ];
+                $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink);
+                break;
         }
 
         return $return;
@@ -349,14 +344,16 @@ class StatusTreePosition extends Model
             if (empty($flTreeLink)) {
                 $newStatusLink = $this->initStatusesLinks();
 
+                $newStatusLink->setScenario(static::LINK_TYPE_FLTREE);
+
                 $newStatusLink->status_from = $valueFrom['id'];
                 $newStatusLink->status_to = $params['status_to'];
                 $newStatusLink->type = $params['type'];
-                $newStatusLink->right_tag = $params['doc_tag'] . '.' . $params['to_tag'] . '.' . $valueFrom['tag'];
                 $newStatusLink->level = $params['level'];
 
                 $result = $newStatusLink->save();
             } else {
+                $flTreeLink->setScenario(static::LINK_TYPE_FLTREE);
                 $flTreeLink->status_from = $valueFrom['id'];
 
                 $result = $flTreeLink->save();
@@ -429,6 +426,8 @@ class StatusTreePosition extends Model
             $link = $flTreeLinks[1];
 
             $link->status_from = $flTreeLinks[2]['status_from'];
+            $link->setScenario(static::LINK_TYPE_FLTREE);
+
             $result = $link->save();
         } elseif (array_key_exists(1, $flTreeLinks)) {
             /**

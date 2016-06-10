@@ -39,12 +39,26 @@ class StatusesLinks extends Link
     public function rules()
     {
         return [
-            [['status_from', 'status_to', 'right_tag'], 'required'],
+            [['status_from', 'status_to', 'type', 'level'], 'required', 'on' => static::LINK_TYPE_FLTREE],
+            [['status_from', 'status_to', 'right_tag', 'type'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
             [['status_from', 'status_to'], 'integer'],
             [['right_tag'], 'string'],
+            [['level'], 'integer'],
+            [['type'], 'string'],
             ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [['status_from', 'status_to'], 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'id'],
         ];
+    }
+
+    public function scenarios()
+    {
+        return array_merge(
+            parent::scenarios(),
+            [
+                static::LINK_TYPE_FLTREE => ['status_from', 'status_to', 'type', 'level'],
+                static::LINK_TYPE_SIMPLE => ['status_from', 'status_to', 'right_tag', 'type'],
+            ]
+        );
     }
 
     /**

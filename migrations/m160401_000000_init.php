@@ -74,7 +74,7 @@ class m160401_000000_init extends Migration
             'id' => $this->primaryKey(),
             'status_from' => $this->integer()->notNull(),
             'status_to' => $this->integer()->notNull(),
-            'right_tag' => $this->string(128)->notNull(),
+            'right_tag' => $this->string(128),
             'type' => 'link_types DEFAULT \'simple\'::link_types',
             'level' => $this->integer(),
         ], null);

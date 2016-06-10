@@ -25,7 +25,7 @@ $this->params['breadcrumbs'][] = $this->title;
         <div class="col-xs-8 text-center" id="actions-tree-buttons">
             <?php echo Html::tag(
                 'div',
-                Yii::t('docflow', 'Left in Tree'),
+                Yii::t('docflow', 'Out'),
                 [
                     'name' => 'left-in-tree',
                     'data-href' => Url::toRoute(
@@ -35,12 +35,12 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc,
                         ]
                     ),
-                    'class' => 'btn btn-primary'
+                    'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
                 ]
             ) ?>
             <?php echo Html::tag(
                 'div',
-                Yii::t('docflow', 'Up in Tree'),
+                Yii::t('docflow', 'Up'),
                 [
                     'name' => 'up-in-tree',
                     'data-href' => Url::toRoute(
@@ -49,12 +49,12 @@ $this->params['breadcrumbs'][] = $this->title;
                             'statusTag' => $model->tag,
                         ]
                     ),
-                    'class' => 'btn btn-primary'
+                    'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
                 ]
             ) ?>
             <?php echo Html::tag(
                 'div',
-                Yii::t('docflow', 'Down in Tree'),
+                Yii::t('docflow', 'Down'),
                 [
                     'name' => 'down-in-tree',
                     'data-href' => Url::toRoute(
@@ -63,12 +63,12 @@ $this->params['breadcrumbs'][] = $this->title;
                             'statusTag' => $model->tag,
                         ]
                     ),
-                    'class' => 'btn btn-primary'
+                    'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
                 ]
             ) ?>
             <?php echo Html::tag(
                 'div',
-                Yii::t('docflow', 'Right in Tree'),
+                Yii::t('docflow', 'In'),
                 [
                     'name' => 'right-in-tree',
                     'data-href' => Url::toRoute(
@@ -78,7 +78,7 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc,
                         ]
                     ),
-                    'class' => 'btn btn-primary'
+                    'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
                 ]
             ) ?>
         </div>

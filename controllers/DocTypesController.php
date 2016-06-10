@@ -3,6 +3,7 @@
 namespace docflow\controllers;
 
 use docflow\Docflow;
+use docflow\models\StatusSimpleLink;
 use docflow\models\StatusTreePosition;
 use Yii;
 
@@ -267,22 +268,6 @@ class DocTypesController extends Controller
         }
     }
 
-    /**
-     * Updates current status of a status transition link: linked or unlinked
-     *
-     * @param int $doc status tag
-     * @return mixed
-     * @throws ForbiddenHttpException
-     * @throws NotFoundHttpException
-     */
-    public function actionAjaxUpdateLink($doc, $status_from, $status_to, $linked)
-    {
-        Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        $model = $this->findStatusModel($doc, $status_from);
-
-        return ['result' => 'success', 'linked' => true];
-    }
-
     protected function findStatusModel($doc, $tag)
     {
         $doc_model = $this->findModel($doc);
@@ -417,6 +402,7 @@ class DocTypesController extends Controller
      *
      * @return array
      *
+     * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
     public function actionAjaxStatusTreeRight($statusTag, $docTag)
@@ -438,6 +424,7 @@ class DocTypesController extends Controller
      *
      * @return array
      *
+     * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
     public function actionAjaxStatusTreeLeft($statusTag, $docTag)
@@ -449,5 +436,51 @@ class DocTypesController extends Controller
         $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
 
         return $treePositionsClass->setStatusInTreeHorizontal($statusTag, $docTag, 'Left');
+    }
+
+    /**
+     * Действие добавления SimpleLink
+     *
+     * @param string $tagTo   - Тэг статуса To
+     * @param string $tagFrom - Тэг статуса From
+     * @param string $tagDoc  - Тэг документа
+     *
+     * @return array - ['error' => .....] or ['success' => .....]
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxAddSimpleLink($tagTo, $tagFrom, $tagDoc)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusSimpleLink $statusSimpleLink
+         */
+        $statusSimpleLink = Instance::ensure([], StatusSimpleLink::className());
+
+        return $statusSimpleLink->addSimpleLink($tagDoc, $tagFrom, $tagTo);
+    }
+
+    /**
+     * Действие удаления SimpleLink
+     *
+     * @param string $tagTo   - Тэг статуса To
+     * @param string $tagFrom - Тэг статуса From
+     * @param string $tagDoc  - Тэг документа
+     *
+     * @return array - ['error' => .....] or ['success' => .....]
+     *
+     * @throws \yii\db\StaleObjectException
+     * @throws \Exception
+     * @throws \yii\base\InvalidConfigException
+     */
+    public function actionAjaxRemoveSimpleLink($tagTo, $tagFrom, $tagDoc)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+        /**
+         * @var StatusSimpleLink $statusSimpleLink
+         */
+        $statusSimpleLink = Instance::ensure([], StatusSimpleLink::className());
+
+        return $statusSimpleLink->removeSimpleLink($tagFrom, $tagTo);
     }
 }

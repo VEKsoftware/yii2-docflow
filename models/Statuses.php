@@ -421,4 +421,19 @@ class Statuses extends Document
 
         return $query->all();
     }
+
+    /**
+     * Получаем Статусы по массиву, содержащему Тэги.
+     *
+     * @param array $tagsArray - массив, содержащий тэги
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getStatusesForTagsArray(array $tagsArray)
+    {
+        return static::find()
+            ->where(['in', 'tag', $tagsArray])
+            ->indexBy('tag')
+            ->all();
+    }
 }

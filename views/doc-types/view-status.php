@@ -107,47 +107,40 @@ $this->params['breadcrumbs'][] = $this->title;
 <div class="statuses-index">
 
     <h3><?= Html::encode(Yii::t('docflow', 'Statuses Links')) ?></h3>
-
+    <span id="simple-link-change-status"></span>
     <?= ListView::widget([
         'id' => 'statuses-to-list',
         'dataProvider' => $dataProvider,
-        'itemView' => function ($item, $key, $index, $widget) use($model){
+        'itemView' => function ($item, $key, $index, $widget) use($model, $doc){
             $statusesTo = $model->statusesTransitionTo;
             $model->activeLinks[$item->tag] = isset($statusesTo[$item->tag]);
             return Html::activeCheckbox($model,'activeLinks['.$item->tag.']',
                     ($model->tag === $item->tag || ! $model->docType->isAllowed('statuses_links_edit') ? ['disabled' => 'disabled'] : []) + [
                     'label' => $item->name,
                     'data' => [
-                        'tag' => $item->tag,
+                        'tag-to' => $item->tag,
+                        'tag-from' => $model->tag,
+                        'tag-doc' => $doc,
+                        'url-add' => Url::toRoute(
+                            [
+                                'ajax-add-simple-link',
+                                'tagTo' => $item->tag,
+                                'tagFrom' => $model->tag,
+                                'tagDoc' => $doc
+                            ]
+                        ),
+                        'url-remove' => Url::toRoute(
+                            [
+                                'ajax-remove-simple-link',
+                                'tagTo' => $item->tag,
+                                'tagFrom' => $model->tag,
+                                'tagDoc' => $doc
+                            ]
+                        ),
                     ],
-                ]);
+                ]
+            );
         },
     ]); ?>
 
 </div>
-<?php
-$this->registerJs("
-    var status_to_check_url = '" . Url::toRoute(['ajax-update-link']) . "';
-    var current_doc_type = '" . $model->docType->tag . "';
-    var current_status = '" . $model->tag . "';
-");
-$this->registerJs(<<<JS
-
-$('#statuses-to-list input[type=checkbox]').click(function(event){
-
-    var checkbox_element = this;
-    $.get(status_to_check_url,
-        {
-            doc: current_doc_type,
-            status_from: current_status,
-            status_to: checkbox_element.dataset.tag,
-            linked: checkbox_element.checked
-        }, function(data) {
-            checkbox_element.checked = data.linked;
-        }
-    )
-});
-
-JS
-);
-?>

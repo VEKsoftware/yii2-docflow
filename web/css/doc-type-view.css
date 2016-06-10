@@ -13,3 +13,15 @@
 .hidden {
     display: none;
 }
+
+.error-simple-link-change {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: red;
+}
+
+.success-simple-link-change {
+    padding-top: 5px;
+    padding-bottom: 5px;
+    color: green;
+}

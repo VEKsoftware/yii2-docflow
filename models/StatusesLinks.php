@@ -163,4 +163,26 @@ class StatusesLinks extends Link
             ->asArray(true)
             ->all();
     }
+
+    /**
+     * Получаем SimpleLink по id статусов From и To
+     *
+     * @param integer $fromStatusId - тэг статуса From
+     * @param integer $toStatusId   - тэг статуса To
+     *
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
+    {
+        return static::find()
+            ->where(
+                [
+                    'and',
+                    ['=', 'type', static::LINK_TYPE_SIMPLE],
+                    ['=', 'status_from', $fromStatusId],
+                    ['=', 'status_to', $toStatusId],
+                ]
+            )
+            ->one();
+    }
 }

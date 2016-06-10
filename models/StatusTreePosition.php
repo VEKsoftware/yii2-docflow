@@ -261,6 +261,8 @@ class StatusTreePosition extends Model
      * @param mixed $val Ветка
      *
      * @return array
+     *
+     * @throws \yii\base\InvalidParamException
      */
     protected function treeBranch($val)
     {
@@ -283,6 +285,8 @@ class StatusTreePosition extends Model
      * @param string $actionInTree - действие Right - во внутренний уровень, действие Left - во внешний уровень
      *
      * @return array
+     *
+     * @throws \Exception
      */
     public function setStatusInTreeHorizontal($statusTag, $docTag, $actionInTree)
     {
@@ -327,18 +331,23 @@ class StatusTreePosition extends Model
      * @param \docflow\models\StatusesLinks|array $flTreeLink       - ссылка 1-го уровня для перемещаемого статуса
      *
      * @return array
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     protected function setStatusInTreeRight(array $params, array  $statusLinksArray, $flTreeLink)
     {
         try {
+            /* Если на уровне 1 элемент перенос невозможен */
             if (count($statusLinksArray) < 2) {
                 throw new ErrorException('Переход невозможен');
             }
 
+            /* Если верхний статус в уровне равен переносимому, то перенос не возможен */
             if ($statusLinksArray[0]['id'] === $params['status_to']) {
                 throw new ErrorException('Переход невозможен');
             }
 
+            /* Массив с информацией о статусе в который перемещаем */
             $valueFrom = $this->getStatusFrom($params['status_to'], $statusLinksArray);
 
             if (empty($flTreeLink)) {
@@ -370,7 +379,9 @@ class StatusTreePosition extends Model
     /**
      * Возвращяем сообщение в зависимости от результата
      *
-     * @param bool $result - результат перемещения
+     * @param bool $result - результат перемещения,
+     *                     true - перемещение произошло удачно,
+     *                     false - перемещение не произошло
      *
      * @return array
      */
@@ -386,19 +397,20 @@ class StatusTreePosition extends Model
     }
 
     /**
-     * Получаем массив с данными о статусе в который перемещается перемещаемый статус
+     * Получаем массив с данными о статусе в который перемещается перемещаемый статус,
+     * статус в который перемещаем находится на 1 позицию выше перемещаемого(сортировка по номеру позиции в уровне)
      *
-     * @param integer $id               - id перемещаемого статуса
+     * @param integer $ids              - id перемещаемого статуса
      * @param array   $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
      *
      * @return array
      */
-    protected function getStatusFrom($id, array $statusLinksArray)
+    protected function getStatusFrom($ids, array $statusLinksArray)
     {
         $oldValue = [];
-        //TODO переписать
+
         foreach ($statusLinksArray as $value) {
-            if ($value['id'] === $id) {
+            if ($value['id'] === $ids) {
                 break;
             }
 

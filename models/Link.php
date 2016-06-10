@@ -159,6 +159,7 @@ abstract class Link extends CommonRecord
                 throw new ErrorException('Cannot change child. Only change parent is allowed.');
             }
 
+            /* Получаем новые родительские стаутусы куда перемещается статус */
             $this->from_new = $this->$from;
             if ($this->from_new) {
                 $this->upperLinksNew = static::findUpperLinks($this->from_new, $this->extraWhere())->all();
@@ -173,18 +174,25 @@ abstract class Link extends CommonRecord
                 );
             }
 
+            /* Получаем старые родительские статусы перемещаемого статуса, включая самый ближайший(непосредственный) родительский статус*/
             $this->from_old = ($this->isNewRecord) ? [] : $this->getOldAttribute($to);
             if ($this->from_old) {
                 $this->upperLinksOld = static::findUpperLinks($this->from_old, $this->extraWhere())->all();
             }
 
+            /* Получаем детские(вложенные) статусы перемещаемого статуса */
             $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();
 
             $lower = ArrayHelper::getColumn($this->lowerLinks, $to);
             array_push($lower, $this->getOldAttribute($to));
             $upperOld = $this->upperLinksOld ? ArrayHelper::getColumn($this->upperLinksOld, $from) : null;
 
-            // Here we delete old unnecessary links
+            /*
+            Если есть старые родительские статусы и детские(вложенные) статусы (включая перемещаемый статус),
+            то удаляем между ними все связи, кроме связи 1 уровня между перемещаемым статусом и
+            самым ближним(непосредственным) старым родителем (эта связь изменит значение при $this->save()
+            со старого непосредственного родителя на нового непосредственного родителя)
+            */
             if (!empty($upperOld) && !empty($lower)) {
                 static::deleteAll(
                     array_merge(
@@ -240,7 +248,7 @@ abstract class Link extends CommonRecord
 
                 // if there is a serial field id, we remove it from the array
                 unset($attributes['id']);
-
+                /* Формируем новые связи между новыми родительскими статусами и детскими статусами (включая перемещаемый статус) */
                 foreach ($this->upperLinksNew as $boss) {
                     foreach ($this->lowerLinks as $dept) {
                         if (!$boss) {
@@ -253,6 +261,7 @@ abstract class Link extends CommonRecord
                         array_push($inserts, array_values($attributes));
                     }
 
+                    /* Не позволяем дублировать связь 1 уровня между перемещаемым статусом и новым непосредственным родителем */
                     if ($boss->$from !== $this->$from) {
                         foreach ([$this] as $dept) {
                             if (!$boss) {
@@ -267,6 +276,10 @@ abstract class Link extends CommonRecord
                     }
                 }
 
+                /*
+                Условие добавлено для того, чтобы не выкидывало ошибку при отсутствии новых связей
+                (прим. статус без родителей и детей перемещается в другой статус)
+                */
                 if (!empty($inserts)) {
                     static::getDb()
                         ->createCommand()

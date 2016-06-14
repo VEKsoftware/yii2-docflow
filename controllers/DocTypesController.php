@@ -311,6 +311,7 @@ class DocTypesController extends Controller
         } else {
             return $this->render('update-status', [
                 'model' => $model,
+                'doc' => $doc
             ]);
         }
     }

@@ -1,5 +1,6 @@
 <?php
 
+use docflow\assets\TreeViewAsset;
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
@@ -8,6 +9,8 @@ use yii\widgets\ListView;
 /* @var $this yii\web\View */
 /* @var $model docflow\models\Statuses */
 /* @var $doc string */
+
+TreeViewAsset::register($this);
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses'), 'url' => ['index']];
@@ -105,7 +108,6 @@ $this->params['breadcrumbs'][] = $this->title;
 
 </div>
 <div class="statuses-index">
-
     <h3><?= Html::encode(Yii::t('docflow', 'Statuses Links')) ?></h3>
     <span id="simple-link-change-status"></span>
     <div id="tree-simple-link"></div>

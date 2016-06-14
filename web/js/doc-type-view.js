@@ -8,8 +8,6 @@ $("#tree-leaf").bind("domChanged", function () {
     var $rightTreeButton = $(document).find("[name='right-in-tree']");
     var $liftTreeButton = $(document).find("[name='left-in-tree']");
 
-    var $checkBoxesSimpleLinks = $(document).find("div#statuses-to-list").find("input[type='checkbox']");
-
     /**
      * Назначаем обработчики при клике
      */
@@ -28,18 +26,6 @@ $("#tree-leaf").bind("domChanged", function () {
     $liftTreeButton.on('click', function () {
         checkAjax($liftTreeButton.data("href"));
     });
-
-    $checkBoxesSimpleLinks.on('click', function (event) {
-        var $checkBox = $("input#" + event.currentTarget.id);
-        
-        if (!event.currentTarget.checked) {
-            checkSimpleLinksAjax($checkBox.data('url-remove'));
-        } else {
-            checkSimpleLinksAjax($checkBox.data('url-add'));
-        }
-
-        $checkBox.prop('disabled', 'disable');
-    })
 });
 
 /**
@@ -209,96 +195,54 @@ function getUrlParameter(sParam) {
 }
 
 /**
- * Проверяем на блок список с SimpleLinks
- * @param url
- */
-function checkSimpleLinksAjax(url) {
-    var $listSimpleLinks = $(document).find("div#statuses-to-list");
-
-    if (!$listSimpleLinks.hasClass('ajax-disabled')) {
-        getSimpleLinksAjax(url);
-    }
-}
-
-/**
  * Соверашаем Ajax запрос по переданноу Url
  * @param url
  */
 function getSimpleLinksAjax(url) {
-    blockSimpleLinksList();
     clearChangeStatusSimpleLink();
+    
     $.get(url, function (data) {
         if (data.error !== undefined) {
-
             setChangeStatusSimpleLink('error', data.error);
-            changeSimpleLinkCheckbox(this.url, true)
+            changeSimpleLinkCheckbox(true)
         } else {
             setChangeStatusSimpleLink('success', data.success);
-            changeSimpleLinkCheckbox(this.url, false)
+            changeSimpleLinkCheckbox(false)
         }
     });
-
-    unblockSimpleLinksList();
-}
-
-/**
- * Блокируем элементы на время Ajax запроса
- */
-function blockSimpleLinksList() {
-    var $listSimpleLinks = $(document).find("div#statuses-to-list");
-
-    $listSimpleLinks.addClass('ajax-disabled');
-}
-
-/**
- * Разблокируем элемениты на время Ajax запроса
- */
-function unblockSimpleLinksList() {
-    var $listSimpleLinks = $(document).find("div#statuses-to-list");
-
-    $listSimpleLinks.removeClass('ajax-disabled');
 }
 
 /**
  * Меняем статусы если ответ ajax ['false' => .....] false
- * @param url
  * @param invert
  */
-function changeSimpleLinkCheckbox(url, invert) {
-    var $maybeCheckbox1 = $("input[data-url-add='" + url + "']");
-    var $maybeCheckbox2 = $("input[data-url-remove='" + url + "']");
-    var $trueCheckBox = '';
-    var status = '';
-
-    /* Находим "правильный" checkbox и его текущий статус checked или not checked */
-    if ($maybeCheckbox1.length < 1) {
-        status = $maybeCheckbox2.prop('checked');
-        $trueCheckBox = $maybeCheckbox2;
-    } else {
-        status = $maybeCheckbox1.prop('checked');
-        $trueCheckBox = $maybeCheckbox1;
-    }
+function changeSimpleLinkCheckbox(invert) {
+    var $tree = $('#tree-simple-link');
+    var nodes = $tree.treeview('getSelected');
+    var node = nodes[0];
 
     if (invert === true) {
-        if (status === true) {
-            status = false;
-        } else {
-            status = true;
+        if (node.state.checked === true) {
+            $tree.treeview('uncheckNode', [node.nodeId, { silent: true }]);
+        }  else {
+            $tree.treeview('checkNode', [node.nodeId, { silent: true }]);
         }
-
-        $trueCheckBox.prop('checked', status);
     }
-
-    $trueCheckBox.prop('disabled', false);
 }
 
 function setChangeStatusSimpleLink(status, text) {
     var $changeStatusSimpleLink = $(document).find("span#simple-link-change-status");
 
     if (status === 'success') {
-        $changeStatusSimpleLink.text(text).addClass('success-simple-link-change').removeClass('error-simple-link-change');
+        $changeStatusSimpleLink
+            .text(text)
+            .addClass('success-simple-link-change')
+            .removeClass('error-simple-link-change');
     } else {
-        $changeStatusSimpleLink.text(text).addClass('error-simple-link-change').removeClass('success-simple-link-change');
+        $changeStatusSimpleLink
+            .text(text)
+            .addClass('error-simple-link-change')
+            .removeClass('success-simple-link-change');
     }
 }
 

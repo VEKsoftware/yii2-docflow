@@ -108,39 +108,34 @@ $this->params['breadcrumbs'][] = $this->title;
 
     <h3><?= Html::encode(Yii::t('docflow', 'Statuses Links')) ?></h3>
     <span id="simple-link-change-status"></span>
-    <?= ListView::widget([
-        'id' => 'statuses-to-list',
-        'dataProvider' => $dataProvider,
-        'itemView' => function ($item, $key, $index, $widget) use($model, $doc){
-            $statusesTo = $model->statusesTransitionTo;
-            $model->activeLinks[$item->tag] = isset($statusesTo[$item->tag]);
-            return Html::activeCheckbox($model,'activeLinks['.$item->tag.']',
-                    ($model->tag === $item->tag || ! $model->docType->isAllowed('statuses_links_edit') ? ['disabled' => 'disabled'] : []) + [
-                    'label' => $item->name,
-                    'data' => [
-                        'tag-to' => $item->tag,
-                        'tag-from' => $model->tag,
-                        'tag-doc' => $doc,
-                        'url-add' => Url::toRoute(
-                            [
-                                'ajax-add-simple-link',
-                                'tagTo' => $item->tag,
-                                'tagFrom' => $model->tag,
-                                'tagDoc' => $doc
-                            ]
-                        ),
-                        'url-remove' => Url::toRoute(
-                            [
-                                'ajax-remove-simple-link',
-                                'tagTo' => $item->tag,
-                                'tagFrom' => $model->tag,
-                                'tagDoc' => $doc
-                            ]
-                        ),
-                    ],
-                ]
-            );
-        },
-    ]); ?>
-
+    <div id="tree-simple-link"></div>
 </div>
+<?php
+$tree = json_encode($tree);
+$this->registerJs("var dataTree = $tree");
+$this->registerJs(<<<'JS'
+var onChecked = function (undefined, item) {
+    var url = '/docflow/doc-types/ajax-add-simple-link?' + item.href;
+    var $tree = $('#tree-simple-link');
+    
+    $tree.treeview('selectNode', [ item.nodeId, { silent: true } ]);
+    getSimpleLinksAjax(url);
+}
+
+var onUnchecked = function (undefined, item) {
+    var url = '/docflow/doc-types/ajax-remove-simple-link?' + item.href;
+    var $tree = $('#tree-simple-link');
+    
+    $tree.treeview('selectNode', [ item.nodeId, { silent: true } ]);
+    getSimpleLinksAjax(url);
+}
+
+var $tree = $('#tree-simple-link').treeview({
+    data: dataTree,
+    showCheckbox: true,
+    levels: 5,
+    onNodeChecked: onChecked,
+    onNodeUnchecked: onUnchecked
+});
+JS
+);

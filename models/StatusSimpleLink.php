@@ -58,6 +58,10 @@ class StatusSimpleLink extends Model
         try {
             $result = ['error' => 'Добавление не удалось'];
 
+            if ($fromTag === $toTag) {
+                throw new ErrorException('Нельзя назначить ссылку на себя');
+            }
+
             /* Получаем массив со статусами From и To */
             $statusesArray = $statusClass->getStatusesForTagsArray([$fromTag, $toTag]);
 

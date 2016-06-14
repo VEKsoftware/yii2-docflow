@@ -93,6 +93,7 @@ var onUnselect = function (undefined, item) {
 
 var $searchableTree = $('#tree').treeview({
     data: data,
+    levels: 5,
     onNodeSelected: onSelect,
     onNodeUnselected: onUnselect
 });

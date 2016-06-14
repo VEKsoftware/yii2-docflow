@@ -232,14 +232,26 @@ class DocTypesController extends Controller
     /**
      * Displays a single Statuses model.
      *
-     * @param int $doc status tag
+     * @param string $doc doc tag
+     * @param string $tag status tag
+     *
      * @return mixed
-     * @throws ForbiddenHttpException
-     * @throws NotFoundHttpException
+     *
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\ForbiddenHttpException
+     * @throws \yii\web\NotFoundHttpException
      */
     public function actionStatusView($doc, $tag)
     {
-        $model = $this->findStatusModel($doc, $tag);
+        /**
+         * @var StatusTreePosition $treePositionsClass
+         */
+        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+        $document = $this->findModel($doc);
+
+        $model = $document->statuses[$tag];
+
         if (empty($model)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
@@ -248,22 +260,22 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
-        $searchModel = new StatusesSearch(['doc_type_id' => $model->docType->id]);
-        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
+        $tree = $treePositionsClass->getTreeWithSimpleLinks(
+            $document->statusesStructure,
+            $model
+        );
 
         if (Yii::$app->request->isAjax) {
             return $this->renderAjax('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'searchModel' => $searchModel,
-                'dataProvider' => $dataProvider,
+                'tree' => $tree,
             ]);
         } else {
             return $this->render('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'searchModel' => $searchModel,
-                'dataProvider' => $dataProvider,
+                'tree' => $tree,
             ]);
         }
     }

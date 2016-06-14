@@ -21,11 +21,21 @@ class StatusTreePosition extends Model
     const LINK_TYPE_SIMPLE = 'simple';
 
     const LINK_TYPE_FLTREE = 'fltree';
+    /**
+     * @var string Данное свойство нужно для возможности сравнения в callback
+     */
+    protected $statusTag;
+    /**
+     * @var array Массив с simple links для данного стутаса для сравнения в callback
+     */
+    protected $simpleLinks;
 
     /**
      * Инициируем класс статуса
      *
      * @return \docflow\models\Statuses
+     *
+     * @throws \yii\base\InvalidConfigException
      */
     protected function initStatuses()
     {
@@ -246,7 +256,7 @@ class StatusTreePosition extends Model
     /**
      * Получаем структуру дерева
      *
-     * @param array $rawStructure - сырые данные
+     * @param array $rawStructure - начальная структура
      *
      * @return array
      */
@@ -274,6 +284,50 @@ class StatusTreePosition extends Model
             (empty($val->statusChildren))
                 ? []
                 : ['nodes' => array_map([$this, 'treeBranch'], $val->statusChildren)]
+        );
+    }
+
+    /**
+     * Получаем структуру дерева статусов, для simple links
+     *
+     * @param array    $rawStructure - начальная структура
+     * @param Statuses $model        - найденные simple links для Статуса
+     *
+     * @return array
+     */
+    public function getTreeWithSimpleLinks(array $rawStructure, Statuses $model)
+    {
+        $this->statusTag = $model->tag;
+        $this->simpleLinks = $model->statusesTransitionTo;
+
+        return array_map([$this, 'treeBranchWithSimpleLinks'], $rawStructure);
+    }
+
+    /**
+     * Формируем ветви с учётом simple links
+     *
+     * @param mixed $val - Ветка
+     *
+     * @return array
+     */
+    protected function treeBranchWithSimpleLinks($val)
+    {
+        $linkBool = isset($this->simpleLinks[$val->tag]);
+
+        return array_merge(
+            [
+                'text' => $val->name,
+                'href' => '&tagFrom=' . $this->statusTag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
+            ],
+            ($val->tag === $this->statusTag)
+                ? ['backColor' => 'gray']
+                : [],
+            ($linkBool === true)
+                ? ['state' => ['checked' => true]]
+                : [],
+            (empty($val->statusChildren))
+                ? []
+                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
         );
     }
 

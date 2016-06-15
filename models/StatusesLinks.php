@@ -11,9 +11,9 @@ use docflow\models\Statuses;
 /**
  * This is the model class for table "statuses_links".
  *
- * @property int $status_from
- * @property int $status_to
- * @property string $right_tag
+ * @property int      $status_from
+ * @property int      $status_to
+ * @property string   $right_tag
  * @property Statuses $statusFrom
  * @property Statuses $statusTo
  */
@@ -89,16 +89,16 @@ class StatusesLinks extends Link
 
     public static function instantiate($row)
     {
-        if(! isset($row['type'])) {
+        if (!isset($row['type'])) {
             throw new ErrorException('You need pass doc_statuses type in the $row parameter for instantiation of the StatusesLinks model');
         }
-        switch($row['type']) {
-        case(static::LINK_TYPE_SIMPLE):
-            return new StatusesLinksTransitions($row);
-        case(static::LINK_TYPE_FLTREE):
-            return new StatusesLinksStructure($row);
-        default:
-            throw new ErrorException('Unknonw doc_statuses_links link type');
+        switch ($row['type']) {
+            case(static::LINK_TYPE_SIMPLE):
+                return new StatusesLinksTransitions($row);
+            case(static::LINK_TYPE_FLTREE):
+                return new StatusesLinksStructure($row);
+            default:
+                throw new ErrorException('Unknonw doc_statuses_links link type');
         }
     }
 
@@ -138,7 +138,7 @@ class StatusesLinks extends Link
                     'and',
                     ['=', 'status_to', $statusId],
                     ['=', 'type', 'fltree'],
-                    ['in', 'level', [1,2]]
+                    ['in', 'level', [1, 2]]
                 ]
             )
             ->indexBy('level')
@@ -167,14 +167,15 @@ class StatusesLinks extends Link
     /**
      * Получаем SimpleLink по id статусов From и To
      *
-     * @param integer $fromStatusId - тэг статуса From
-     * @param integer $toStatusId   - тэг статуса To
+     * @param integer     $fromStatusId - тэг статуса From
+     * @param integer     $toStatusId   - тэг статуса To
+     * @param null|string $relationType - тип связи
      *
      * @return array|null|\yii\db\ActiveRecord
      */
-    public function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
+    public function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId, $relationType = null)
     {
-        return static::find()
+        $query = static::find()
             ->where(
                 [
                     'and',
@@ -182,7 +183,12 @@ class StatusesLinks extends Link
                     ['=', 'status_from', $fromStatusId],
                     ['=', 'status_to', $toStatusId],
                 ]
-            )
-            ->one();
+            );
+
+        if (!empty($relationType)) {
+            $query->andWhere(['=', 'relation_type', $relationType]);
+        }
+
+        return $query->one();
     }
 }

@@ -42,15 +42,16 @@ class StatusSimpleLink extends Model
     /**
      * Добавляем SimpleLink
      *
-     * @param string $docTag  - тэг документа
-     * @param string $fromTag - тэг статуса From
-     * @param string $toTag   - тэг статуса To
+     * @param string      $docTag       - тэг документа
+     * @param string      $fromTag      - тэг статуса From
+     * @param string      $toTag        - тэг статуса To
+     * @param null|string $relationType - тип связи
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
      * @throws \yii\base\InvalidConfigException
      */
-    public function addSimpleLink($docTag, $fromTag, $toTag)
+    public function addSimpleLink($docTag, $fromTag, $toTag, $relationType = null)
     {
         $statusLinkClass = $this->initStatusesLinks();
         $statusClass = $this->initStatuses();
@@ -98,6 +99,10 @@ class StatusSimpleLink extends Model
             $statusLinkClass->type = $statusLinkClass::LINK_TYPE_SIMPLE;
             $statusLinkClass->right_tag = $docTag . '.' . $fromTag . '.' . $toTag;
 
+            if (!empty($relationType) && is_string($relationType)) {
+                $statusLinkClass->relation_type = $relationType;
+            }
+
             $isSave = $statusLinkClass->save();
 
             if ($isSave === true) {
@@ -113,8 +118,9 @@ class StatusSimpleLink extends Model
     /**
      * Удаляем SimpleLink
      *
-     * @param string $fromTag - тэг статуса From
-     * @param string $toTag   - тэг статуса To
+     * @param string      $fromTag      - тэг статуса From
+     * @param string      $toTag        - тэг статуса To
+     * @param null|string $relationType - тип связи
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
@@ -122,7 +128,7 @@ class StatusSimpleLink extends Model
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function removeSimpleLink($fromTag, $toTag)
+    public function removeSimpleLink($fromTag, $toTag, $relationType = null)
     {
         $statusLinkClass = $this->initStatusesLinks();
         $statusClass = $this->initStatuses();
@@ -148,7 +154,8 @@ class StatusSimpleLink extends Model
             /* Получаем ссылку */
             $statusSimpleLink = $statusLinkClass->getSimpleLinkForStatusFromIdAndStatusToId(
                 $statusesArray[$fromTag]->id,
-                $statusesArray[$toTag]->id
+                $statusesArray[$toTag]->id,
+                $relationType
             );
 
             if (!is_object($statusSimpleLink)) {

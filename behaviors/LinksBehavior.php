@@ -33,7 +33,7 @@ class LinksBehavior extends Behavior
     /**
      * @var string|null Указываем разновидность типа связи
      */
-    public $relation_type = null;
+    public $relationType = null;
     
     /**
      * @var bool Сортировать или нет
@@ -215,7 +215,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг from пуст');
             }
 
-            $return = $sSLClass->addSimpleLink($docTag, $this->owner->tag, $toTag, $this->relation_type);
+            $return = $sSLClass->addSimpleLink($docTag, $this->owner->tag, $toTag, $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -243,7 +243,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг from пуст');
             }
 
-            $return = $sSLClass->removeSimpleLink($this->owner->tag, $toTag, $this->relation_type);
+            $return = $sSLClass->removeSimpleLink($this->owner->tag, $toTag, $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -271,7 +271,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Id статуса пуст');
             }
 
-            $return = $sTPClass->setParent($this->owner->id, $statusIdTo);
+            $return = $sTPClass->setParent($this->owner->id, $statusIdTo, $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -297,7 +297,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Id статуса пуст');
             }
 
-            $return = $sTPClass->removeParent($this->owner->id);
+            $return = $sTPClass->removeParent($this->owner->id, $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }

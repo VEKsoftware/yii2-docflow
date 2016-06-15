@@ -105,13 +105,14 @@ class StatusesLinks extends Link
     /**
      * Получаем ccылку на ближайшего родителя (1 уровень)
      *
-     * @param integer $statusId - id статуса
+     * @param integer     $statusId     - id статуса
+     * @param null|string $relationType - тип связи
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getFlTreeLinkForStatusForLevel1($statusId)
+    public function getFlTreeLinkForStatusForLevel1($statusId, $relationType = null)
     {
-        return static::find()
+        $query = static::find()
             ->where(
                 [
                     'and',
@@ -119,8 +120,13 @@ class StatusesLinks extends Link
                     ['=', 'type', 'fltree'],
                     ['=', 'level', 1]
                 ]
-            )
-            ->one();
+            );
+
+        if (!empty($relationType) && is_string($relationType)) {
+            $query->andWhere(['=', 'relation_type', $relationType]);
+        }
+
+        return $query->one();
     }
 
     /**
@@ -185,7 +191,7 @@ class StatusesLinks extends Link
                 ]
             );
 
-        if (!empty($relationType)) {
+        if (!empty($relationType) && is_string($relationType)) {
             $query->andWhere(['=', 'relation_type', $relationType]);
         }
 

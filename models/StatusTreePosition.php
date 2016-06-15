@@ -526,12 +526,13 @@ class StatusTreePosition extends Model
     /**
      * Назначаем статусу нового родителя
      *
-     * @param int $statusIdFrom - Id перемещаемого статуса
-     * @param int $statusIdTo   - Id нового статуса родителя
+     * @param int         $statusIdFrom - Id перемещаемого статуса
+     * @param int         $statusIdTo   - Id нового статуса родителя
+     * @param null|string $relationType - тип связи
      *
      * @return array
      */
-    public function setParent($statusIdFrom, $statusIdTo)
+    public function setParent($statusIdFrom, $statusIdTo, $relationType = null)
     {
         $statusesLinksClass = $this->initStatusesLinks();
 
@@ -547,7 +548,7 @@ class StatusTreePosition extends Model
             /**
              * @var StatusesLinks $flTreeLink
              */
-            $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusIdFrom);
+            $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusIdFrom, $relationType);
 
             if (empty($flTreeLink)) {
                 $statusesLinksClass->setScenario(static::LINK_TYPE_FLTREE);
@@ -556,6 +557,10 @@ class StatusTreePosition extends Model
                 $statusesLinksClass->status_to = $statusIdTo;
                 $statusesLinksClass->type = 'fltree';
                 $statusesLinksClass->level = 1;
+
+                if (!empty($relationType) && is_string($relationType)) {
+                    $statusesLinksClass->relation_type = $relationType;
+                }
 
                 $moveResult = $statusesLinksClass->save();
             } else {
@@ -580,13 +585,14 @@ class StatusTreePosition extends Model
     /**
      * Убираем родителкей у статуса
      *
-     * @param int $statusIdFrom - id статуса у которого нужно убрать родителей
+     * @param int         $statusIdFrom - id статуса у которого нужно убрать родителей
+     * @param null|string $relationType - тип связи
      *
      * @return array
      *
      * @throws \Exception
      */
-    public function removeParent($statusIdFrom)
+    public function removeParent($statusIdFrom, $relationType = null)
     {
         $statusesLinksClass = $this->initStatusesLinks();
 
@@ -598,7 +604,7 @@ class StatusTreePosition extends Model
             /**
              * @var StatusesLinks $flTreeLink
              */
-            $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusIdFrom);
+            $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusIdFrom, $relationType);
             $moveResult = (bool)$flTreeLink->delete();
 
             $result = $this->moveResult($moveResult);

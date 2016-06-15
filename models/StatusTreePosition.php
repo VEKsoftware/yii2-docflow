@@ -97,12 +97,13 @@ class StatusTreePosition extends Model
     /**
      * Перемещаем Статус вертикально в зависимости от $actionInTree
      *
-     * @param string $statusTag    - тэг перемещаемого статуса
-     * @param string $actionInTree - Up или Down
+     * @param string      $statusTag    - тэг перемещаемого статуса
+     * @param string      $actionInTree - Up или Down
+     * @param null|string $relationType - тип связи
      *
      * @return array
      */
-    public function setStatusInTreeVertical($statusTag, $actionInTree)
+    public function setStatusInTreeVertical($statusTag, $actionInTree, $relationType = null)
     {
         $currentStatus = $this->initStatuses();
 
@@ -118,7 +119,8 @@ class StatusTreePosition extends Model
             $orderIdxInLevelArray = $currentStatus->getStatusesForLevel(
                 $currentStatusArray['fromId'],
                 $currentStatusArray['level'],
-                $currentStatusArray['doc_type_id']
+                $currentStatusArray['doc_type_id'],
+                $relationType
             );
 
             $changeArray = $this->getChangeArrayForActionInTree(
@@ -342,14 +344,13 @@ class StatusTreePosition extends Model
     /**
      * Перемещение статуса во внутрь(вложенный уровень) другого статуса или вынесение из вложенного уровня во внешний
      *
-     * @param string $statusTag    - Тэг статуса
-     * @param string $actionInTree - действие Right - во внутренний уровень, действие Left - во внешний уровень
+     * @param string      $statusTag    - Тэг статуса
+     * @param string      $actionInTree - действие Right - во внутренний уровень, действие Left - во внешний уровень
+     * @param null|string $relationType - тип связи
      *
      * @return array
-     *
-     * @throws \Exception
      */
-    public function setStatusInTreeHorizontal($statusTag, $actionInTree)
+    public function setStatusInTreeHorizontal($statusTag, $actionInTree, $relationType = null)
     {
         $statusesClass = $this->initStatuses();
         $statusesLinksClass = $this->initStatusesLinks();
@@ -365,7 +366,10 @@ class StatusTreePosition extends Model
 
             switch ($actionInTree) {
                 case 'Left':
-                    $flTreeLinks = $statusesLinksClass->getFlTreeLinkForStatusForLevel1And2($statusArray['id']);
+                    $flTreeLinks = $statusesLinksClass->getFlTreeLinkForStatusForLevel1And2(
+                        $statusArray['id'],
+                        $relationType
+                    );
                     $return = $this->setStatusInTreeLeft($flTreeLinks);
                     break;
                 case 'Right':
@@ -374,14 +378,18 @@ class StatusTreePosition extends Model
                         $statusArray['level'],
                         $statusArray['doc_type_id']
                     );
-                    $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusArray['id']);
+                    $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1(
+                        $statusArray['id'],
+                        $relationType
+                    );
                     $paramsNewLink = [
                         'status_to' => $statusArray['id'],
                         'to_tag' => $statusArray['tag'],
                         'type' => 'fltree',
                         'level' => 1,
                     ];
-                    $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink);
+                    $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink,
+                        $relationType);
                     break;
             }
         } catch (ErrorException $e) {
@@ -398,12 +406,11 @@ class StatusTreePosition extends Model
      * @param array                               $params           - массив с данными для перемещения перемещаемого статуса
      * @param array                               $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
      * @param \docflow\models\StatusesLinks|array $flTreeLink       - ссылка 1-го уровня для перемещаемого статуса
+     * @param null|string                         $relationType     - тип связи
      *
      * @return array
-     *
-     * @throws \yii\base\InvalidConfigException
      */
-    protected function setStatusInTreeRight(array $params, array  $statusLinksArray, $flTreeLink)
+    protected function setStatusInTreeRight(array $params, array  $statusLinksArray, $flTreeLink, $relationType = null)
     {
         try {
             /* Если на уровне 1 элемент перенос невозможен */
@@ -428,6 +435,10 @@ class StatusTreePosition extends Model
                 $newStatusLink->status_to = $params['status_to'];
                 $newStatusLink->type = $params['type'];
                 $newStatusLink->level = $params['level'];
+
+                if (!empty($relationType) && is_string($relationType)) {
+                    $newStatusLink->relation_type = $relationType;
+                }
 
                 $result = $newStatusLink->save();
             } else {

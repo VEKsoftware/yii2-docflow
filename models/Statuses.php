@@ -344,8 +344,8 @@ class Statuses extends Document
     /**
      * Получаем Статус по тэгу
      *
-     * @param string $tag                - тэг статуса
-     * @param bool   $needFromIdAndLevel - false - возвращает объект Statuses,
+     * @param string $tag                  - тэг статуса
+     * @param bool   $needFromIdAndLevel   - false - возвращает объект Statuses,
      *                                     true - возвращаем массив с данными поg\ перемещаемому Статусу
      *                                     и в каком статусе непосредственно (1 уровень) находится перемещаемый статус
      *
@@ -383,13 +383,14 @@ class Statuses extends Document
     /**
      * Получаем массив со статусами в уровне, где находится перемещаемый статус
      *
-     * @param integer $fromId    - id статуса, в котором находится перемещаемый статус
-     * @param integer $level     - уровень, в котором находится перемещаемый статус
-     * @param integer $docTypeId - id документа, которому принадлежит перемещаемый статус
+     * @param integer $fromId       - id статуса, в котором находится перемещаемый статус
+     * @param integer $level        - уровень, в котором находится перемещаемый статус
+     * @param integer $docTypeId    - id документа, которому принадлежит перемещаемый статус
+     * @param null    $relationType - тип связи
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getStatusesForLevel($fromId, $level, $docTypeId)
+    public function getStatusesForLevel($fromId, $level, $docTypeId, $relationType = null)
     {
         $query = static::find()
             ->select(['orderIdx' => 'doc_statuses.order_idx', 'tag' => 'doc_statuses.tag', 'id' => 'doc_statuses.id'])
@@ -417,6 +418,10 @@ class Statuses extends Document
                 ['is', 'd_s_l.status_to', null],
                 ['=', 'doc_statuses.doc_type_id', $docTypeId]
             ]);
+        }
+
+        if (!empty($relationType) && is_string($relationType)) {
+            $query->andWhere(['=', 'd_s_l.relation_type', $relationType]);
         }
 
         return $query->all();

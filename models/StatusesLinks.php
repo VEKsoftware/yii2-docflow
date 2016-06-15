@@ -132,13 +132,14 @@ class StatusesLinks extends Link
     /**
      * Получаем ccылку на родителя родителя (2 уровень)
      *
-     * @param integer $statusId - id статуса
+     * @param integer     $statusId     - id статуса
+     * @param null|string $relationType - тип связи
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getFlTreeLinkForStatusForLevel1And2($statusId)
+    public function getFlTreeLinkForStatusForLevel1And2($statusId, $relationType = null)
     {
-        return static::find()
+        $query = static::find()
             ->where(
                 [
                     'and',
@@ -147,8 +148,13 @@ class StatusesLinks extends Link
                     ['in', 'level', [1, 2]]
                 ]
             )
-            ->indexBy('level')
-            ->all();
+            ->indexBy('level');
+
+        if (!empty($relationType) && is_string($relationType)) {
+            $query->andWhere(['=', 'relation_type', $relationType]);
+        }
+
+        return $query->all();
     }
 
     /**

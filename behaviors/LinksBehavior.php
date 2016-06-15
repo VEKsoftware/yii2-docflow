@@ -103,7 +103,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг статуса пуст');
             }
 
-            $return = $sTPClass->setStatusInTreeVertical($this->owner->tag, 'Up');
+            $return = $sTPClass->setStatusInTreeVertical($this->owner->tag, 'Up', $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -130,7 +130,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг статуса пуст');
             }
 
-            $return = $sTPClass->setStatusInTreeVertical($this->owner->tag, 'Down');
+            $return = $sTPClass->setStatusInTreeVertical($this->owner->tag, 'Down', $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -157,7 +157,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг статуса пуст');
             }
 
-            $return = $sTPClass->setStatusInTreeHorizontal($this->owner->tag, 'Right');
+            $return = $sTPClass->setStatusInTreeHorizontal($this->owner->tag, 'Right', $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }
@@ -184,7 +184,7 @@ class LinksBehavior extends Behavior
                 throw new ErrorException('Тэг статуса пуст');
             }
 
-            $return = $sTPClass->setStatusInTreeHorizontal($this->owner->tag, 'Left');
+            $return = $sTPClass->setStatusInTreeHorizontal($this->owner->tag, 'Left', $this->relationType);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }

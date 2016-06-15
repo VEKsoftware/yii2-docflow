@@ -5,7 +5,7 @@ namespace docflow\controllers;
 use docflow\Docflow;
 use docflow\models\StatusSimpleLink;
 use docflow\models\StatusTreePosition;
-use Yii;
+use yii;
 
 use yii\base\ErrorException;
 use yii\di\Instance;
@@ -411,14 +411,13 @@ class DocTypesController extends Controller
      * Перемещение стутуса из текущего уровня во внутренний верх лежащего статуса
      *
      * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
      *
      * @return array
      *
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxStatusTreeRight($statusTag, $docTag)
+    public function actionAjaxStatusTreeRight($statusTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
@@ -426,21 +425,20 @@ class DocTypesController extends Controller
          */
         $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
 
-        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, $docTag, 'Right');
+        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, 'Right');
     }
 
     /**
      * Перемещение статуса из текущего уровня родительского статуса во внешний уровень, к родительскому статусу
      *
      * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
      *
      * @return array
      *
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxStatusTreeLeft($statusTag, $docTag)
+    public function actionAjaxStatusTreeLeft($statusTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
@@ -448,7 +446,7 @@ class DocTypesController extends Controller
          */
         $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
 
-        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, $docTag, 'Left');
+        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, 'Left');
     }
 
     /**

@@ -35,7 +35,6 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-left',
                             'statusTag' => $model->tag,
-                            'docTag' => $doc,
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
@@ -78,7 +77,6 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-right',
                             'statusTag' => $model->tag,
-                            'docTag' => $doc,
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'

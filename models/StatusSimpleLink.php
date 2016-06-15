@@ -58,6 +58,18 @@ class StatusSimpleLink extends Model
         try {
             $result = ['error' => 'Добавление не удалось'];
 
+            if (!is_string($docTag)) {
+                throw new ErrorException('Тэг документа не строкового типа');
+            }
+
+            if (!is_string($fromTag)) {
+                throw new ErrorException('Тэг статуса From не строкового типа');
+            }
+
+            if (!is_string($toTag)) {
+                throw new ErrorException('Тэг статуса To не строкового типа');
+            }
+
             if ($fromTag === $toTag) {
                 throw new ErrorException('Нельзя назначить ссылку на себя');
             }
@@ -117,6 +129,14 @@ class StatusSimpleLink extends Model
 
         try {
             $result = ['error' => 'Удаление не удалось'];
+
+            if (!is_string($fromTag)) {
+                throw new ErrorException('Тэг статуса From не строкового типа');
+            }
+
+            if (!is_string($toTag)) {
+                throw new ErrorException('Тэг статуса To не строкового типа');
+            }
 
             /* Получаем массив со статусами From и To */
             $statusesArray = $statusClass->getStatusesForTagsArray([$fromTag, $toTag]);

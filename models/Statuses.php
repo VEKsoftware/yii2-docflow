@@ -2,7 +2,7 @@
 
 namespace docflow\models;
 
-use Yii;
+use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\db\ActiveQueryInterface;
@@ -353,7 +353,7 @@ class Statuses extends Document
      */
     public function getStatusForTag($tag, $needFromIdAndLevel = false)
     {
-        $query = self::find()
+        $query = static::find()
             ->select([
                 'id' => 'doc_statuses.id',
                 'doc_type_id' => 'doc_statuses.doc_type_id',

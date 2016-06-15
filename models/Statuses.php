@@ -399,7 +399,7 @@ class Statuses extends Document
         if (!empty($level)) {
             $query->innerJoin(
                 'doc_statuses_links d_s_l',
-                'doc_statuses.id = d_s_l.status_to and d_s_l.status_from = :from',
+                'doc_statuses.id = d_s_l.status_to and d_s_l.type = \'fltree\' and d_s_l.status_from = :from',
                 [':from' => $fromId]
             );
             $query->where([
@@ -410,7 +410,7 @@ class Statuses extends Document
         } else {
             $query->leftJoin(
                 'doc_statuses_links d_s_l',
-                'doc_statuses.id = d_s_l.status_to'
+                'doc_statuses.id = d_s_l.status_to and d_s_l.type = \'fltree\''
             );
             $query->where([
                 'and',

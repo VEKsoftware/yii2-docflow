@@ -268,10 +268,36 @@ class LinksBehavior extends Behavior
             }
 
             if (empty($this->owner->id)) {
-                throw new ErrorException('Id статуса пуст или не integer');
+                throw new ErrorException('Id статуса пуст');
             }
 
             $return = $sTPClass->setParent($this->owner->id, $statusIdTo);
+        } catch (ErrorException $e) {
+            $return = ['error' => $e->getMessage()];
+        }
+
+        return $return;
+    }
+
+    /**
+     * Убираем родителей у статуса
+     *
+     * @return array
+     */
+    public function removeParent()
+    {
+        $sTPClass = $this->initStatusTreePosition();
+
+        try {
+            if ($this->type === 'simple') {
+                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
+            }
+
+            if (empty($this->owner->id)) {
+                throw new ErrorException('Id статуса пуст');
+            }
+
+            $return = $sTPClass->removeParent($this->owner->id);
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
         }

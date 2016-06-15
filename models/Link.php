@@ -306,9 +306,9 @@ abstract class Link extends CommonRecord
             }
 
             // $from may be NULL (the toppest level)
-            $from_old = $this->getOldAttribute($from);
+            $from_old = $this->getOldAttribute($to);
             if ($from_old) {
-                $this->upperLinksOld = static::findLowerLinks($from_old, $this->extraWhere())->all();
+                $this->upperLinksOld = static::findUpperLinks($from_old, $this->extraWhere())->all();
             }
 
             $this->lowerLinks = static::findLowerLinks($this->$to, $this->extraWhere())->all();

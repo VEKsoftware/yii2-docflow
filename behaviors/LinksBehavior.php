@@ -31,9 +31,19 @@ class LinksBehavior extends Behavior
     public $type = 'simple';
 
     /**
-     * @var string Указываем разновидность типа связи
+     * @var string|null Указываем разновидность типа связи
      */
     public $relation_type = null;
+
+    /**
+     * @var object|null
+     */
+    public $relation_fltree = null;
+
+    /**
+     * @var object|null
+     */
+    public $relation_simple = null;
 
     /**
      * @var bool Сортировать или нет
@@ -41,7 +51,7 @@ class LinksBehavior extends Behavior
     public $ordered = false;
 
     /**
-     * @var null По какому полю индексировать
+     * @var string|null По какому полю индексировать
      */
     public $indexBy = null;
 
@@ -59,6 +69,19 @@ class LinksBehavior extends Behavior
 
         Yii::$container->set(StatusesLinks::className(), $this->linkClass);
         Yii::$container->set(Statuses::className(), $owner);
+
+        if ($this->relation_type !== null) {
+            if (!($this->relation_fltree instanceof StatusTreePosition)) {
+                throw new ErrorException('Класс работы с fltree не принадлежит StatusTreePosition');
+            }
+
+            if (!($this->relation_simple instanceof StatusSimpleLink)) {
+                throw new ErrorException('Класс работы с simple link не принадлежит StatusSimpleLink');
+            }
+
+            Yii::$container->set(StatusTreePosition::className(), $this->relation_fltree);
+            Yii::$container->set(StatusSimpleLink::className(), $this->relation_simple);
+        }
     }
 
     /**

@@ -576,4 +576,36 @@ class StatusTreePosition extends Model
 
         return $result;
     }
+
+    /**
+     * Убираем родителкей у статуса
+     *
+     * @param int $statusIdFrom - id статуса у которого нужно убрать родителей
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    public function removeParent($statusIdFrom)
+    {
+        $statusesLinksClass = $this->initStatusesLinks();
+
+        try {
+            if (!is_int($statusIdFrom)) {
+                throw new ErrorException('Id статуса не integer типа');
+            }
+
+            /**
+             * @var StatusesLinks $flTreeLink
+             */
+            $flTreeLink = $statusesLinksClass->getFlTreeLinkForStatusForLevel1($statusIdFrom);
+            $moveResult = (bool)$flTreeLink->delete();
+
+            $result = $this->moveResult($moveResult);
+        } catch (ErrorException $e) {
+            $result = ['error' => $e->getMessage()];
+        }
+
+        return $result;
+    }
 }

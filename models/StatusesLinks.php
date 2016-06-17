@@ -160,14 +160,17 @@ class StatusesLinks extends Link
      */
     public static function getChildStatusesForStatus($statusId)
     {
-        return static::find()
+        $query = static::find()
             ->where([
                 'and',
                 ['=', 'type', 'fltree'],
                 ['=', 'status_from', $statusId],
             ])
-            ->asArray(true)
-            ->all();
+            ->asArray(true);
+
+        $query->andWhere((new static)->extraWhere());
+
+        return $query->all();
     }
 
     /**

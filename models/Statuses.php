@@ -7,6 +7,7 @@ use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\db\ActiveQueryInterface;
+use yii\di\Instance;
 use yii\helpers\ArrayHelper;
 
 use docflow\Docflow;
@@ -223,7 +224,15 @@ class Statuses extends Document
      */
     public function getLinksParent()
     {
-        return $this->getLinksStructureFrom()->andOnCondition(['l_from.level' => 1]);
+        $query = $this->getLinksStructureFrom()->andOnCondition(['l_from.level' => 1]);
+
+        $relationType = $this->getRelationType();
+
+        if (!empty($relationType)) {
+            $query->andOnCondition(['l_from.relation_type' => $relationType]);
+        }
+
+        return $query;
     }
 
     /**
@@ -232,7 +241,15 @@ class Statuses extends Document
      */
     public function getLinksChildren()
     {
-        return $this->getLinksStructureTo()->andOnCondition(['l_to.level' => 1]);
+        $query = $this->getLinksStructureTo()->andOnCondition(['l_to.level' => 1]);
+
+        $relationType = $this->getRelationType();
+
+        if (!empty($relationType)) {
+            $query->andOnCondition(['l_to.relation_type' => $relationType]);
+        }
+
+        return $query;
     }
 
     /**
@@ -321,9 +338,15 @@ class Statuses extends Document
      */
     public function getStatusChildren()
     {
-        return $this->hasMany(Statuses::className(), ['id' => 'status_to'])->orderBy(['order_idx' => SORT_ASC])
+        $query = $this->hasMany(Statuses::className(), ['id' => 'status_to'])
             ->via('linksChildren')
             ->inverseOf('statusParent');
+
+        if (StatusesLinks::$sortBool === true) {
+            $query->orderBy(['order_idx' => SORT_ASC]);
+        }
+
+        return $query;
     }
 
     /**
@@ -380,6 +403,12 @@ class Statuses extends Document
                 'doc_statuses.id = d_s_l.status_to and d_s_l.type = \'fltree\' and d_s_l.level = 1'
             );
             $query->asArray(true);
+
+            $relationType = (new static)->getRelationType();
+
+            if (!empty($relationType)) {
+                $query->andOnCondition(['d_s_l.relation_type' => $relationType]);
+            }
         }
 
         return $query->one();
@@ -424,7 +453,11 @@ class Statuses extends Document
             ]);
         }
 
-        $query->andOnCondition((new StatusesLinks())->extraWhere());
+        $relationType = (new static)->getRelationType();
+
+        if (!empty($relationType)) {
+            $query->andOnCondition(['d_s_l.relation_type' => $relationType]);
+        }
 
         return $query->all();
     }
@@ -457,5 +490,28 @@ class Statuses extends Document
             ->where(['in', 'id', $idArray])
             ->indexBy('tag')
             ->all();
+    }
+
+    /**
+     * Получаем relation_type
+     *
+     * @return string
+     *
+     * @throws \yii\base\InvalidConfigException
+     */
+    protected function getRelationType()
+    {
+        /**
+         * @var array $extraWhere
+         */
+        $extraWhere = Instance::ensure([], StatusesLinks::className())->extraWhere();
+
+        if (count($extraWhere) > 0) {
+            $relationType = array_values($extraWhere)[0];
+        } else {
+            $relationType = '';
+        }
+
+        return $relationType;
     }
 }

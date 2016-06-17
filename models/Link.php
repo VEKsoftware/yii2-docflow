@@ -2,7 +2,7 @@
 
 namespace docflow\models;
 
-use Yii;
+use yii;
 
 use yii\base\InvalidParamException;
 use yii\base\ErrorException;
@@ -35,6 +35,16 @@ abstract class Link extends CommonRecord
     protected $lowerLinks;
     protected $from_old;
     protected $from_new;
+
+    /**
+     * @var string Индексация статусов для дерева
+     */
+    public static $indexBy = 'tag';
+
+    /**
+     * @var bool true - сортировать древо по order_idx по возрастанию, false - не сортировать
+     */
+    public static $sortBool = true;
 
     /**
      * {@inheritdoc}

@@ -15,7 +15,6 @@ use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\di\Instance;
-use yii\helpers\Url;
 
 class LinkOrderedBehavior extends LinkStructuredBehavior
 {

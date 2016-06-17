@@ -42,9 +42,9 @@ abstract class Link extends CommonRecord
     public static $indexBy = 'tag';
 
     /**
-     * @var bool true - сортировать древо по order_idx по возрастанию, false - не сортировать
+     * @var string|null - Содержит поле таблицы, по которому идет сортировка, если null, то сортировка не производится
      */
-    public static $sortBool = true;
+    public static $sortField = null;
 
     /**
      * {@inheritdoc}

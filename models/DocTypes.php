@@ -124,11 +124,11 @@ class DocTypes extends CommonRecord
     {
         if (empty(static::$_doctypes)) {
             /* Формируем запрос в зависимости от того, разрешена - ли сортировака или нет */
-            if (StatusesLinks::$sortBool === true) {
+            if (!empty(StatusesLinks::$sortField) && is_string(StatusesLinks::$sortField)) {
                 $query = static::findDocTypes()
                     ->with([
                         'statuses' => function (\yii\db\ActiveQuery $query) {
-                            $query->orderBy(['order_idx' => SORT_ASC]);
+                            $query->orderBy([StatusesLinks::$sortField => SORT_ASC]);
                         },
                     ]);
             } else {

@@ -342,8 +342,8 @@ class Statuses extends Document
             ->via('linksChildren')
             ->inverseOf('statusParent');
 
-        if (StatusesLinks::$sortBool === true) {
-            $query->orderBy(['order_idx' => SORT_ASC]);
+        if (!empty(StatusesLinks::$sortField) && is_string(StatusesLinks::$sortField)) {
+            $query->orderBy([StatusesLinks::$sortField => SORT_ASC]);
         }
 
         return $query;

@@ -105,12 +105,11 @@ class StatusesLinks extends Link
     /**
      * Получаем ccылку на ближайшего родителя (1 уровень)
      *
-     * @param integer     $statusId     - id статуса
-     * @param null|string $relationType - тип связи
+     * @param integer $statusId - id статуса
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getFlTreeLinkForStatusForLevel1($statusId, $relationType = null)
+    public static function getFlTreeLinkForStatusForLevel1($statusId)
     {
         $query = static::find()
             ->where(
@@ -122,9 +121,7 @@ class StatusesLinks extends Link
                 ]
             );
 
-        if (!empty($relationType) && is_string($relationType)) {
-            $query->andWhere(['=', 'relation_type', $relationType]);
-        }
+        $query->andWhere((new static)->extraWhere());
 
         return $query->one();
     }
@@ -132,12 +129,11 @@ class StatusesLinks extends Link
     /**
      * Получаем ccылку на родителя родителя (2 уровень)
      *
-     * @param integer     $statusId     - id статуса
-     * @param null|string $relationType - тип связи
+     * @param integer $statusId - id статуса
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getFlTreeLinkForStatusForLevel1And2($statusId, $relationType = null)
+    public static function getFlTreeLinkForStatusForLevel1And2($statusId)
     {
         $query = static::find()
             ->where(
@@ -150,9 +146,7 @@ class StatusesLinks extends Link
             )
             ->indexBy('level');
 
-        if (!empty($relationType) && is_string($relationType)) {
-            $query->andWhere(['=', 'relation_type', $relationType]);
-        }
+        $query->andWhere((new static)->extraWhere());
 
         return $query->all();
     }
@@ -164,7 +158,7 @@ class StatusesLinks extends Link
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getChildStatusesForStatus($statusId)
+    public static function getChildStatusesForStatus($statusId)
     {
         return static::find()
             ->where([
@@ -179,13 +173,12 @@ class StatusesLinks extends Link
     /**
      * Получаем SimpleLink по id статусов From и To
      *
-     * @param integer     $fromStatusId - тэг статуса From
-     * @param integer     $toStatusId   - тэг статуса To
-     * @param null|string $relationType - тип связи
+     * @param integer $fromStatusId - тэг статуса From
+     * @param integer $toStatusId   - тэг статуса To
      *
      * @return array|null|\yii\db\ActiveRecord
      */
-    public function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId, $relationType = null)
+    public static function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
     {
         $query = static::find()
             ->where(
@@ -197,10 +190,31 @@ class StatusesLinks extends Link
                 ]
             );
 
-        if (!empty($relationType) && is_string($relationType)) {
-            $query->andWhere(['=', 'relation_type', $relationType]);
-        }
+        $query->andWhere((new static)->extraWhere());
 
         return $query->one();
+    }
+
+    /**
+     * Получаем список всех простых связей для данного документа
+     *
+     * @param integer $statusId - Id статуса, у которого смотрим простые связи
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getAllSimpleLinksForTagFromId($statusId)
+    {
+        $query = static::find()
+            ->where(
+                [
+                    'and',
+                    ['=', 'status_from', $statusId],
+                    ['=', 'type', self::LINK_TYPE_SIMPLE]
+                ]
+            );
+
+        $query->andWhere((new static)->extraWhere());
+
+        return $query->all();
     }
 }

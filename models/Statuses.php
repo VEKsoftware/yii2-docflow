@@ -2,6 +2,7 @@
 
 namespace docflow\models;
 
+use docflow\behaviors\LinkBehavior;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
@@ -55,6 +56,10 @@ class Statuses extends Document
         return [
             'access' => [
                 'class' => Docflow::getInstance()->accessClass,
+            ],
+            'links' => [
+                'class' => LinkBehavior::className(),
+                'linkClass' => new StatusesLinks(),
             ],
         ];
     }
@@ -351,7 +356,7 @@ class Statuses extends Document
      *
      * @return array|null|\yii\db\ActiveRecord
      */
-    public function getStatusForTag($tag, $needFromIdAndLevel = false)
+    public static function getStatusForTag($tag, $needFromIdAndLevel = false)
     {
         $query = static::find()
             ->select([
@@ -383,14 +388,13 @@ class Statuses extends Document
     /**
      * Получаем массив со статусами в уровне, где находится перемещаемый статус
      *
-     * @param integer $fromId       - id статуса, в котором находится перемещаемый статус
-     * @param integer $level        - уровень, в котором находится перемещаемый статус
-     * @param integer $docTypeId    - id документа, которому принадлежит перемещаемый статус
-     * @param null    $relationType - тип связи
+     * @param integer $fromId    - id статуса, в котором находится перемещаемый статус
+     * @param integer $level     - уровень, в котором находится перемещаемый статус
+     * @param integer $docTypeId - id документа, которому принадлежит перемещаемый статус
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getStatusesForLevel($fromId, $level, $docTypeId, $relationType = null)
+    public static function getStatusesForLevel($fromId, $level, $docTypeId)
     {
         $query = static::find()
             ->select(['orderIdx' => 'doc_statuses.order_idx', 'tag' => 'doc_statuses.tag', 'id' => 'doc_statuses.id'])
@@ -420,9 +424,7 @@ class Statuses extends Document
             ]);
         }
 
-        if (!empty($relationType) && is_string($relationType)) {
-            $query->andWhere(['=', 'd_s_l.relation_type', $relationType]);
-        }
+        $query->andOnCondition((new StatusesLinks())->extraWhere());
 
         return $query->all();
     }
@@ -434,10 +436,25 @@ class Statuses extends Document
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public function getStatusesForTagsArray(array $tagsArray)
+    public static function getStatusesForTagsArray(array $tagsArray)
     {
         return static::find()
             ->where(['in', 'tag', $tagsArray])
+            ->indexBy('tag')
+            ->all();
+    }
+
+    /**
+     * Получаем массив статусов по их id
+     *
+     * @param array $idArray - массив, содержащий список id-ек
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getStatusesByIdArray(array $idArray)
+    {
+        return static::find()
+            ->where(['in', 'id', $idArray])
             ->indexBy('tag')
             ->all();
     }

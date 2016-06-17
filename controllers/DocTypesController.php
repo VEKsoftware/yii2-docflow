@@ -3,6 +3,7 @@
 namespace docflow\controllers;
 
 use docflow\Docflow;
+use docflow\models\StatusesExp;
 use docflow\models\StatusSimpleLink;
 use docflow\models\StatusTreePosition;
 use yii;
@@ -342,40 +343,41 @@ class DocTypesController extends Controller
      * Перемещаем статус на позицию выше (в пределах своего уровня вложенности)
      *
      * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
      *
      * @return mixed
-     *
-     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\web\NotFoundHttpException
      */
-    public function actionAjaxStatusTreeUp($statusTag)
+    public function actionAjaxStatusTreeUp($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
          * @var StatusTreePosition $treePositionsClass
          */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+        $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $treePositionsClass->setStatusInTreeVertical($statusTag, 'Up');
+        return $model->orderUp();
     }
 
     /**
      * Перемещаем статус на позицию ниже в древе (в пределах своего уровня вложенности)
      *
      * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
      *
      * @return mixed
      *
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxStatusTreeDown($statusTag)
+    public function actionAjaxStatusTreeDown($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
          * @var StatusTreePosition $treePositionsClass
          */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+        $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $treePositionsClass->setStatusInTreeVertical($statusTag, 'Down');
+        return $model->orderDown();
     }
 
     /**
@@ -411,42 +413,44 @@ class DocTypesController extends Controller
      * Перемещение стутуса из текущего уровня во внутренний верх лежащего статуса
      *
      * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
      *
      * @return array
      *
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxStatusTreeRight($statusTag)
+    public function actionAjaxStatusTreeRight($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
          * @var StatusTreePosition $treePositionsClass
          */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+        $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, 'Right');
+        return $model->levelUp();
     }
 
     /**
      * Перемещение статуса из текущего уровня родительского статуса во внешний уровень, к родительскому статусу
      *
      * @param string $statusTag - Тэг статуса
+     * @param string $docTag    - Тэг документа
      *
      * @return array
      *
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxStatusTreeLeft($statusTag)
+    public function actionAjaxStatusTreeLeft($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
         /**
          * @var StatusTreePosition $treePositionsClass
          */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
+        $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $treePositionsClass->setStatusInTreeHorizontal($statusTag, 'Left');
+        return $model->levelDown();
     }
 
     /**
@@ -463,12 +467,10 @@ class DocTypesController extends Controller
     public function actionAjaxAddSimpleLink($tagTo, $tagFrom, $tagDoc)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusSimpleLink $statusSimpleLink
-         */
-        $statusSimpleLink = Instance::ensure([], StatusSimpleLink::className());
 
-        return $statusSimpleLink->addSimpleLink($tagDoc, $tagFrom, $tagTo);
+        $model = $this->findStatusModel($tagDoc, $tagFrom);
+
+        return $model->addSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }
 
     /**
@@ -487,11 +489,9 @@ class DocTypesController extends Controller
     public function actionAjaxRemoveSimpleLink($tagTo, $tagFrom, $tagDoc)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusSimpleLink $statusSimpleLink
-         */
-        $statusSimpleLink = Instance::ensure([], StatusSimpleLink::className());
 
-        return $statusSimpleLink->removeSimpleLink($tagFrom, $tagTo);
+        $model = $this->findStatusModel($tagDoc, $tagFrom);
+
+        return $model->delSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }
 }

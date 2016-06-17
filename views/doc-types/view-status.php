@@ -35,6 +35,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-left',
                             'statusTag' => $model->tag,
+                            'docTag' => $doc
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
@@ -49,6 +50,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-up',
                             'statusTag' => $model->tag,
+                            'docTag' => $doc
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
@@ -63,6 +65,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-down',
                             'statusTag' => $model->tag,
+                            'docTag' => $doc
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
@@ -77,6 +80,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         [
                             'ajax-status-tree-right',
                             'statusTag' => $model->tag,
+                            'docTag' => $doc
                         ]
                     ),
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'

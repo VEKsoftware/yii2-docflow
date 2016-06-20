@@ -146,14 +146,15 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
 
             $docflow = Docflow::getInstance();
             // Сохраняем изменения через транзакцию
-            Yii::$app->{$docflow->db}->transaction(function () use ($currentStatus, $changeStatus) {
-                $currentResult = $currentStatus->save();
-                $changeResult = $changeStatus->save();
+            $transaction = Yii::$app->{$docflow->db}->beginTransaction();
+            
+            if ($currentStatus->save() && $changeStatus->save()) {
+                $transaction->commit();
+            } else {
+                $transaction->rollBack();
+                throw new ErrorException('Позиция не изменена');
+            }
 
-                if (($currentResult === false) || ($changeResult === false)) {
-                    throw new ErrorException('Позиция не изменена');
-                }
-            });
             $return = ['success' => 'Позиция изменена'];
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];

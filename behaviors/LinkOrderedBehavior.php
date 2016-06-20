@@ -23,15 +23,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     const LINK_TYPE_FLTREE = 'fltree';
 
     /**
-     * @var string Данное свойство нужно для возможности сравнения в callback
-     */
-    protected $statusTag;
-    /**
-     * @var array Массив с simple links для данного стутаса для сравнения в callback
-     */
-    protected $simpleLinks;
-
-    /**
      * Инициируем класс статуса
      *
      * @return \docflow\models\Statuses

@@ -27,6 +27,9 @@ class LinkBehavior extends LinkOrderedBehavior
 
     /**
      * @var string Тип связи
+     *             1) none - разрешены все методы - значение по умолчанию
+     *             2) simple - разрешены методы манипуляции с простыми связями
+     *             3) fltree - разрешены методы манипуляции со связями типа плоское дерево
      */
     public $type = 'none';
 

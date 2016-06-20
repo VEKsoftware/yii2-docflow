@@ -44,7 +44,7 @@ abstract class Link extends CommonRecord
     /**
      * @var string|null - Содержит поле таблицы, по которому идет сортировка, если null, то сортировка не производится
      */
-    public static $sortField = null;
+    public static $sortField = 'order_idx';
 
     /**
      * {@inheritdoc}

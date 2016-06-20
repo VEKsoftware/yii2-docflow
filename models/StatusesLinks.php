@@ -155,18 +155,22 @@ class StatusesLinks extends Link
      * Получаем массив с данными о наличии "детей" - вложенных статусов
      *
      * @param integer $statusId - id Статуса1, у которого имем вложенные статусы
+     * @param bool    $asArray  - true - выдавать массив, false - объекты
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public static function getChildStatusesForStatus($statusId)
+    public static function getChildStatusesForStatus($statusId, $asArray = true)
     {
         $query = static::find()
             ->where([
                 'and',
                 ['=', 'type', 'fltree'],
                 ['=', 'status_from', $statusId],
-            ])
-            ->asArray(true);
+            ]);
+
+        if ($asArray === true) {
+            $query->asArray(true);
+        }
 
         $query->andWhere((new static)->extraWhere());
 
@@ -213,6 +217,31 @@ class StatusesLinks extends Link
                     'and',
                     ['=', 'status_from', $statusId],
                     ['=', 'type', self::LINK_TYPE_SIMPLE]
+                ]
+            );
+
+        $query->andWhere((new static)->extraWhere());
+
+        return $query->all();
+    }
+
+    /**
+     * Получаем простые ссылки для статуса и определенных подстатусов
+     *
+     * @param integer $statusId   - id статуса
+     * @param array   $tagToArray - массив подстатусов
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public static function getSimpleLinksByTagFromIdWhereTagToArray($statusId, array $tagToArray)
+    {
+        $query = static::find()
+            ->where(
+                [
+                    'and',
+                    ['=', 'status_from', $statusId],
+                    ['=', 'type', self::LINK_TYPE_SIMPLE],
+                    ['in', 'status_to', $tagToArray]
                 ]
             );
 

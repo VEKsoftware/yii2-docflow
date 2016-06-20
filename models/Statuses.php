@@ -350,26 +350,6 @@ class Statuses extends Document
     }
 
     /**
-     * Check if the target status allowed
-     * @return boolean is the target status allowed to be set?
-     */
-    public function rightsForStatusTo($statusTag)
-    {
-        $docType = $this->docType;
-
-        /** @var \docflow\models\Statuses $statusTo */
-        $statusTo = ArrayHelper::getValue($docType->statuses, $statusTag);
-        if (!isset($statusTo)) {
-            return [];
-        }
-
-        // Получаем ссылки где status_to равен нашему $statusTo
-        $linksTo = $statusTo->linksTo;
-
-        return array_unique(array_filter(ArrayHelper::getColumn($linksTo, 'right_tag')));
-    }
-
-    /**
      * Получаем Статус по тэгу
      *
      * @param string $tag                  - тэг статуса
@@ -513,5 +493,19 @@ class Statuses extends Document
         }
 
         return $relationType;
+    }
+
+    /**
+     * Получаем статус по его id
+     *
+     * @param integer $statusId - id статуса
+     *
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public static function getStatusById($statusId)
+    {
+        return static::find()
+            ->where(['=', 'id', $statusId])
+            ->one();
     }
 }

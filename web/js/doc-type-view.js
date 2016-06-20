@@ -6,25 +6,25 @@ $("#tree-leaf").bind("domChanged", function () {
     var $upTreeButton = $(document).find("[name='up-in-tree']");
     var $downTreeButton = $(document).find("[name='down-in-tree']");
     var $rightTreeButton = $(document).find("[name='right-in-tree']");
-    var $liftTreeButton = $(document).find("[name='left-in-tree']");
+    var $leftTreeButton = $(document).find("[name='left-in-tree']");
 
     /**
      * Назначаем обработчики при клике
      */
     $upTreeButton.on('click', function () {
-        checkAjax($upTreeButton.data("href"));
+        checkAjax($upTreeButton.data("href"), $upTreeButton.data("doc-type"), $upTreeButton.data("status-tag"));
     });
 
     $downTreeButton.on('click', function () {
-        checkAjax($downTreeButton.data("href"));
+        checkAjax($downTreeButton.data("href"), $downTreeButton.data("doc-type"), $downTreeButton.data("status-tag"));
     });
 
     $rightTreeButton.on('click', function () {
-        checkAjax($rightTreeButton.data("href"));
+        checkAjax($rightTreeButton.data("href"), $rightTreeButton.data("doc-type"), $rightTreeButton.data("status-tag"));
     });
 
-    $liftTreeButton.on('click', function () {
-        checkAjax($liftTreeButton.data("href"));
+    $leftTreeButton.on('click', function () {
+        checkAjax($leftTreeButton.data("href"), $leftTreeButton.data("doc-type"), $leftTreeButton.data("status-tag"));
     });
 });
 
@@ -32,20 +32,24 @@ $("#tree-leaf").bind("domChanged", function () {
  * Проверяем, испольняется ли в данное время Ajax запрос и если исполняется,
  * то не даем возможности запустить слудующий
  * @param url
+ * @param docTag
+ * @param statusTag
  */
-function checkAjax(url) {
+function checkAjax(url, docTag, statusTag) {
     var $treeActionButtons = $(document).find("#actions-tree-buttons");
 
     if (!$treeActionButtons.hasClass('ajax-disabled')) {
-        getAjax(url);
+        getAjax(url, docTag, statusTag);
     }
 }
 
 /**
  * Соверашаем Ajax запрос по переданноу Url
  * @param url
+ * @param docTag
+ * @param statusTag
  */
-function getAjax(url) {
+function getAjax(url, docTag, statusTag) {
     blockButtons();
     clearTreeChangeStatus();
     $.get(url, function (data) {
@@ -53,7 +57,7 @@ function getAjax(url) {
             setTreeChangeStatus('error', data.error);
         } else {
             setTreeChangeStatus('success', data.success);
-            setTree();
+            setTree(docTag, statusTag);
         }
     });
 
@@ -83,9 +87,8 @@ function selectCurrentStatus(name) {
 /**
  * Перестраиваем древо статусов
  */
-function setTree() {
-    var docTag = getUrlParameter('doc');
-    var url = '/docflow/doc-types/ajax-tree?docTag=' + docTag;
+function setTree(docTag, statusTag) {
+    var url = '/docflow/doc-types/ajax-tree?docTag=' + docTag + '&statusTag=' + statusTag;
     $.get(url, function (data) {
         renderTree(data);
     });
@@ -200,7 +203,7 @@ function getUrlParameter(sParam) {
  */
 function getSimpleLinksAjax(url) {
     clearChangeStatusSimpleLink();
-    
+
     $.get(url, function (data) {
         if (data.error !== undefined) {
             setChangeStatusSimpleLink('error', data.error);
@@ -223,9 +226,9 @@ function changeSimpleLinkCheckbox(invert) {
 
     if (invert === true) {
         if (node.state.checked === true) {
-            $tree.treeview('uncheckNode', [node.nodeId, { silent: true }]);
-        }  else {
-            $tree.treeview('checkNode', [node.nodeId, { silent: true }]);
+            $tree.treeview('uncheckNode', [node.nodeId, {silent: true}]);
+        } else {
+            $tree.treeview('checkNode', [node.nodeId, {silent: true}]);
         }
     }
 }

@@ -13,6 +13,7 @@ use docflow\models\StatusesLinks;
 use yii\base\ErrorException;
 use yii\di\Instance;
 use yii\helpers\ArrayHelper;
+use yii\helpers\Url;
 
 class LinkStructuredBehavior extends LinkSimpleBehavior
 {
@@ -236,5 +237,75 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
         }
 
         return $return;
+    }
+
+    /**
+     * Получаем структуру дерева
+     *
+     * @return array
+     */
+    public function getTree()
+    {
+        return array_map([$this, 'treeBranch'], $this->owner->docType->statusesStructure);
+    }
+
+    /**
+     * Формируем ветви
+     *
+     * @param mixed $val Ветка
+     *
+     * @return array
+     *
+     * @throws \yii\base\InvalidParamException
+     */
+    protected function treeBranch($val)
+    {
+        return array_merge(
+            [
+                'text' => $val->name,
+                'href' => Url::to(['status-view', 'doc' => $val->docType->tag, 'tag' => $val->tag]),
+            ],
+            (empty($val->statusChildren))
+                ? []
+                : ['nodes' => array_map([$this, 'treeBranch'], $val->statusChildren)]
+        );
+    }
+
+    /**
+     * Получаем структуру дерева статусов, для simple links
+     *
+     * @return array
+     */
+    public function getTreeWithSimpleLinks()
+    {
+        return array_map([$this, 'treeBranchWithSimpleLinks'], $this->owner->docType->statusesStructure);
+    }
+
+    /**
+     * Формируем ветви с учётом simple links
+     *
+     * @param mixed $val - Ветка
+     *
+     * @return array
+     */
+    protected function treeBranchWithSimpleLinks($val)
+    {
+        $linkBool = isset($this->owner->statusesTransitionTo[$val->tag]);
+
+        return array_merge(
+            [
+                'text' => $val->name,
+                'href' => '&tagFrom=' . $this->owner->tag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
+            ],
+            ($val->tag === $this->owner->tag)
+                ? ['backColor' => 'gray']
+                : [],
+            ($linkBool === true)
+                ? ['state' => ['checked' => true]]
+                : [],
+            (empty($val->statusChildren))
+                ? []
+                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
+        );
     }
 }

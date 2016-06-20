@@ -245,10 +245,6 @@ class DocTypesController extends Controller
      */
     public function actionStatusView($doc, $tag)
     {
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
         $document = $this->findModel($doc);
 
         $model = $document->statuses[$tag];
@@ -261,22 +257,17 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
-        $tree = $treePositionsClass->getTreeWithSimpleLinks(
-            $document->statusesStructure,
-            $model
-        );
-
         if (Yii::$app->request->isAjax) {
             return $this->renderAjax('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $tree,
+                'tree' => $model->getTreeWithSimpleLinks(),
             ]);
         } else {
             return $this->render('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $tree,
+                'tree' => $model->getTreeWithSimpleLinks(),
             ]);
         }
     }
@@ -351,9 +342,7 @@ class DocTypesController extends Controller
     public function actionAjaxStatusTreeUp($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
+
         $model = $this->findStatusModel($docTag, $statusTag);
 
         return $model->orderUp();
@@ -372,9 +361,7 @@ class DocTypesController extends Controller
     public function actionAjaxStatusTreeDown($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
+
         $model = $this->findStatusModel($docTag, $statusTag);
 
         return $model->orderDown();
@@ -383,30 +370,24 @@ class DocTypesController extends Controller
     /**
      * Получаем древо по Ajax запросу
      *
-     * @param string $docTag - Тэг документа
+     * @param string $docTag    - Тэг документа
+     * @param string $statusTag - Тэг статуса
      *
      * @return array
      *
      * @throws \yii\web\NotFoundHttpException
      * @throws \yii\base\InvalidConfigException
      */
-    public function actionAjaxTree($docTag)
+    public function actionAjaxTree($docTag, $statusTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
-        $treePositionsClass = Instance::ensure([], StatusTreePosition::className());
 
-        /**
-         * @var DocTypes $model
-         */
-        $model = $this->findModel($docTag);
+        $model = $this->findStatusModel($docTag, $statusTag);
         if (empty($model)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
-        return $treePositionsClass->getTree($model->statusesStructure);
+        return $model->getTree();
     }
 
     /**
@@ -423,9 +404,7 @@ class DocTypesController extends Controller
     public function actionAjaxStatusTreeRight($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
+
         $model = $this->findStatusModel($docTag, $statusTag);
 
         return $model->levelUp();
@@ -445,9 +424,7 @@ class DocTypesController extends Controller
     public function actionAjaxStatusTreeLeft($statusTag, $docTag)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
-        /**
-         * @var StatusTreePosition $treePositionsClass
-         */
+
         $model = $this->findStatusModel($docTag, $statusTag);
 
         return $model->levelDown();

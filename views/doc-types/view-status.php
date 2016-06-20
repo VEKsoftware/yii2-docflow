@@ -38,6 +38,8 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc
                         ]
                     ),
+                    'data-doc-type' => $doc,
+                    'data-status-tag' => $model->tag,
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
                 ]
             ) ?>
@@ -53,6 +55,8 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc
                         ]
                     ),
+                    'data-doc-type' => $doc,
+                    'data-status-tag' => $model->tag,
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
                 ]
             ) ?>
@@ -68,6 +72,8 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc
                         ]
                     ),
+                    'data-doc-type' => $doc,
+                    'data-status-tag' => $model->tag,
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
                 ]
             ) ?>
@@ -83,6 +89,8 @@ $this->params['breadcrumbs'][] = $this->title;
                             'docTag' => $doc
                         ]
                     ),
+                    'data-doc-type' => $doc,
+                    'data-status-tag' => $model->tag,
                     'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
                 ]
             ) ?>

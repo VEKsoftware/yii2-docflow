@@ -3,6 +3,8 @@
 namespace docflow\models;
 
 use docflow\behaviors\LinkBehavior;
+use docflow\behaviors\LinkOrderedBehavior;
+use docflow\behaviors\LinkSimpleBehavior;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
@@ -58,9 +60,14 @@ class Statuses extends Document
             'access' => [
                 'class' => Docflow::getInstance()->accessClass,
             ],
-            'links' => [
-                'class' => LinkBehavior::className(),
-                'linkClass' => new StatusesLinks(),
+            'structure' => [
+                'class' => LinkOrderedBehavior::className(),
+                'linkClass' => StatusesLinksStructure::className(),
+                'orderedField' => 'order_idx',
+            ],
+            'transitions' => [
+                'class' => LinkSimpleBehavior::className(),
+                'linkClass' => StatusesLinksTransitions::className(),
             ],
         ];
     }
@@ -484,10 +491,10 @@ class Statuses extends Document
         /**
          * @var array $extraWhere
          */
-        $extraWhere = Instance::ensure([], StatusesLinks::className())->extraWhere();
+        $extraWhere = (new $this->linkClass)->extraWhere();
 
-        if (count($extraWhere) > 0) {
-            $relationType = array_values($extraWhere)[0];
+        if (array_key_exists('relation_type', $extraWhere)) {
+            $relationType = $extraWhere['relation_type'];
         } else {
             $relationType = '';
         }

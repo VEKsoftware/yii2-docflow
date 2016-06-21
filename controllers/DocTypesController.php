@@ -2,6 +2,8 @@
 
 namespace docflow\controllers;
 
+use docflow\behaviors\LinkOrderedBehavior;
+use docflow\behaviors\LinkSimpleBehavior;
 use docflow\Docflow;
 use docflow\models\StatusesExp;
 use docflow\models\StatusSimpleLink;
@@ -257,17 +259,22 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
+        /**
+         * @var LinkSimpleBehavior $behavior
+         */
+        $behavior = $model->getBehavior('transitions');
+
         if (Yii::$app->request->isAjax) {
             return $this->renderAjax('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $model->getTreeWithSimpleLinks(),
+                'tree' => $behavior->getTreeWithSimpleLinks(),
             ]);
         } else {
             return $this->render('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $model->getTreeWithSimpleLinks(),
+                'tree' => $behavior->getTreeWithSimpleLinks(),
             ]);
         }
     }
@@ -345,7 +352,12 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $model->orderUp();
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->orderUp();
     }
 
     /**
@@ -364,7 +376,12 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $model->orderDown();
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->orderDown();
     }
 
     /**
@@ -387,7 +404,12 @@ class DocTypesController extends Controller
             throw new NotFoundHttpException('The requested page does not exist.');
         }
 
-        return $model->getTree();
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->getTree();
     }
 
     /**
@@ -407,7 +429,12 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $model->levelUp();
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->levelUp();
     }
 
     /**
@@ -427,7 +454,12 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        return $model->levelDown();
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->levelDown();
     }
 
     /**
@@ -447,7 +479,12 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($tagDoc, $tagFrom);
 
-        return $model->addSimpleLink($this->findStatusModel($tagDoc, $tagTo));
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->addSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }
 
     /**
@@ -469,6 +506,11 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($tagDoc, $tagFrom);
 
-        return $model->delSimpleLink($this->findStatusModel($tagDoc, $tagTo));
+        /**
+         * @var LinkOrderedBehavior $behavior
+         */
+        $behavior = $model->getBehavior('structure');
+
+        return $behavior->delSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }
 }

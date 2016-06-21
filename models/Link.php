@@ -15,7 +15,7 @@ use docflow\base\CommonRecord;
 /**
  * This is an abstract class for handling relations between documents.
  *
- * @property int $id
+ * @property int    $id
  * @property string fullName
  */
 abstract class Link extends CommonRecord
@@ -25,10 +25,18 @@ abstract class Link extends CommonRecord
 
     private static $_statuses;
     protected static $_baseClass;
-    protected static $_linkFrom; // ['id' => 'upper_id']
-    protected static $_linkTo;   // ['id' => 'lower_id']
+    /**
+     * @var string наименование поля в котором указан id (идентификатор) базового класса
+     */
+    protected static $_baseClassId;
+    protected static $_linkFrom;
+    protected static $_linkTo;
     protected static $_levelField;
     protected static $_typeField;
+    /**
+     * @var string наименование поля в котором указан тип связи
+     */
+    protected static $_linkType;
 
     protected $upperLinksOld;
     protected $upperLinksNew;
@@ -82,7 +90,7 @@ abstract class Link extends CommonRecord
      */
     public function getBaseFrom()
     {
-        return $this->hasOne(static::$_baseClass, static::$_linkFrom)->andFilterWhere($this->extraWhere());
+        return $this->hasOne(static::$_baseClass, [static::$_baseClassId, static::$_linkFrom])->andFilterWhere($this->extraWhere());
     }
 
     /**
@@ -92,48 +100,50 @@ abstract class Link extends CommonRecord
      */
     public function getBaseTo()
     {
-        return $this->hasOne(static::$_baseClass, static::$_linkTo)->andFilterWhere($this->extraWhere());
+        return $this->hasOne(static::$_baseClass, [static::$_baseClassId, static::$_linkTo])->andFilterWhere($this->extraWhere());
     }
 
     /**
      * For Flat Tree links return all lower level links
      *
-     * @param mixed $id base model id for which we look for the lower level links
+     * @param mixed $id    base model id for which we look for the lower level links
      * @param mixed $param Extra where parameters in format of [[yii\db\QueryInterface::where()]]
      * @return \yii\db\ActiveQuery
      */
-    public static function findLowerLinks($id, $andWhere = NULL)
+    public static function findLowerLinks($id, $andWhere = null)
     {
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
         $query = static::find()->where([$from => $id, $type => self::LINK_TYPE_FLTREE]);
-        if(! empty($andWhere)) {
+        if (!empty($andWhere)) {
             $query->andWhere($andWhere);
         }
+
         return $query;
     }
 
     /**
      * For Flat Tree links return all upper level links
      *
-     * @param mixed $id base model id for which we look for the upper level links
+     * @param mixed $id    base model id for which we look for the upper level links
      * @param mixed $param Extra where parameters in format of [[yii\db\QueryInterface::where()]]
      * @return \yii\db\ActiveQuery
      */
-    public static function findUpperLinks($id, $andWhere = NULL)
+    public static function findUpperLinks($id, $andWhere = null)
     {
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
         $query = static::find()->where([$to => $id, $type => self::LINK_TYPE_FLTREE]);
-        if(! empty($andWhere)) {
+        if (!empty($andWhere)) {
             $query->andWhere($andWhere);
         }
+
         return $query;
     }
 
@@ -142,8 +152,8 @@ abstract class Link extends CommonRecord
      */
     public function beforeSave($insert)
     {
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -234,8 +244,8 @@ abstract class Link extends CommonRecord
      */
     public function afterSave($insert, $changed_attributes)
     {
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
         parent::afterSave($insert, $changed_attributes);
@@ -305,8 +315,8 @@ abstract class Link extends CommonRecord
      */
     public function beforeDelete()
     {
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -337,8 +347,8 @@ abstract class Link extends CommonRecord
     public function afterDelete()
     {
         parent::afterDelete();
-        $from = array_values(static::$_linkFrom)[0];
-        $to = array_values(static::$_linkTo)[0];
+        $from = static::$_linkFrom;
+        $to = static::$_linkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 

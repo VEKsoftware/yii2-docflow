@@ -173,7 +173,7 @@ class StatusBehavior extends Behavior
                 throw new ErrorException('Нет права доступа для установки статуса');
             }
 
-            $this->saveChangedStatus($statusObj);
+            $this->owner->{$this->statusIdField} = $statusObj->id;
 
             $return = ['success' => 'Статус установлен'];
 
@@ -201,7 +201,7 @@ class StatusBehavior extends Behavior
                 throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
             }
 
-            $this->saveChangedStatus($statusObj);
+            $this->owner->{$this->statusIdField} = $statusObj->id;
 
             $return = ['success' => 'Статус установлен'];
 
@@ -210,25 +210,6 @@ class StatusBehavior extends Behavior
         }
 
         return $return;
-    }
-
-    /**
-     * Объект статуса
-     *
-     * @param object $statusObj - Статус
-     *
-     * @return void
-     *
-     * @throws \yii\base\ErrorException
-     */
-    protected function saveChangedStatus($statusObj)
-    {
-        $this->owner->{$this->statusIdField} = $statusObj->id;
-        $hasSave = $this->owner->save();
-
-        if ($hasSave === false) {
-            throw new ErrorException('Статус не установлен');
-        }
     }
 
     /**

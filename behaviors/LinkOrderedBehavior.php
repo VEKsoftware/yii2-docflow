@@ -18,34 +18,6 @@ use yii\di\Instance;
 
 class LinkOrderedBehavior extends LinkStructuredBehavior
 {
-    const LINK_TYPE_SIMPLE = 'simple';
-
-    const LINK_TYPE_FLTREE = 'fltree';
-
-    /**
-     * Инициируем класс статуса
-     *
-     * @return \docflow\models\Statuses
-     *
-     * @throws \yii\base\InvalidConfigException
-     */
-    protected function initStatuses()
-    {
-        return Instance::ensure([], Statuses::className());
-    }
-
-    /**
-     * Инициируем класс ссылок статусов
-     *
-     * @return \docflow\models\StatusesLinks
-     *
-     * @throws \yii\base\InvalidConfigException
-     */
-    protected function initStatusesLinks()
-    {
-        return Instance::ensure([], StatusesLinks::className());
-    }
-
     /**
      * Повышаем позицию статуса в уровне вложенности на более высокую позицию
      *
@@ -54,10 +26,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function orderUp()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $return = $this->setStatusInTreeVertical($this->owner->tag, 'Up');
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
@@ -74,10 +42,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function orderDown()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $return = $this->setStatusInTreeVertical($this->owner->tag, 'Down');
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
@@ -94,10 +58,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function levelUp()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $return = $this->setStatusInTreeHorizontal($this->owner->tag, 'Right');
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
@@ -114,10 +74,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function levelDown()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $return = $this->setStatusInTreeHorizontal($this->owner->tag, 'Left');
         } catch (ErrorException $e) {
             $return = ['error' => $e->getMessage()];
@@ -147,7 +103,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $docflow = Docflow::getInstance();
             // Сохраняем изменения через транзакцию
             $transaction = Yii::$app->{$docflow->db}->beginTransaction();
-            
+
             if ($currentStatus->save() && $changeStatus->save()) {
                 $transaction->commit();
             } else {
@@ -175,16 +131,14 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     protected function setStatusInTreeVertical($statusTag, $actionInTree)
     {
-        $currentStatus = $this->initStatuses();
-
         try {
             if (!is_string($statusTag)) {
                 throw new ErrorException('Тэг статуса не строкового типа');
             }
 
             $currentStatusArray = Statuses::getStatusForTag($statusTag, true);
-            $currentStatus->setAttributes($currentStatusArray, false);
-            $currentStatus->setIsNewRecord(false);
+            $this->owner->setAttributes($currentStatusArray, false);
+            $this->owner->setIsNewRecord(false);
 
             $orderIdxInLevelArray = Statuses::getStatusesForLevel(
                 $currentStatusArray['fromId'],
@@ -201,7 +155,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $result = ['error' => 'Позиция не может быть изменена'];
 
             if (count($changeArray) !== 0) {
-                $result = $this->changeStatusPositionIinTreeOnUpOrDown($changeArray, $currentStatus);
+                $result = $this->changeStatusPositionIinTreeOnUpOrDown($changeArray, $this->owner);
             }
         } catch (ErrorException $e) {
             $result = ['error' => $e->getMessage()];
@@ -409,7 +363,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $valueFrom = $this->getStatusFrom($params['status_to'], $statusLinksArray);
 
             if (empty($flTreeLink)) {
-                $newStatusLink = $this->initStatusesLinks();
+                $newStatusLink = new $this->linkClass;
 
                 $newStatusLink->setScenario(static::LINK_TYPE_FLTREE);
 

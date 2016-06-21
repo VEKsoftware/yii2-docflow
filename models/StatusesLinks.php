@@ -19,11 +19,13 @@ use docflow\models\Statuses;
  */
 class StatusesLinks extends Link
 {
-    protected static $_baseClass = 'docflow\models\Statuses';
-    protected static $_linkFrom = ['id' => 'status_from']; // ['id' => 'upper_id']
-    protected static $_linkTo = ['id' => 'status_to'];   // ['id' => 'lower_id']
-    protected static $_levelField = 'level';
-    protected static $_typeField = 'type';
+    public static $_baseClass = 'docflow\models\Statuses';
+    public static $_baseClassId = 'id';
+    public static $_linkFrom = 'status_from';
+    public static $_linkTo = 'status_to';
+    public static $_levelField = 'level';
+    public static $_typeField = 'type';
+    public static $_linkType = 'simple';
 
     /**
      * {@inheritdoc}

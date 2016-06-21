@@ -25,10 +25,6 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
     public function getParents()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $parentsLinks = StatusesLinks::findUpperLinks($this->owner->id)->all();
 
             $idArray = array_map(
@@ -123,20 +119,16 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
      *
      * @return array
      */
-    public function getChildrens()
+    public function getChildes()
     {
         try {
-            if ($this->type === 'simple') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
-            $childrensLinks = StatusesLinks::findLowerLinks($this->owner->id)->all();
+            $childesLinks = StatusesLinks::findLowerLinks($this->owner->id)->all();
 
             $idArray = array_map(
                 function ($value) {
                     return $value->status_to;
                 },
-                $childrensLinks
+                $childesLinks
             );
 
             $return = $this->owner->getStatusesByIdArray($idArray);
@@ -156,7 +148,7 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
      *
      * @throws \yii\base\InvalidConfigException
      */
-    public function setChildren($statusObj)
+    public function setChildes($statusObj)
     {
         try {
             if (empty($this->owner->id)) {
@@ -268,44 +260,6 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
             (empty($val->statusChildren))
                 ? []
                 : ['nodes' => array_map([$this, 'treeBranch'], $val->statusChildren)]
-        );
-    }
-
-    /**
-     * Получаем структуру дерева статусов, для simple links
-     *
-     * @return array
-     */
-    public function getTreeWithSimpleLinks()
-    {
-        return array_map([$this, 'treeBranchWithSimpleLinks'], $this->owner->docType->statusesStructure);
-    }
-
-    /**
-     * Формируем ветви с учётом simple links
-     *
-     * @param mixed $val - Ветка
-     *
-     * @return array
-     */
-    protected function treeBranchWithSimpleLinks($val)
-    {
-        $linkBool = isset($this->owner->statusesTransitionTo[$val->tag]);
-
-        return array_merge(
-            [
-                'text' => $val->name,
-                'href' => '&tagFrom=' . $this->owner->tag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
-            ],
-            ($val->tag === $this->owner->tag)
-                ? ['backColor' => 'gray']
-                : [],
-            ($linkBool === true)
-                ? ['state' => ['checked' => true]]
-                : [],
-            (empty($val->statusChildren))
-                ? []
-                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
         );
     }
 }

@@ -8,6 +8,8 @@
 
 namespace docflow\behaviors;
 
+use docflow\models\Document;
+use docflow\models\Link;
 use docflow\models\Statuses;
 use docflow\models\StatusesLinks;
 use yii;
@@ -17,6 +19,38 @@ use yii\di\Instance;
 
 class LinkSimpleBehavior extends Behavior
 {
+    const LINK_TYPE_SIMPLE = 'simple';
+
+    const LINK_TYPE_FLTREE = 'fltree';
+
+    /**
+     * @var object - Класс связей (имя)
+     */
+    public $linkClass;
+
+    /**
+     * @var string - поле, по которому будет идти сортировка
+     */
+    public $orderedField = 'order_idx';
+
+    /**
+     * @var string - поле, по которому будет идти индексирование
+     */
+    public $indexBy = 'tag';
+
+    public function attach($owner)
+    {
+        parent::attach($owner);
+
+        if (!($owner instanceof Statuses)) {
+            throw new ErrorException('Класс узла не принадлежит Statuses');
+        }
+
+        if (empty($this->linkClass) || !((new $this->linkClass) instanceof Link)) {
+            throw new ErrorException('Отсутствует класс связей или не принадлежит Link');
+        }
+    }
+
     /**
      * Получаем все простые связи для данного документа
      *
@@ -27,10 +61,6 @@ class LinkSimpleBehavior extends Behavior
     public function getSimpleLinks()
     {
         try {
-            if ($this->type === 'fltree') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             if (!is_int($this->owner->id) || empty($this->owner->id)) {
                 throw new ErrorException('Id статуса From не integer типа или пустой');
             }
@@ -53,10 +83,6 @@ class LinkSimpleBehavior extends Behavior
     public function setSimpleLinks(array $tagsToArray)
     {
         try {
-            if ($this->type === 'fltree') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             $result = ['error' => 'Установка простых связей не удалась'];
 
             if (!is_string($this->owner->docType->tag) || empty($this->owner->docType->tag)) {
@@ -101,7 +127,7 @@ class LinkSimpleBehavior extends Behavior
                     $this->owner->id,
                     $value->id,
                     $this->owner->docType->tag . '.' . $this->owner->tag . '.' . $value->tag,
-                    $this->type
+                    static::LINK_TYPE_SIMPLE
                 ];
 
                 if (!empty($relationType)) {
@@ -141,10 +167,6 @@ class LinkSimpleBehavior extends Behavior
         $statusLinkClass = Instance::ensure([], StatusesLinks::className());
 
         try {
-            if ($this->type === 'fltree') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             if (!($statusObj instanceof Statuses)) {
                 throw new ErrorException('Аргумент не объект Statuses');
             }
@@ -176,11 +198,6 @@ class LinkSimpleBehavior extends Behavior
             if (is_object($statusSimpleLink)) {
                 throw new ErrorException('Ссылка уже добавлена');
             }
-
-            /**
-             * @var array $extraWhere
-             */
-            $extraWhere = Instance::ensure([], StatusesLinks::className())->extraWhere();
 
             $relationType = $this->getRelationType();
 
@@ -219,10 +236,6 @@ class LinkSimpleBehavior extends Behavior
     public function delSimpleLink($statusObj)
     {
         try {
-            if ($this->type === 'fltree') {
-                throw new ErrorException('Метод не может быть вызван при текущем типе связи');
-            }
-
             if (!($statusObj instanceof Statuses)) {
                 throw new ErrorException('Аргумент не объект Statuses');
             }
@@ -237,8 +250,10 @@ class LinkSimpleBehavior extends Behavior
 
             $result = ['error' => 'Удаление не удалось'];
 
-            /* Получаем ссылку */
-            $statusSimpleLink = StatusesLinks::getSimpleLinkForStatusFromIdAndStatusToId(
+            /**
+             * Получаем простую связь
+             */
+            $statusSimpleLink = $this->getSimpleLinkForStatusFromIdAndStatusToId(
                 $this->owner->id,
                 $statusObj->id
             );
@@ -271,14 +286,79 @@ class LinkSimpleBehavior extends Behavior
         /**
          * @var array $extraWhere
          */
-        $extraWhere = Instance::ensure([], StatusesLinks::className())->extraWhere();
+        $extraWhere = (new $this->linkClass)->extraWhere();
 
-        if (count($extraWhere) > 0) {
-            $relationType = array_values($extraWhere)[0];
+        if (array_key_exists('relation_type', $extraWhere)) {
+            $relationType = $extraWhere['relation_type'];
         } else {
             $relationType = '';
         }
 
         return $relationType;
+    }
+
+    /**
+     * Получаем структуру дерева статусов, для simple links
+     *
+     * @return array
+     */
+    public function getTreeWithSimpleLinks()
+    {
+        return array_map([$this, 'treeBranchWithSimpleLinks'], $this->owner->docType->statusesStructure);
+    }
+
+    /**
+     * Формируем ветви с учётом simple links
+     *
+     * @param mixed $val - Ветка
+     *
+     * @return array
+     */
+    protected function treeBranchWithSimpleLinks($val)
+    {
+        $linkBool = isset($this->owner->statusesTransitionTo[$val->tag]);
+
+        return array_merge(
+            [
+                'text' => $val->name,
+                'href' => '&tagFrom=' . $this->owner->tag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
+            ],
+            ($val->tag === $this->owner->tag)
+                ? ['backColor' => 'gray']
+                : [],
+            ($linkBool === true)
+                ? ['state' => ['checked' => true]]
+                : [],
+            (empty($val->statusChildren))
+                ? []
+                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
+        );
+    }
+
+    protected function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
+    {
+        /**
+         * Оъект связи
+         */
+        $linkClass = $this->linkClass;
+
+        /**
+         * Получаем наименования полей
+         */
+        $linkTo = $linkClass::$_linkTo;
+        $linkFrom = $linkClass::$_linkFrom;
+        $typeField = $linkClass::$_typeField;
+
+        return $linkClass::find()
+            ->where(
+                [
+                    'and',
+                    ['=', $typeField, static::LINK_TYPE_SIMPLE],
+                    ['=', $linkFrom, $fromStatusId],
+                    ['=', $linkTo, $toStatusId],
+                ]
+            )
+            ->andWhere($linkClass->extraWhere())
+            ->one();
     }
 }

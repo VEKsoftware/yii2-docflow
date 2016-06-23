@@ -8,14 +8,12 @@
 
 namespace docflow\behaviors;
 
-use docflow\Docflow;
 use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
 use yii;
 use yii\base\Behavior;
 use yii\base\ErrorException;
-use yii\db\Transaction;
 
 class LinkSimpleBehavior extends Behavior
 {
@@ -114,7 +112,15 @@ class LinkSimpleBehavior extends Behavior
             throw new ErrorException('Id статуса From не integer типа или пустой');
         }
 
-        return $this->allSimpleLinksForTagFromId;
+        $linkClass = $this->linkClass;
+
+        return $this->owner
+            ->hasMany(
+                $linkClass,
+                [$this->linkFieldsArray['status_from'] => $this->linkFieldsArray['node_id']]
+            )
+            ->where(['=', $this->linkFieldsArray['status_from'], $this->owner->id])
+            ->andWhere($linkClass::extraWhere());
     }
 
     /**
@@ -235,7 +241,7 @@ class LinkSimpleBehavior extends Behavior
     /**
      * Удаляем простую связь между документами From и To
      *
-     * @param object $statusObj - Документ
+     * @param object $statusObj - Документ "TO". Документ "From" - это $this->owner
      *
      * @return array
      *
@@ -277,45 +283,7 @@ class LinkSimpleBehavior extends Behavior
     }
 
     /**
-     * Получаем структуру дерева статусов, для simple links
-     *
-     * @return array
-     */
-    public function getTreeWithSimpleLinks()
-    {
-        return array_map([$this, 'treeBranchWithSimpleLinks'], $this->owner->docType->statusesStructure);
-    }
-
-    /**
-     * Формируем ветви с учётом simple links
-     *
-     * @param mixed $val - Ветка
-     *
-     * @return array
-     */
-    protected function treeBranchWithSimpleLinks($val)
-    {
-        $linkBool = isset($this->owner->statusesTransitionTo[$val->tag]);
-
-        return array_merge(
-            [
-                'text' => $val->name,
-                'href' => '&tagFrom=' . $this->owner->tag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
-            ],
-            ($val->tag === $this->owner->tag)
-                ? ['backColor' => 'gray']
-                : [],
-            ($linkBool === true)
-                ? ['state' => ['checked' => true]]
-                : [],
-            (empty($val->statusChildren))
-                ? []
-                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
-        );
-    }
-
-    /**
-     * Получаем SimpleLink по id статусов From и To
+     * Получаем SimpleLink по id документов From и To
      *
      * @param integer $fromStatusId - тэг статуса From
      * @param integer $toStatusId   - тэг статуса To
@@ -326,7 +294,11 @@ class LinkSimpleBehavior extends Behavior
     {
         $linkClass = $this->linkClass;
 
-        return $linkClass::find()
+        return $this->owner
+            ->hasOne(
+                $linkClass,
+                [$this->linkFieldsArray['status_from'] => $this->linkFieldsArray['node_id']]
+            )
             ->where(
                 [
                     'and',
@@ -335,31 +307,6 @@ class LinkSimpleBehavior extends Behavior
                 ]
             )
             ->andWhere($linkClass::extraWhere());
-    }
-
-    /**
-     * Получаем список всех простых связей для данного документа
-     *
-     * @param integer $statusId - Id статуса, у которого смотрим простые связи
-     *
-     * @return array|\yii\db\ActiveQuery[]
-     */
-    public function getAllSimpleLinksForTagFromId()
-    {
-        $linkClass = $this->linkClass;
-
-        /* Формируем запрос */
-        $query = $linkClass::find()
-            ->where(
-                [
-                    'and',
-                    ['=', $this->linkFieldsArray['status_from'], $this->owner->id],
-                ]
-            );
-
-        $query->andWhere($linkClass::extraWhere());
-
-        return $query;
     }
 
     /**
@@ -374,18 +321,18 @@ class LinkSimpleBehavior extends Behavior
     {
         $linkClass = $this->linkClass;
 
-        /* Формируем запрос */
-        $query = $linkClass::find()
+        return $this->owner
+            ->hasMany(
+                $linkClass,
+                [$this->linkFieldsArray['status_from'] => $this->linkFieldsArray['node_id']]
+            )
             ->where(
                 [
                     'and',
                     ['=', $this->linkFieldsArray['status_from'], $statusId],
                     ['in', $this->linkFieldsArray['status_to'], $tagToArray]
                 ]
-            );
-
-        $query->andWhere($linkClass::extraWhere());
-
-        return $query;
+            )
+            ->andWhere($linkClass::extraWhere());
     }
 }

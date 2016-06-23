@@ -20,12 +20,13 @@ use docflow\models\Statuses;
 class StatusesLinks extends Link
 {
     public static $_baseClass = 'docflow\models\Statuses';
-    public static $_baseClassId = 'id';
-    public static $_linkFrom = 'status_from';
-    public static $_linkTo = 'status_to';
+    public static $_fieldNodeId = 'id';
+    public static $_fieldLinkFrom = 'status_from';
+    public static $_fieldLinkTo = 'status_to';
     public static $_levelField = 'level';
     public static $_typeField = 'type';
-    public static $_linkType = 'simple';
+    public static $_rightTagField = 'right_tag';
+    public static $_relationTypeField = '';
 
     /**
      * {@inheritdoc}
@@ -102,153 +103,5 @@ class StatusesLinks extends Link
             default:
                 throw new ErrorException('Unknonw doc_statuses_links link type');
         }
-    }
-
-    /**
-     * Получаем ccылку на ближайшего родителя (1 уровень)
-     *
-     * @param integer $statusId - id статуса
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public static function getFlTreeLinkForStatusForLevel1($statusId)
-    {
-        $query = static::find()
-            ->where(
-                [
-                    'and',
-                    ['=', 'status_to', $statusId],
-                    ['=', 'type', 'fltree'],
-                    ['=', 'level', 1]
-                ]
-            );
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->one();
-    }
-
-    /**
-     * Получаем ccылку на родителя родителя (2 уровень)
-     *
-     * @param integer $statusId - id статуса
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public static function getFlTreeLinkForStatusForLevel1And2($statusId)
-    {
-        $query = static::find()
-            ->where(
-                [
-                    'and',
-                    ['=', 'status_to', $statusId],
-                    ['=', 'type', 'fltree'],
-                    ['in', 'level', [1, 2]]
-                ]
-            )
-            ->indexBy('level');
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->all();
-    }
-
-    /**
-     * Получаем массив с данными о наличии "детей" - вложенных статусов
-     *
-     * @param integer $statusId - id Статуса1, у которого имем вложенные статусы
-     * @param bool    $asArray  - true - выдавать массив, false - объекты
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public static function getChildStatusesForStatus($statusId, $asArray = true)
-    {
-        $query = static::find()
-            ->where([
-                'and',
-                ['=', 'type', 'fltree'],
-                ['=', 'status_from', $statusId],
-            ]);
-
-        if ($asArray === true) {
-            $query->asArray(true);
-        }
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->all();
-    }
-
-    /**
-     * Получаем SimpleLink по id статусов From и To
-     *
-     * @param integer $fromStatusId - тэг статуса From
-     * @param integer $toStatusId   - тэг статуса To
-     *
-     * @return array|null|\yii\db\ActiveRecord
-     */
-    public static function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
-    {
-        $query = static::find()
-            ->where(
-                [
-                    'and',
-                    ['=', 'type', static::LINK_TYPE_SIMPLE],
-                    ['=', 'status_from', $fromStatusId],
-                    ['=', 'status_to', $toStatusId],
-                ]
-            );
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->one();
-    }
-
-    /**
-     * Получаем список всех простых связей для данного документа
-     *
-     * @param integer $statusId - Id статуса, у которого смотрим простые связи
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public static function getAllSimpleLinksForTagFromId($statusId)
-    {
-        $query = static::find()
-            ->where(
-                [
-                    'and',
-                    ['=', 'status_from', $statusId],
-                    ['=', 'type', self::LINK_TYPE_SIMPLE]
-                ]
-            );
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->all();
-    }
-
-    /**
-     * Получаем простые ссылки для статуса и определенных подстатусов
-     *
-     * @param integer $statusId   - id статуса
-     * @param array   $tagToArray - массив подстатусов
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public static function getSimpleLinksByTagFromIdWhereTagToArray($statusId, array $tagToArray)
-    {
-        $query = static::find()
-            ->where(
-                [
-                    'and',
-                    ['=', 'status_from', $statusId],
-                    ['=', 'type', self::LINK_TYPE_SIMPLE],
-                    ['in', 'status_to', $tagToArray]
-                ]
-            );
-
-        $query->andWhere((new static)->extraWhere());
-
-        return $query->all();
     }
 }

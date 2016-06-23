@@ -158,6 +158,7 @@ function renderTree(data) {
 
     $tree.treeview({
         data: data,
+        levels: 5,
         onNodeSelected: onSelect,
         onNodeUnselected: onUnSelect
     });

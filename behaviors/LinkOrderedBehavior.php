@@ -9,15 +9,21 @@
 namespace docflow\behaviors;
 
 use docflow\Docflow;
+use docflow\models\Link;
 use docflow\models\Statuses;
 use docflow\models\StatusesLinks;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
-use yii\di\Instance;
+use yii\db\Transaction;
 
 class LinkOrderedBehavior extends LinkStructuredBehavior
 {
+    public function attach($owner)
+    {
+        parent::attach($owner);
+    }
+
     /**
      * Повышаем позицию статуса в уровне вложенности на более высокую позицию
      *
@@ -25,13 +31,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function orderUp()
     {
-        try {
-            $return = $this->setStatusInTreeVertical($this->owner->tag, 'Up');
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
-        }
-
-        return $return;
+        return $this->setStatusInTreeVertical($this->owner->tag, 'Up');
     }
 
     /**
@@ -41,13 +41,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function orderDown()
     {
-        try {
-            $return = $this->setStatusInTreeVertical($this->owner->tag, 'Down');
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
-        }
-
-        return $return;
+        return $this->setStatusInTreeVertical($this->owner->tag, 'Down');
     }
 
     /**
@@ -57,13 +51,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function levelUp()
     {
-        try {
-            $return = $this->setStatusInTreeHorizontal($this->owner->tag, 'Right');
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
-        }
-
-        return $return;
+        return $this->setStatusInTreeHorizontal($this->owner->tag, 'Right');
     }
 
     /**
@@ -73,13 +61,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function levelDown()
     {
-        try {
-            $return = $this->setStatusInTreeHorizontal($this->owner->tag, 'Left');
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
-        }
-
-        return $return;
+        return $this->setStatusInTreeHorizontal($this->owner->tag, 'Left');
     }
 
     /**
@@ -89,6 +71,8 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * @param Statuses $currentStatus - модель перемещаемого статуса
      *
      * @return array
+     *
+     * @throws \yii\db\Exception
      */
     protected function changeStatusPositionIinTreeOnUpOrDown(array $changeArray, $currentStatus)
     {
@@ -96,18 +80,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
         $changeStatus = Statuses::getStatusForTag($changeArray['change']['tag']);
 
         try {
-            // Изменяем им положения
+            /* Изменяем им положения */
             $currentStatus->setAttribute('order_idx', $changeArray['change']['orderIdx']);
             $changeStatus->setAttribute('order_idx', $changeArray['current']['orderIdx']);
 
-            $docflow = Docflow::getInstance();
-            // Сохраняем изменения через транзакцию
-            $transaction = Yii::$app->{$docflow->db}->beginTransaction();
-
-            if ($currentStatus->save() && $changeStatus->save()) {
-                $transaction->commit();
-            } else {
-                $transaction->rollBack();
+            if ((!$currentStatus->save()) || (!$changeStatus->save())) {
                 throw new ErrorException('Позиция не изменена');
             }
 
@@ -307,7 +284,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
 
             switch ($actionInTree) {
                 case 'Left':
-                    $flTreeLinks = StatusesLinks::getFlTreeLinkForStatusForLevel1And2(
+                    $flTreeLinks = $this->getFlTreeLinkForStatusForLevel1And2(
                         $statusArray['id']
                     );
                     $return = $this->setStatusInTreeLeft($flTreeLinks);
@@ -318,7 +295,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
                         $statusArray['level'],
                         $statusArray['doc_type_id']
                     );
-                    $flTreeLink = StatusesLinks::getFlTreeLinkForStatusForLevel1(
+                    $flTreeLink = $this->getFlTreeLinkForStatusForLevel1(
                         $statusArray['id']
                     );
                     $paramsNewLink = [
@@ -363,23 +340,26 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $valueFrom = $this->getStatusFrom($params['status_to'], $statusLinksArray);
 
             if (empty($flTreeLink)) {
+                /**
+                 * @var Link $newStatusLink
+                 */
                 $newStatusLink = new $this->linkClass;
 
-                $newStatusLink->setScenario(static::LINK_TYPE_FLTREE);
+                $newStatusLink->setScenario(Link::LINK_TYPE_FLTREE);
 
                 $newStatusLink->status_from = $valueFrom['id'];
                 $newStatusLink->status_to = $params['status_to'];
                 $newStatusLink->type = $params['type'];
                 $newStatusLink->level = $params['level'];
 
-                $relationType = $this->getRelationType();
+                $relationType = Link::getRelationType();
                 if (!empty($relationType) && is_string($relationType)) {
                     $newStatusLink->relation_type = $relationType;
                 }
 
                 $result = $newStatusLink->save();
             } else {
-                $flTreeLink->setScenario(static::LINK_TYPE_FLTREE);
+                $flTreeLink->setScenario(Link::LINK_TYPE_FLTREE);
                 $flTreeLink->status_from = $valueFrom['id'];
 
                 $result = $flTreeLink->save();
@@ -454,8 +434,8 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
              */
             $link = $flTreeLinks[1];
 
-            $link->status_from = $flTreeLinks[2]['status_from'];
-            $link->setScenario(static::LINK_TYPE_FLTREE);
+            $link->status_from = $flTreeLinks[2][$this->linkFieldsArray['status_from']];
+            $link->setScenario(Link::LINK_TYPE_FLTREE);
 
             $result = $link->save();
         } elseif (array_key_exists(1, $flTreeLinks)) {

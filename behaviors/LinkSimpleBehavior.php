@@ -8,33 +8,47 @@
 
 namespace docflow\behaviors;
 
+use docflow\Docflow;
 use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
 use yii;
 use yii\base\Behavior;
 use yii\base\ErrorException;
-use yii\di\Instance;
+use yii\db\Transaction;
 
 class LinkSimpleBehavior extends Behavior
 {
-    const LINK_TYPE_SIMPLE = 'simple';
-
-    const LINK_TYPE_FLTREE = 'fltree';
+    /**
+     * @var Statuses|Document
+     */
+    public $owner;
 
     /**
-     * @var object - Класс связей (имя)
+     * Имя класса связи
+     *
+     * @var object
      */
     public $linkClass;
 
     /**
-     * @var string - поле, по которому будет идти сортировка
+     * Массив, содержащий имена полей в таблице со связями
+     *
+     * @var array
+     */
+    public $linkFieldsArray;
+
+    /**
+     * Поле, по которому будет идти сортировка
+     *
+     * @var string
      */
     public $orderedField = 'order_idx';
 
     /**
-     * @var string - поле, по которому будет идти индексирование
+     * Поле, по которому будет идти индексирование
+     *
+     * @var string
      */
     public $indexBy = 'tag';
 
@@ -42,12 +56,48 @@ class LinkSimpleBehavior extends Behavior
     {
         parent::attach($owner);
 
+        $this->setLinkFieldsArray();
+
         if (!($owner instanceof Statuses)) {
             throw new ErrorException('Класс узла не принадлежит Statuses');
         }
 
-        if (empty($this->linkClass) || !((new $this->linkClass) instanceof Link)) {
+        if (empty($this->linkClass)) {
+            throw new ErrorException('Отсутствует класс связей');
+        }
+
+        /*
+        if (empty($this->linkClass) || !($this->linkObject instanceof Link)) {
             throw new ErrorException('Отсутствует класс связей или не принадлежит Link');
+        }*/
+    }
+
+    /**
+     * Устанавливаем имена полей таблицы со связями
+     *
+     * @return void
+     */
+    protected function setLinkFieldsArray()
+    {
+        $linkClass = $this->linkClass;
+
+        $this->linkFieldsArray = [
+            'status_to' => $linkClass::$_fieldLinkTo,
+            'status_from' => $linkClass::$_fieldLinkFrom,
+            'type' => $linkClass::$_typeField,
+            'node_id' => $linkClass::$_fieldNodeId,
+        ];
+
+        if (!empty($linkClass::$_rightTagField)) {
+            $this->linkFieldsArray['right_tag'] = $linkClass::$_rightTagField;
+        }
+
+        if (!empty($linkClass::$_levelField)) {
+            $this->linkFieldsArray['level'] = $linkClass::$_levelField;
+        }
+
+        if (!empty($linkClass::$_relationTypeField)) {
+            $this->linkFieldsArray['relation_type'] = $linkClass::$_relationTypeField;
         }
     }
 
@@ -60,17 +110,11 @@ class LinkSimpleBehavior extends Behavior
      */
     public function getSimpleLinks()
     {
-        try {
-            if (!is_int($this->owner->id) || empty($this->owner->id)) {
-                throw new ErrorException('Id статуса From не integer типа или пустой');
-            }
-
-            $return = StatusesLinks::getAllSimpleLinksForTagFromId($this->owner->id);
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
+        if (!is_int($this->owner->id) || empty($this->owner->id)) {
+            throw new ErrorException('Id статуса From не integer типа или пустой');
         }
 
-        return $return;
+        return $this->allSimpleLinksForTagFromId;
     }
 
     /**
@@ -78,79 +122,30 @@ class LinkSimpleBehavior extends Behavior
      *
      * @param array $tagsToArray - массив с объектами статусов To пуст
      *
-     * @return array
+     * @return void
+     *
+     * @throws \yii\base\ErrorException
+     * @throws \yii\db\Exception
      */
     public function setSimpleLinks(array $tagsToArray)
     {
-        try {
-            $result = ['error' => 'Установка простых связей не удалась'];
-
-            if (!is_string($this->owner->docType->tag) || empty($this->owner->docType->tag)) {
-                throw new ErrorException('Тэг документа не строкового типа или пустой');
-            }
-
-            if (!is_string($this->owner->tag) || empty($this->owner->tag)) {
-                throw new ErrorException('Тэг статуса From не строкового типа или пустой');
-            }
-
-            if (count(($tagsToArray)) < 1) {
-                throw new ErrorException('Массив с объектами статусов пуст');
-            }
-
-            $relationType = $this->getRelationType();
-
-            $delCondition = ['status_from' => $this->owner->id, 'type' => 'simple'];
-
-            if (!empty($relationType)) {
-                $delCondition = array_merge($delCondition, ['relation_type' => $relationType]);
-            }
-
-            /* Удаляем все текущие простые связи */
-            StatusesLinks::deleteAll($delCondition);
-
-            /* Подготавливаем столбцы для массового добавления */
-            $cols = [
-                'status_from',
-                'status_to',
-                'right_tag',
-                'type'
-            ];
-
-            if (!empty($relationType)) {
-                array_push($cols, 'relation_type');
-            }
-
-            /* Подготавливаем содержимое для массового добавления */
-            $rows = [];
-            foreach ($tagsToArray as $value) {
-                $attr = [
-                    $this->owner->id,
-                    $value->id,
-                    $this->owner->docType->tag . '.' . $this->owner->tag . '.' . $value->tag,
-                    static::LINK_TYPE_SIMPLE
-                ];
-
-                if (!empty($relationType)) {
-                    array_push($attr, $relationType);
-                }
-
-                $rows[] = $attr;
-            }
-
-            /* Массово добавляем */
-            $isSave = (bool)Yii::$app->db
-                ->createCommand()
-                ->batchInsert(StatusesLinks::tableName(), $cols, $rows)
-                ->execute();
-
-            if ($isSave === true) {
-                $result = ['success' => 'Простые связи добавлены'];
-            }
-        } catch (ErrorException $e) {
-            $result = ['error' => $e->getMessage()];
+        if (!is_string($this->owner->docType->tag) || empty($this->owner->docType->tag)) {
+            throw new ErrorException('Тэг документа не строкового типа или пустой');
         }
 
-        return $result;
+        if (!is_string($this->owner->tag) || empty($this->owner->tag)) {
+            throw new ErrorException('Тэг статуса From не строкового типа или пустой');
+        }
+
+        if (count(($tagsToArray)) < 1) {
+            throw new ErrorException('Массив с объектами статусов пуст');
+        }
+
+        /* Удаляем все текущие простые связи */
+        Link::batchDeleteSimpleLinks($this->owner->id);
+
+        /* Массово добавляем */
+        Link::batchAddSimpleLinks($this->owner, $tagsToArray);
     }
 
     /**
@@ -160,68 +155,81 @@ class LinkSimpleBehavior extends Behavior
      *
      * @return array
      *
+     * @throws \yii\base\ErrorException
      * @throws \yii\base\InvalidConfigException
      */
     public function addSimpleLink($statusObj)
     {
-        $statusLinkClass = Instance::ensure([], StatusesLinks::className());
 
-        try {
-            if (!($statusObj instanceof Statuses)) {
-                throw new ErrorException('Аргумент не объект Statuses');
-            }
+        if (!($statusObj instanceof Statuses)) {
+            throw new ErrorException('Аргумент не объект Statuses');
+        }
 
-            if (!is_string($this->owner->docType->tag) || empty($this->owner->docType->tag)) {
-                throw new ErrorException('Тэг документа не строкового типа или пустой');
-            }
+        if (!is_string($this->owner->docType->tag) || empty($this->owner->docType->tag)) {
+            throw new ErrorException('Тэг документа не строкового типа или пустой');
+        }
 
-            if (!is_int($this->owner->id) || empty($this->owner->id)) {
-                throw new ErrorException('Id статуса From не integer типа или пустой');
-            }
+        if (!is_int($this->owner->id) || empty($this->owner->id)) {
+            throw new ErrorException('Id статуса From не integer типа или пустой');
+        }
 
-            if (!is_int($statusObj->id) || empty($statusObj->id)) {
-                throw new ErrorException('Id статуса To не integer типа или пустой');
-            }
+        if (!is_int($statusObj->id) || empty($statusObj->id)) {
+            throw new ErrorException('Id статуса To не integer типа или пустой');
+        }
 
-            if ($this->owner->id === $statusObj->id) {
-                throw new ErrorException('Нельзя назначить ссылку на себя');
-            }
+        if ($this->owner->id === $statusObj->id) {
+            throw new ErrorException('Нельзя назначить ссылку на себя');
+        }
 
-            $result = ['error' => 'Добавление не удалось'];
+        $result = ['error' => 'Добавление не удалось'];
 
-            /* Смотрим, есть ли в БД уже такая ссылка */
-            $statusSimpleLink = StatusesLinks::getSimpleLinkForStatusFromIdAndStatusToId(
-                $this->owner->id,
-                $statusObj->id
-            );
+        /* Смотрим, есть ли в БД уже такая ссылка */
+        $statusSimpleLink = $this->getSimpleLinkForStatusFromIdAndStatusToId(
+            $this->owner->id,
+            $statusObj->id
+        )->one();
 
-            if (is_object($statusSimpleLink)) {
-                throw new ErrorException('Ссылка уже добавлена');
-            }
+        if (is_object($statusSimpleLink)) {
+            throw new ErrorException('Ссылка уже добавлена');
+        }
 
-            $relationType = $this->getRelationType();
+        $relationType = Link::getRelationType();
 
-            $statusLinkClass->setScenario(StatusesLinks::LINK_TYPE_SIMPLE);
+        $isSave = $this->prepareAndAddSimpleLink($statusObj, $relationType);
 
-            $statusLinkClass->status_from = $this->owner->id;
-            $statusLinkClass->status_to = $statusObj->id;
-            $statusLinkClass->type = $statusLinkClass::LINK_TYPE_SIMPLE;
-            $statusLinkClass->right_tag = $this->owner->docType->tag . '.' . $this->owner->tag . '.' . $statusObj->tag;
-
-            if (!empty($relationType) && is_string($relationType)) {
-                $statusLinkClass->relation_type = $relationType;
-            }
-
-            $isSave = $statusLinkClass->save();
-
-            if ($isSave === true) {
-                $result = ['success' => 'Ссылка добавлена'];
-            }
-        } catch (ErrorException $e) {
-            $result = ['error' => $e->getMessage()];
+        if ($isSave === true) {
+            $result = ['success' => 'Ссылка добавлена'];
         }
 
         return $result;
+    }
+
+    /**
+     * Подготавливаем и добавляем простую связь
+     *
+     * @param Statuses $statusObj    - Объект статуса
+     * @param string   $relationType - указан relation_type
+     *
+     * @return bool
+     */
+    protected function prepareAndAddSimpleLink($statusObj, $relationType)
+    {
+        /**
+         * @var Link $statusLinkClass
+         */
+        $statusLinkClass = new $this->linkClass;
+        $statusLinkClass->setScenario(Link::LINK_TYPE_SIMPLE);
+
+        $statusLinkClass->{$this->linkFieldsArray['status_from']} = $this->owner->id;
+        $statusLinkClass->{$this->linkFieldsArray['status_to']} = $statusObj->id;
+        $statusLinkClass->{$this->linkFieldsArray['type']} = Link::LINK_TYPE_SIMPLE;
+        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docType->tag . '.' . $this->owner->tag . '.' . $statusObj->tag;
+
+        if (!empty($relationType) && is_string($relationType)) {
+            $statusLinkClass->{$this->linkFieldsArray['relation_type']} = $relationType;
+        }
+
+        return $statusLinkClass->save();
     }
 
     /**
@@ -235,66 +243,37 @@ class LinkSimpleBehavior extends Behavior
      */
     public function delSimpleLink($statusObj)
     {
-        try {
-            if (!($statusObj instanceof Statuses)) {
-                throw new ErrorException('Аргумент не объект Statuses');
-            }
+        if (!($statusObj instanceof Statuses)) {
+            throw new ErrorException('Аргумент не объект Statuses');
+        }
 
-            if (!is_int($this->owner->id) || empty($this->owner->id)) {
-                throw new ErrorException('Id статуса From не integer типа или пуста');
-            }
+        if (!is_int($this->owner->id) || empty($this->owner->id)) {
+            throw new ErrorException('Id статуса From не integer типа или пуста');
+        }
 
-            if (!is_int($statusObj->id) || empty($statusObj->id)) {
-                throw new ErrorException('Id статуса To не integer типа или пуста');
-            }
+        if (!is_int($statusObj->id) || empty($statusObj->id)) {
+            throw new ErrorException('Id статуса To не integer типа или пуста');
+        }
 
-            $result = ['error' => 'Удаление не удалось'];
+        $result = ['error' => 'Удаление не удалось'];
 
-            /**
-             * Получаем простую связь
-             */
-            $statusSimpleLink = $this->getSimpleLinkForStatusFromIdAndStatusToId(
-                $this->owner->id,
-                $statusObj->id
-            );
+        /* Получаем простую связь */
+        $statusSimpleLink = $this->getSimpleLinkForStatusFromIdAndStatusToId(
+            $this->owner->id,
+            $statusObj->id
+        )->one();
 
-            if (!is_object($statusSimpleLink)) {
-                throw new ErrorException('Ссылка не найдена');
-            }
+        if (!is_object($statusSimpleLink)) {
+            throw new ErrorException('Ссылка не найдена');
+        }
 
-            $isDelete = $statusSimpleLink->delete();
+        $isDelete = $statusSimpleLink->delete();
 
-            if ((bool)$isDelete === true) {
-                $result = ['success' => 'Ссылка удалена'];
-            }
-        } catch (ErrorException $e) {
-            $result = ['error' => $e->getMessage()];
+        if ((bool)$isDelete === true) {
+            $result = ['success' => 'Ссылка удалена'];
         }
 
         return $result;
-    }
-
-    /**
-     * Получаем relation_type
-     *
-     * @return string
-     *
-     * @throws \yii\base\InvalidConfigException
-     */
-    protected function getRelationType()
-    {
-        /**
-         * @var array $extraWhere
-         */
-        $extraWhere = (new $this->linkClass)->extraWhere();
-
-        if (array_key_exists('relation_type', $extraWhere)) {
-            $relationType = $extraWhere['relation_type'];
-        } else {
-            $relationType = '';
-        }
-
-        return $relationType;
     }
 
     /**
@@ -335,30 +314,78 @@ class LinkSimpleBehavior extends Behavior
         );
     }
 
+    /**
+     * Получаем SimpleLink по id статусов From и To
+     *
+     * @param integer $fromStatusId - тэг статуса From
+     * @param integer $toStatusId   - тэг статуса To
+     *
+     * @return array|null|\yii\db\ActiveQuery
+     */
     protected function getSimpleLinkForStatusFromIdAndStatusToId($fromStatusId, $toStatusId)
     {
-        /**
-         * Оъект связи
-         */
         $linkClass = $this->linkClass;
-
-        /**
-         * Получаем наименования полей
-         */
-        $linkTo = $linkClass::$_linkTo;
-        $linkFrom = $linkClass::$_linkFrom;
-        $typeField = $linkClass::$_typeField;
 
         return $linkClass::find()
             ->where(
                 [
                     'and',
-                    ['=', $typeField, static::LINK_TYPE_SIMPLE],
-                    ['=', $linkFrom, $fromStatusId],
-                    ['=', $linkTo, $toStatusId],
+                    ['=', $this->linkFieldsArray['status_from'], $fromStatusId],
+                    ['=', $this->linkFieldsArray['status_to'], $toStatusId],
                 ]
             )
-            ->andWhere($linkClass->extraWhere())
-            ->one();
+            ->andWhere($linkClass::extraWhere());
+    }
+
+    /**
+     * Получаем список всех простых связей для данного документа
+     *
+     * @param integer $statusId - Id статуса, у которого смотрим простые связи
+     *
+     * @return array|\yii\db\ActiveQuery[]
+     */
+    public function getAllSimpleLinksForTagFromId()
+    {
+        $linkClass = $this->linkClass;
+
+        /* Формируем запрос */
+        $query = $linkClass::find()
+            ->where(
+                [
+                    'and',
+                    ['=', $this->linkFieldsArray['status_from'], $this->owner->id],
+                ]
+            );
+
+        $query->andWhere($linkClass::extraWhere());
+
+        return $query;
+    }
+
+    /**
+     * Получаем простые ссылки для статуса и определенных подстатусов
+     *
+     * @param integer $statusId   - id статуса
+     * @param array   $tagToArray - массив подстатусов
+     *
+     * @return array|\yii\db\ActiveRecord[]
+     */
+    public function getSimpleLinksByTagFromIdWhereTagToArray($statusId, array $tagToArray)
+    {
+        $linkClass = $this->linkClass;
+
+        /* Формируем запрос */
+        $query = $linkClass::find()
+            ->where(
+                [
+                    'and',
+                    ['=', $this->linkFieldsArray['status_from'], $statusId],
+                    ['in', $this->linkFieldsArray['status_to'], $tagToArray]
+                ]
+            );
+
+        $query->andWhere($linkClass::extraWhere());
+
+        return $query;
     }
 }

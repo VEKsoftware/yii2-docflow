@@ -123,19 +123,7 @@ class DocTypes extends CommonRecord
     public static function getDocTypes()
     {
         if (empty(static::$_doctypes)) {
-            /* Формируем запрос в зависимости от того, разрешена - ли сортировака или нет */
-            if (!empty(StatusesLinks::$sortField) && is_string(StatusesLinks::$sortField)) {
-                $query = static::findDocTypes()
-                    ->with([
-                        'statuses' => function (\yii\db\ActiveQuery $query) {
-                            $query->orderBy([StatusesLinks::$sortField => SORT_ASC]);
-                        },
-                    ]);
-            } else {
-                $query = static::findDocTypes()->with(['statuses']);
-            }
-
-            static::$_doctypes = $query->all();
+            static::$_doctypes = static::findDocTypes()->with(['statuses'])->all();
         }
 
         return static::$_doctypes;
@@ -167,10 +155,13 @@ class DocTypes extends CommonRecord
      */
     public function getStatuses()
     {
-        return $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])->with([
-            'statusParent',
-            'statusChildren'
-        ])->indexBy(StatusesLinks::$indexBy)->inverseOf('docType');
+        $query = $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])
+            ->with(['statusParent', 'statusChildren'])
+            ->indexBy('tag')
+            ->inverseOf('docType')
+            ->orderBy(['order_idx' => SORT_ASC]);
+
+        return $query;
     }
 
     /**

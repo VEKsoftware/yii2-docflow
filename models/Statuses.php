@@ -2,19 +2,11 @@
 
 namespace docflow\models;
 
-use docflow\behaviors\LinkBehavior;
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use yii;
-use yii\base\ErrorException;
-use yii\base\InvalidParamException;
-use yii\db\ActiveQueryInterface;
-use yii\di\Instance;
-use yii\helpers\ArrayHelper;
 
 use docflow\Docflow;
-use docflow\models\Document;
-use docflow\models\DocTypes;
 
 /**
  * This is the model class for table "statuses". It is user through model DocTypes.
@@ -158,202 +150,11 @@ class Statuses extends Document
     }
 
     /**
-     * List of statuses available for transition to with the ceratin access right.
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getAvailableStatuses($rightIds = null)
-    {
-        return $this->hasMany(self::className(), ['id' => 'status_to'])
-            ->via('linksTo', function ($q) use ($rightIds) {
-                /** @var ActiveQueryInterface $q */
-                $q->andFilterWhere(['right_tag' => $rightIds]);
-            });
-    }
-
-    /**
-     * The method returns a list of all links leading to the source statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksFrom()
-    {
-        return $this->hasMany(StatusesLinks::className(), ['status_to' => 'id'])->from('doc_statuses_links l_from');
-    }
-
-    /**
-     * The method returns a list of all links leading to the target statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTo()
-    {
-        return $this->hasMany(StatusesLinks::className(), ['status_from' => 'id'])->from('doc_statuses_links l_to');
-    }
-
-    /**
-     * The method returns a list of structure links leading to the source statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksStructureFrom()
-    {
-        return $this->getLinksFrom()->andOnCondition(['l_from.type' => StatusesLinks::LINK_TYPE_FLTREE]);
-    }
-
-    /**
-     * The method returns a list of structure links leading to the target statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksStructureTo()
-    {
-        return $this->getLinksTo()->andOnCondition(['l_to.type' => StatusesLinks::LINK_TYPE_FLTREE]);
-    }
-
-    /**
-     * The method returns a list of Transitions links leading to the source statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsFrom()
-    {
-        return $this->getLinksFrom()->andOnCondition(['l_from.type' => StatusesLinks::LINK_TYPE_SIMPLE]);
-    }
-
-    /**
-     * The method returns a list of Transitions links leading to the target statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsTo()
-    {
-        return $this->getLinksTo()->andOnCondition(['l_to.type' => StatusesLinks::LINK_TYPE_SIMPLE]);
-    }
-
-    /**
-     * The method returns a structure link with level=1 leading to the source statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksParent()
-    {
-        $query = $this->getLinksStructureFrom()->andOnCondition(['l_from.level' => 1]);
-
-        $relationType = $this->getRelationType();
-
-        if (!empty($relationType)) {
-            $query->andOnCondition(['l_from.relation_type' => $relationType]);
-        }
-
-        return $query;
-    }
-
-    /**
-     * The method returns a list of structure links with level=1 leading to the target statuses of the current one
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksChildren()
-    {
-        $query = $this->getLinksStructureTo()->andOnCondition(['l_to.level' => 1]);
-
-        $relationType = $this->getRelationType();
-
-        if (!empty($relationType)) {
-            $query->andOnCondition(['l_to.relation_type' => $relationType]);
-        }
-
-        return $query;
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesTo()
-    {
-        return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTo')
-            ->indexBy('tag');
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesLower()
-    {
-        return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksStructureTo')
-            ->indexBy('tag');
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesUpper()
-    {
-        return $this->hasMany(static::className(), ['id' => 'status_from'])
-            ->via('linksStructureFrom')
-            ->indexBy('tag');
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesTransitionTo()
-    {
-        return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTransitionsTo')
-            ->indexBy('tag');
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesTransitionFrom()
-    {
-        return $this->hasMany(static::className(), ['id' => 'status_to'])
-            ->via('linksTransitionsFrom')
-            ->indexBy('tag');
-    }
-
-    /**
      * @return \yii\db\ActiveQuery
      */
     public function getDocType()
     {
         return $this->hasOne(DocTypes::className(), ['id' => 'doc_type_id']);
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusParent()
-    {
-        return $this->hasOne(Statuses::className(), ['id' => 'status_from'])
-            ->via('linksParent');
-    }
-
-    /**
-     * @param \docflow\models\Statuses
-     */
-    public function setStatusParent($newParent)
-    {
-        $parentLink = $this->linksParent;
-        if ($newParent instanceOf self) {
-            $parentLink->status_from = $newParent->id;
-        } elseif (is_null($newParent)) {
-            $parentLink->status_from = null;
-        }
-        $parentLink->save();
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusChildren()
-    {
-        $query = $this->hasMany(Statuses::className(), ['id' => 'status_to'])
-            ->via('linksChildren')
-            ->inverseOf('statusParent');
-
-        if (!empty(StatusesLinks::$sortField) && is_string(StatusesLinks::$sortField)) {
-            $query->orderBy([StatusesLinks::$sortField => SORT_ASC]);
-        }
-
-        return $query;
     }
 
     /**
@@ -391,7 +192,7 @@ class Statuses extends Document
             );
             $query->asArray(true);
 
-            $relationType = (new static)->getRelationType();
+            $relationType = Link::getRelationType();
 
             if (!empty($relationType)) {
                 $query->andOnCondition(['d_s_l.relation_type' => $relationType]);
@@ -440,7 +241,7 @@ class Statuses extends Document
             ]);
         }
 
-        $relationType = (new static)->getRelationType();
+        $relationType = Link::getRelationType();
 
         if (!empty($relationType)) {
             $query->andOnCondition(['d_s_l.relation_type' => $relationType]);
@@ -452,16 +253,20 @@ class Statuses extends Document
     /**
      * Получаем Статусы по массиву, содержащему Тэги.
      *
-     * @param array $tagsArray - массив, содержащий тэги
+     * @param array   $tagsArray - массив, содержащий тэги
+     * @param integer $docTypeId - id типа документа
      *
      * @return array|\yii\db\ActiveRecord[]
      */
-    public static function getStatusesForTagsArray(array $tagsArray)
+    public static function getStatusesForTagsArray(array $tagsArray, $docTypeId)
     {
         return static::find()
-            ->where(['in', 'tag', $tagsArray])
-            ->indexBy('tag')
-            ->all();
+            ->where([
+                'and',
+                ['in', 'tag', $tagsArray],
+                ['=', 'doc_type_id', $docTypeId]
+            ])
+            ->indexBy('tag');
     }
 
     /**
@@ -469,37 +274,13 @@ class Statuses extends Document
      *
      * @param array $idArray - массив, содержащий список id-ек
      *
-     * @return array|\yii\db\ActiveRecord[]
+     * @return array|\yii\db\ActiveQuery[]
      */
     public function getStatusesByIdArray(array $idArray)
     {
         return static::find()
             ->where(['in', 'id', $idArray])
-            ->indexBy('tag')
-            ->all();
-    }
-
-    /**
-     * Получаем relation_type
-     *
-     * @return string
-     *
-     * @throws \yii\base\InvalidConfigException
-     */
-    protected function getRelationType()
-    {
-        /**
-         * @var array $extraWhere
-         */
-        $extraWhere = (new $this->linkClass)->extraWhere();
-
-        if (array_key_exists('relation_type', $extraWhere)) {
-            $relationType = $extraWhere['relation_type'];
-        } else {
-            $relationType = '';
-        }
-
-        return $relationType;
+            ->indexBy('tag');
     }
 
     /**
@@ -512,7 +293,35 @@ class Statuses extends Document
     public static function getStatusById($statusId)
     {
         return static::find()
-            ->where(['=', 'id', $statusId])
-            ->one();
+            ->where(['=', 'id', $statusId]);
     }
+
+    /**
+     * Получаем имя класса
+     *
+     * @return string
+     */
+    public function getCurrentName()
+    {
+        return static::className();
+    }
+
+    /**
+     * Получаем статус по тегу и id типа документа
+     *
+     * @param string  $tag       - тэг статуса
+     * @param integer $docTypeId - id документа
+     *
+     * @return $this
+     */
+    /*
+    public function getStatusForTag($tag, $docTypeId)
+    {
+        return static::find()
+            ->where([
+                'and',
+                ['tag' => $tag],
+                ['doc_type_id' => $docTypeId]
+            ]);
+    }*/
 }

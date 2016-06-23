@@ -112,19 +112,21 @@ class DocTypesController extends Controller
      * Finds the DocTypes model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      *
-     * @param int $doc doc_type tag
+     * @param string $docTag doc_type tag
      *
      * @return DocTypes the loaded model
      *
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($doc)
+    protected function findModel($docTag)
     {
-        if (!empty(($model = DocTypes::getDocType($doc)))) {
-            return $model;
-        } else {
+        $model = DocTypes::getDocType($docTag);
+
+        if (empty($model)) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+
+        return $model;
     }
 
     /**
@@ -279,14 +281,25 @@ class DocTypesController extends Controller
         }
     }
 
-    protected function findStatusModel($doc, $tag)
+    /**
+     * Получаем объект документа
+     *
+     * @param string $docTag - тэг типа документа
+     * @param string $tag    - тэг документа
+     *
+     * @return \docflow\models\Statuses
+     *
+     * @throws \yii\web\NotFoundHttpException
+     */
+    protected function findStatusModel($docTag, $tag)
     {
-        $doc_model = $this->findModel($doc);
-        if (!empty($doc_model->statuses[$tag])) {
-            return $doc_model->statuses[$tag];
-        } else {
+        $docModelObj = $this->findModel($docTag);
+
+        if (empty($docModelObj->statuses[$tag])) {
             throw new NotFoundHttpException('The requested page does not exist.');
         }
+
+        return $docModelObj->statuses[$tag];
     }
 
     /**
@@ -482,7 +495,7 @@ class DocTypesController extends Controller
         /**
          * @var LinkOrderedBehavior $behavior
          */
-        $behavior = $model->getBehavior('structure');
+        $behavior = $model->getBehavior('transitions');
 
         return $behavior->addSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }
@@ -509,7 +522,7 @@ class DocTypesController extends Controller
         /**
          * @var LinkOrderedBehavior $behavior
          */
-        $behavior = $model->getBehavior('structure');
+        $behavior = $model->getBehavior('transitions');
 
         return $behavior->delSimpleLink($this->findStatusModel($tagDoc, $tagTo));
     }

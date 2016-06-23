@@ -28,31 +28,18 @@ abstract class Link extends CommonRecord
     /**
      * @var string наименование поля в котором указан id (идентификатор) базового класса
      */
-    protected static $_baseClassId;
-    protected static $_linkFrom;
-    protected static $_linkTo;
+    protected static $_fieldNodeId;
+    protected static $_fieldLinkFrom;
+    protected static $_fieldLinkTo;
     protected static $_levelField;
     protected static $_typeField;
-    /**
-     * @var string наименование поля в котором указан тип связи
-     */
-    protected static $_linkType;
+    protected static $_rightTagField;
 
     protected $upperLinksOld;
     protected $upperLinksNew;
     protected $lowerLinks;
     protected $from_old;
     protected $from_new;
-
-    /**
-     * @var string Индексация статусов для дерева
-     */
-    public static $indexBy = 'tag';
-
-    /**
-     * @var string|null - Содержит поле таблицы, по которому идет сортировка, если null, то сортировка не производится
-     */
-    public static $sortField = 'order_idx';
 
     /**
      * {@inheritdoc}
@@ -90,7 +77,8 @@ abstract class Link extends CommonRecord
      */
     public function getBaseFrom()
     {
-        return $this->hasOne(static::$_baseClass, [static::$_baseClassId, static::$_linkFrom])->andFilterWhere($this->extraWhere());
+        return $this->hasOne(static::$_baseClass,
+            [static::$_fieldNodeId, static::$_fieldLinkFrom])->andFilterWhere($this->extraWhere());
     }
 
     /**
@@ -100,7 +88,8 @@ abstract class Link extends CommonRecord
      */
     public function getBaseTo()
     {
-        return $this->hasOne(static::$_baseClass, [static::$_baseClassId, static::$_linkTo])->andFilterWhere($this->extraWhere());
+        return $this->hasOne(static::$_baseClass,
+            [static::$_fieldNodeId, static::$_fieldLinkTo])->andFilterWhere($this->extraWhere());
     }
 
     /**
@@ -112,8 +101,8 @@ abstract class Link extends CommonRecord
      */
     public static function findLowerLinks($id, $andWhere = null)
     {
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -134,8 +123,8 @@ abstract class Link extends CommonRecord
      */
     public static function findUpperLinks($id, $andWhere = null)
     {
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -152,8 +141,8 @@ abstract class Link extends CommonRecord
      */
     public function beforeSave($insert)
     {
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -244,8 +233,8 @@ abstract class Link extends CommonRecord
      */
     public function afterSave($insert, $changed_attributes)
     {
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
         parent::afterSave($insert, $changed_attributes);
@@ -315,8 +304,8 @@ abstract class Link extends CommonRecord
      */
     public function beforeDelete()
     {
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -347,8 +336,8 @@ abstract class Link extends CommonRecord
     public function afterDelete()
     {
         parent::afterDelete();
-        $from = static::$_linkFrom;
-        $to = static::$_linkTo;
+        $from = static::$_fieldLinkFrom;
+        $to = static::$_fieldLinkTo;
         $level = static::$_levelField;
         $type = static::$_typeField;
 
@@ -373,5 +362,142 @@ abstract class Link extends CommonRecord
             }
         }
 
+    }
+
+    /**
+     * Массовое удаление всех простых связей у текущего статуса
+     *
+     * @param string $relationType - указан relation_type
+     *
+     * @return bool
+     */
+    public static function batchDeleteSimpleLinks($statusFromId)
+    {
+        $delCondition = [
+            static::$_fieldLinkFrom => $statusFromId,
+            static::$_typeField => Link::LINK_TYPE_SIMPLE
+        ];
+
+        $relationType = static::getRelationType();
+
+        if (!empty($relationType)) {
+            $delCondition = array_merge($delCondition, [static::$_relationTypeField => $relationType]);
+        }
+
+        /* Удаляем все текущие простые связи */
+
+        return (bool)Link::deleteAll($delCondition);
+    }
+
+
+    /**
+     * Массово добавляем простые связи
+     *
+     * @param Statuses|Document $owner       - Документ
+     * @param array             $tagsToArray - массив, содержащий объекты статусов, к которым устанавливается простая связь
+     *
+     * @return bool
+     *
+     * @throws \yii\db\Exception
+     */
+    public static function batchAddSimpleLinks($owner, $tagsToArray)
+    {
+        $relationType = static::getRelationType();
+
+        /* Подготавливаем столбцы для массового добавления */
+        $cols = static::getColsForSimpleLink($relationType);
+
+        /* Подготавливаем содержимое для массового добавления */
+        $rows = static::getRowsForSimpleLink($owner, $tagsToArray, $relationType);
+
+        /* Массово добавляем */
+
+        return (bool)Yii::$app->db
+            ->createCommand()
+            ->batchInsert(static::className(), $cols, $rows)
+            ->execute();
+    }
+
+    /**
+     * Формируем столбцы для добавления
+     *
+     * @param string $relationType - тип
+     *
+     * @return array
+     */
+    protected static function getColsForSimpleLink($relationType)
+    {
+        $return = [
+            static::$_fieldLinkFrom,
+            static::$_fieldLinkTo,
+            static::$_rightTagField,
+            static::$_typeField
+        ];
+
+        if (!empty($relationType)) {
+            $return[] = static::$_relationTypeField;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Формируем данные для добавления
+     *
+     * @param Statuses|Document $owner        - документ
+     * @param array             $tagsToArray  - массив, содержащий объекты статусов, к которым устанавливается простая связь
+     * @param string            $relationType - тип
+     *
+     * @return array
+     */
+    protected static function getRowsForSimpleLink($owner, $tagsToArray, $relationType)
+    {
+        $return = [];
+        foreach ($tagsToArray as $value) {
+            $attr = [
+                $owner->id,
+                $value->id,
+                $owner->docType->tag . '.' . $owner->tag . '.' . $value->tag,
+                Link::LINK_TYPE_SIMPLE
+            ];
+
+            if (!empty($relationType)) {
+                $attr[] = $relationType;
+            }
+
+            $return[] = $attr;
+        }
+
+        return $return;
+    }
+
+    /**
+     * Получаем relation_type из extraWhere
+     *
+     * @return mixed
+     */
+    public static function getRelationType()
+    {
+        /**
+         * @var $extraWhere array
+         */
+        $extraWhere = static::extraWhere();
+
+        return (!empty($extraWhere['relation_type'])) ? $extraWhere['relation_type'] : '';
+    }
+
+    /**
+     * Получаем тип из extraWhere
+     *
+     * @return mixed
+     */
+    public static function getType()
+    {
+        /**
+         * @var $extraWhere array
+         */
+        $extraWhere = static::extraWhere();
+
+        return (!empty($extraWhere['type'])) ? $extraWhere['type'] : '';
     }
 }

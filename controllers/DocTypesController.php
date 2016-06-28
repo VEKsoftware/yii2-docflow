@@ -4,14 +4,8 @@ namespace docflow\controllers;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
-use docflow\Docflow;
-use docflow\models\StatusesExp;
-use docflow\models\StatusSimpleLink;
-use docflow\models\StatusTreePosition;
 use yii;
 
-use yii\base\ErrorException;
-use yii\di\Instance;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
@@ -21,10 +15,7 @@ use yii\web\NotFoundHttpException;
 
 use docflow\models\DocTypes;
 use docflow\models\DocTypesSearch;
-
 use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
-use docflow\models\StatusesLinksSearch;
 use docflow\models\StatusesSearch;
 use yii\web\Response;
 
@@ -381,6 +372,7 @@ class DocTypesController extends Controller
      *
      * @return mixed
      *
+     * @throws \yii\web\NotFoundHttpException
      * @throws \yii\base\InvalidConfigException
      */
     public function actionAjaxStatusTreeDown($statusTag, $docTag)
@@ -433,6 +425,7 @@ class DocTypesController extends Controller
      *
      * @return array
      *
+     * @throws \yii\web\NotFoundHttpException
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
@@ -458,6 +451,7 @@ class DocTypesController extends Controller
      *
      * @return array
      *
+     * @throws \yii\web\NotFoundHttpException
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
      */
@@ -484,6 +478,8 @@ class DocTypesController extends Controller
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
+     * @throws \yii\web\NotFoundHttpException
+     * @throws \yii\base\ErrorException
      * @throws \yii\base\InvalidConfigException
      */
     public function actionAjaxAddSimpleLink($tagTo, $tagFrom, $tagDoc)
@@ -493,7 +489,7 @@ class DocTypesController extends Controller
         $model = $this->findStatusModel($tagDoc, $tagFrom);
 
         /**
-         * @var LinkOrderedBehavior $behavior
+         * @var LinkSimpleBehavior $behavior
          */
         $behavior = $model->getBehavior('transitions');
 
@@ -509,6 +505,7 @@ class DocTypesController extends Controller
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
+     * @throws \yii\web\NotFoundHttpException
      * @throws \yii\db\StaleObjectException
      * @throws \Exception
      * @throws \yii\base\InvalidConfigException
@@ -520,7 +517,7 @@ class DocTypesController extends Controller
         $model = $this->findStatusModel($tagDoc, $tagFrom);
 
         /**
-         * @var LinkOrderedBehavior $behavior
+         * @var LinkSimpleBehavior $behavior
          */
         $behavior = $model->getBehavior('transitions');
 

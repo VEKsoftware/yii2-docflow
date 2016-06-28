@@ -8,206 +8,261 @@
 
 namespace docflow\behaviors;
 
+use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
+use Exception;
 use yii\base\ErrorException;
+use yii\base\InvalidConfigException;
+use yii\base\InvalidParamException;
+use yii\db\ActiveQuery;
+use yii\db\StaleObjectException;
 use yii\helpers\Url;
 
-class LinkStructuredBehavior extends LinkSimpleBehavior
+class LinkStructuredBehavior extends LinkBaseBehavior
 {
-    public function attach($owner)
-    {
-        parent::attach($owner);
-    }
-
     /**
-     * Получаем все родительсие статусы
-     *
-     * @return array
-     */
-    public function getParents()
-    {
-        $linkClass = $this->linkClass;
-
-        $parentsLinks = $linkClass::findUpperLinks($this->owner->id)->all();
-
-        $idArray = array_map(
-            function ($value) {
-                return $value->{$this->linkFieldsArray['status_from']};
-            },
-            $parentsLinks
-        );
-
-        return $this->owner->getStatusesByIdArray($idArray);
-    }
-
-    /**
-     * Устанавливаем родителя документу
-     *
-     * @param object $statusObj - Статус
+     * Удаляем все родительские связи у документа - переносим документ в корень
      *
      * @return void
      *
-     * @throws \yii\base\ErrorException
-     * @throws \yii\base\InvalidConfigException
+     * @throws StaleObjectException
+     * @throws Exception
+     * @throws ErrorException
      */
-    public function setParent($statusObj)
+    public function getRemoveParents()
     {
-        if (empty($this->owner->id)) {
-            throw new ErrorException('Id перемещаемого статуса пуст');
-        }
-
-        if (!($statusObj instanceof Statuses)) {
-            throw new ErrorException('Аргумент не объект Statuses');
-        }
-
-        if (empty($statusObj->id)) {
-            throw new ErrorException('Id родительского статуса пуст');
-        }
-
-        /* Получаем родителей у текущего документа */
-        $childes = $this->getChildes()->all();
-
-        if (array_key_exists($statusObj->tag, $childes)) {
-            throw new ErrorException('Нельзя устанавливать ребенка родителем');
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) не определен');
         }
 
         /**
-         * @var StatusesLinks $flTreeLink
+         * Получаем родительскую связь с ближайшим родителем
+         *
+         * @var Link $flTreeLink
          */
-        $flTreeLink = $this->getFlTreeLinkForStatusForLevel1($this->owner->id);
+        $flTreeLink = $this->getLinksParent()->one();
 
-        if (empty($flTreeLink)) {
-            $this->prepareAndAddFlTreeLinks($statusObj);
-        } else {
-            if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $statusObj->id) {
-                throw new ErrorException('Id нового статуса родителя совпадает с Id текущего статуса родителя');
-            }
-
-            $this->prepareAndUpdateFlTreeLinks($flTreeLink, $statusObj);
+        if (empty($flTreeLink->id)) {
+            throw new ErrorException('Родительская связь отсутствует');
         }
+
+        $flTreeLink->delete();
     }
 
     /**
-     * Получаем все вложенные статусы
+     * Получаем все документы, которые являются родительскими по отношению к текущему (owner) документу
      *
-     * @return array
+     * @return ActiveQuery
+     *
+     * @throws ErrorException
      */
-    public function getChildes()
+    public function getParents()
     {
-        $linkClass = $this->linkClass;
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) не определен');
+        }
 
-        $childesLinks = $linkClass::findLowerLinks($this->owner->id)->all();
-
-        $idArray = array_map(
-            function ($value) {
-                return $value->{$this->linkFieldsArray['status_to']};
-            },
-            $childesLinks
-        );
-
-        return $this->owner->getStatusesByIdArray($idArray);
+        return $this->owner
+            ->hasMany(
+                $this->owner->currentName,
+                [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
+            )
+            ->via('linksStructureFrom')
+            ->indexBy('tag');
     }
 
     /**
-     * Добавляем документу вложенный документ
+     * Устанавливаем нового родителя текущему документу (owner)
      *
-     * @param object $statusObj - Статус
+     * @param Statuses|Document $documentObj - Объект документа, новый родитель
      *
      * @return void
      *
-     * @throws \yii\base\ErrorException
-     * @throws \yii\base\InvalidConfigException
+     * @throws ErrorException
+     * @throws InvalidConfigException
      */
-    public function setChild($statusObj)
+    public function setParent($documentObj)
     {
-        if (empty($this->owner->id)) {
-            throw new ErrorException('Id родительского статуса пуст');
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) не определен');
         }
 
-        if (!($statusObj instanceof Statuses)) {
-            throw new ErrorException('Аргумент не объект Statuses');
+        if (!($documentObj instanceof Document)) {
+            throw new ErrorException('Новый родитель не является наследником Document');
         }
 
-        if (!is_int($statusObj->id)) {
-            throw new ErrorException('Id перемещаемого статуса пуст');
+        if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Новый родитель не определен');
+        }
+
+        /* Получаем детей у текущего документа */
+        $childes = $this->getChildes()->all();
+
+        if (array_key_exists($documentObj->tag, $childes)) {
+            throw new ErrorException('Нельзя устанавливать ребенка текущего документа родителем');
+        }
+
+        /**
+         * Получаем ближайшую родительскую связь для текущего документа (owner)
+         *
+         * @var Link $flTreeLink
+         */
+        $flTreeLink = $this->getParentLinkByStatus($this->owner)->one();
+
+        /**
+         * В зависимости от того, существует ли связь между документами или нет, будет:
+         * 1)Если связи нет, то будет создана новая
+         * 2)Если связь есть, то будет обновлена
+         */
+        if (empty($flTreeLink->id)) {
+            /* Если отсутствует ближайшая родительская связь, то создаем новую */
+            $this->prepareAndAddFlTreeLinks($documentObj);
+        } else {
+            if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
+                throw new ErrorException('Новый родитель является текущим');
+            }
+
+            /* Меняем родителя */
+            $this->prepareAndUpdateFlTreeLinks($flTreeLink, $documentObj);
+        }
+    }
+
+    /**
+     * Получаем все дочерние документы текущего документа (owner)
+     *
+     * @return ActiveQuery
+     *
+     * @throws ErrorException
+     */
+    public function getChildes()
+    {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) не определен');
+        }
+
+        return $this->owner
+            ->hasMany(
+                $this->owner->currentName,
+                [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
+            )
+            ->via('linksStructureTo')
+            ->indexBy('tag');
+    }
+
+    /**
+     * Добавляем к текущему документу (owner) дочерний документ, который передан через аргумент
+     *
+     * @param Statuses|Document $documentObj - Объект документа
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     * @throws InvalidConfigException
+     */
+    public function setChild($documentObj)
+    {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) не определен');
+        }
+
+        if (!($documentObj instanceof Document)) {
+            throw new ErrorException('Новый дочерний документ не является наследником Document');
+        }
+
+        if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Новый дочерний документ не определен');
         }
 
         /* Получаем родителей у текущего документа */
         $parents = $this->getParents()->all();
 
-        if (array_key_exists($statusObj->tag, $parents)) {
+        if (array_key_exists($documentObj->tag, $parents)) {
             throw new ErrorException('Нельзя устанавливать родителя ребенком');
         }
 
         /**
-         * @var StatusesLinks $flTreeLink
+         * Получаем ближайшую родительскую связь нового дочернего документа
+         *
+         * @var Link $flTreeLink
          */
+        $flTreeLink = $this->getParentLinkByStatus($documentObj)->one();
 
-        $flTreeLink = $this->getFlTreeLinkForStatusForLevel1($statusObj->id);
-        if (empty($flTreeLink)) {
-            $this->prepareAndAddFlTreeLinks($statusObj, false);
+        if (empty($flTreeLink->id)) {
+            /* Если ближайшая родительская связь отсутствует, то создаём новую */
+            $this->prepareAndAddFlTreeLinks($documentObj, false);
         } else {
-            if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $statusObj->id) {
-                throw new ErrorException('Id нового статуса родителя совпадает с Id текущего статуса родителя');
+            if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $this->owner->{$this->linkFieldsArray['node_id']}) {
+                throw new ErrorException('Устанавливаемый ребенок уже является установленым');
             }
 
+            /* Меняем родителя */
             $this->prepareAndUpdateFlTreeLinks($flTreeLink, $this->owner);
         }
     }
 
 
     /**
-     * Подготавливаем и добавляем fltree связь
+     * Подготавливаем и добавляем flTree связь
      *
-     * @param Statuses $statusObj - Объект статуса
+     * @param Statuses $documentObj - Объект документа
+     * @param bool     $parent      - Индикатор, показывающий что мы добавляем:
+     *                              true - создаем родительскую связь,
+     *                              false - создаем дочернюю связь
      *
-     * @param bool     $parent    - true - создаем родителя, false - ребенка
+     * @return void
      */
-    protected function prepareAndAddFlTreeLinks($statusObj, $parent = true)
+    protected function prepareAndAddFlTreeLinks($documentObj, $parent = true)
     {
-
+        /* Назначаем название класса связи на переменную ради удобства */
+        $linkClass = $this->linkClass;
         /**
          * @var Link $statusesLinksClass
          */
-        $statusesLinksClass = new $this->linkClass;
+        $statusesLinksClass = new $linkClass;
 
-        $statusesLinksClass->setScenario(Link::LINK_TYPE_FLTREE);
+        $statusesLinksClass->setScenario($linkClass::LINK_TYPE_FLTREE);
 
+        /* В зависимости от того какую связь мы добавляем (родительскую или дочернюю) определятся значения полей */
         if ($parent === true) {
-            $statusesLinksClass->{$this->linkFieldsArray['status_from']} = $statusObj->id;
-            $statusesLinksClass->{$this->linkFieldsArray['status_to']} = $this->owner->id;
+            $statusesLinksClass->{$this->linkFieldsArray['status_from']} = $documentObj->{$this->linkFieldsArray['node_id']};
+            $statusesLinksClass->{$this->linkFieldsArray['status_to']} = $this->owner->{$this->linkFieldsArray['node_id']};
         } else {
-            $statusesLinksClass->{$this->linkFieldsArray['status_from']} = $this->owner->id;
-            $statusesLinksClass->{$this->linkFieldsArray['status_to']} = $statusObj->id;
+            $statusesLinksClass->{$this->linkFieldsArray['status_from']} = $this->owner->{$this->linkFieldsArray['node_id']};
+            $statusesLinksClass->{$this->linkFieldsArray['status_to']} = $documentObj->{$this->linkFieldsArray['node_id']};
         }
 
-        $statusesLinksClass->{$this->linkFieldsArray['type']} = Link::LINK_TYPE_FLTREE;
+        $statusesLinksClass->{$this->linkFieldsArray['type']} = $linkClass::LINK_TYPE_FLTREE;
         $statusesLinksClass->{$this->linkFieldsArray['level']} = 1;
 
-        $relationType = Link::getRelationType();
+        $relationType = $linkClass::getRelationType();
         if (!empty($relationType) && is_string($relationType)) {
             $statusesLinksClass->{$this->linkFieldsArray['relation_type']} = $relationType;
         }
 
+        /* Сохраняем изменеия */
         $statusesLinksClass->save();
     }
 
     /**
-     * Подготавливаем и обновляем fltree связь
+     * Подготавливаем и обновляем flTree связь
      *
-     * @param Link     $flTreeLink - Объект связи типа fltree
-     * @param Statuses $statusObj  - Объект статуса
+     * @param Link              $flTreeLink  - Объект связи типа flTree
+     * @param Statuses|Document $documentObj - Объект документа
      *
      * @return void
      */
-    protected function prepareAndUpdateFlTreeLinks($flTreeLink, $statusObj)
+    protected function prepareAndUpdateFlTreeLinks($flTreeLink, $documentObj)
     {
-        $flTreeLink->{$this->linkFieldsArray['status_from']} = $statusObj->id;
+        /* Назначаем название класса связи на переменную ради удобства */
+        $linkClass = $this->linkClass;
 
-        $flTreeLink->setScenario(Link::LINK_TYPE_FLTREE);
+        /* Меняем id родетеля */
+        $flTreeLink->{$this->linkFieldsArray['status_from']} = $documentObj->{$this->linkFieldsArray['node_id']};
 
+        $flTreeLink->setScenario($linkClass::LINK_TYPE_FLTREE);
+
+        /* Сохраняем изменения */
         $flTreeLink->save();
     }
 
@@ -228,7 +283,7 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
      *
      * @return array
      *
-     * @throws \yii\base\InvalidParamException
+     * @throws InvalidParamException
      */
     protected function treeBranch($val)
     {
@@ -244,95 +299,9 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
     }
 
     /**
-     * Получаем массив с данными о наличии "детей" - вложенных статусов
-     *
-     * @param integer $statusId - id Статуса, у которого имем вложенные статусы
-     * @param bool    $asArray  - true - выдавать массив, false - объекты
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public function getChildStatusesForStatus($statusId, $asArray = true)
-    {
-        $linkClass = $this->linkClass;
-
-        /* Формируем запрос */
-        $query = $linkClass::find()
-            ->where([
-                'and',
-                ['=', $this->linkFieldsArray['status_from'], $statusId],
-            ]);
-
-        if ($asArray === true) {
-            $query->asArray(true);
-        }
-
-        $query->andWhere($linkClass::extraWhere());
-
-        return $query->all();
-    }
-
-    /**
-     * Получаем связь на ближайшего родителя (1 уровень)
-     *
-     * @param integer $statusId - id статуса
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public function getFlTreeLinkForStatusForLevel1($statusId)
-    {
-        $linkClass = $this->linkClass;
-
-        /* Формируем запрос */
-        $query = $linkClass::find()
-            ->where(
-                [
-                    'and',
-                    ['=', $this->linkFieldsArray['status_to'], $statusId],
-                    ['=', $this->linkFieldsArray['level'], 1]
-                ]
-            );
-
-        $query->andWhere($linkClass::extraWhere());
-
-        return $query->one();
-    }
-
-    /**
-     * Получаем связи на родителя родителя (1 и 2 уровня)
-     *
-     * @param integer $statusId - id статуса
-     *
-     * @return array|\yii\db\ActiveRecord[]
-     */
-    public function getFlTreeLinkForStatusForLevel1And2($statusId)
-    {
-        $linkClass = $this->linkClass;
-
-        /* Получаем наименования полей */
-        $linkTo = $this->linkFieldsArray['status_to'];
-        $level = $this->linkFieldsArray['level'];
-
-        /* Формируем запрос */
-        $query = $linkClass::find()
-            ->where(
-                [
-                    'and',
-                    ['=', $linkTo, $statusId],
-                    ['in', $level, [1, 2]]
-                ]
-            )
-            ->indexBy($level);
-
-        $query->andWhere($linkClass::extraWhere());
-
-        return $query->all();
-    }
-
-
-    /**
      * Получаем детей статуса
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getStatusChildren()
     {
@@ -353,151 +322,30 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
         return $query;
     }
 
-
-    /**
-     * The method returns a list of all links leading to the source statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksFrom()
-    {
-        $linkClass = $this->linkClass;
-
-        return $this->owner
-            ->hasMany(
-                $this->linkClass,
-                [$this->linkFieldsArray['status_to'] => $this->linkFieldsArray['node_id']]
-            )
-            ->from($linkClass::tableName() . ' l_from');
-    }
-
-    /**
-     * The method returns a list of all links leading to the target statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTo()
-    {
-        $linkClass = $this->linkClass;
-
-        return $this->owner
-            ->hasMany(
-                $this->linkClass,
-                [$this->linkFieldsArray['status_from'] => $this->linkFieldsArray['node_id']]
-            )
-            ->from($linkClass::tableName() . ' l_to');
-    }
-
-    /**
-     * The method returns a list of structure links leading to the source statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksStructureFrom()
-    {
-        /**
-         * Получаем наименования полей
-         */
-        $type = 'l_from.' . $this->linkFieldsArray['type'];
-
-        return $this->getLinksFrom()->andOnCondition([$type => Link::LINK_TYPE_FLTREE]);
-    }
-
-    /**
-     * The method returns a list of structure links leading to the target statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksStructureTo()
-    {
-        /**
-         * Получаем наименования полей
-         */
-        $type = 'l_to.' . $this->linkFieldsArray['type'];
-
-        return $this->getLinksTo()->andOnCondition([$type => Link::LINK_TYPE_FLTREE]);
-    }
-
-    /**
-     * The method returns a list of Transitions links leading to the source statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsFrom()
-    {
-        /**
-         * Получаем наименования полей
-         */
-        $type = 'l_from.' . $this->linkFieldsArray['type'];
-
-        return $this->getLinksFrom()->andOnCondition([$type => Link::LINK_TYPE_SIMPLE]);
-    }
-
-    /**
-     * The method returns a list of Transitions links leading to the target statuses of the current one
-     *
-     * @return \yii\db\ActiveQuery
-     */
-    public function getLinksTransitionsTo()
-    {
-        /**
-         * Получаем наименования полей
-         */
-        $type = 'l_to.' . $this->linkFieldsArray['type'];
-
-        return $this->getLinksTo()->andOnCondition([$type => Link::LINK_TYPE_SIMPLE]);
-    }
-
     /**
      * The method returns a structure link with level=1 leading to the source statuses of the current one
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getLinksParent()
     {
-        /**
-         * Получаем наименования полей
-         */
-        $level = 'l_from.' . $this->linkFieldsArray['level'];
-
-        $query = $this->getLinksStructureFrom()->andOnCondition([$level => 1]);
-
-        $relationType = Link::getRelationType();
-
-        if (!empty($relationType)) {
-            $relType = 'l_from.' . $this->linkFieldsArray['relation_type'];
-
-            $query->andOnCondition([$relType => $relationType]);
-        }
-
-        return $query;
+        return $this->getLinksStructureFrom()
+            ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
     }
 
     /**
      * The method returns a list of structure links with level=1 leading to the target statuses of the current one
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getLinksChildren()
     {
-        /* Получаем наименования полей */
-        $level = 'l_to.' . $this->linkFieldsArray['level'];
-
-        $query = $this->getLinksStructureTo()->andOnCondition([$level => 1]);
-
-        $relationType = Link::getRelationType();
-
-        if (!empty($relationType)) {
-            $relType = 'l_to.' . $this->linkFieldsArray['relation_type'];
-
-            $query->andOnCondition([$relType => $relationType]);
-        }
-
-        return $query;
+        return $this->getLinksStructureTo()
+            ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getStatusesTo()
     {
@@ -511,7 +359,7 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getStatusesLower()
     {
@@ -525,7 +373,7 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getStatusesUpper()
     {
@@ -539,37 +387,9 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
     }
 
     /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesTransitionTo()
-    {
-        return $this->owner
-            ->hasMany(
-                $this->owner->currentName,
-                [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
-            )
-            ->via('linksTransitionsTo')
-            ->indexBy('tag');
-    }
-
-    /**
-     * @return \yii\db\ActiveQuery
-     */
-    public function getStatusesTransitionFrom()
-    {
-        return $this->owner
-            ->hasMany(
-                $this->owner->currentName,
-                [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
-            )
-            ->via('linksTransitionsFrom')
-            ->indexBy('tag');
-    }
-
-    /**
-     * Получаем родителей статуса
+     * Получаем родительский документ текущего документа
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
     public function getStatusParent()
     {
@@ -579,5 +399,126 @@ class LinkStructuredBehavior extends LinkSimpleBehavior
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
             ->via('linksParent');
+    }
+
+    /**
+     * Получаем родительскую связь 1 уровня(т.е ближайшую) для объекта переданного в аргументе
+     *
+     * @param Statuses|Document $documentObj - Объект документа
+     *
+     * @return ActiveQuery
+     */
+    public function getParentLinkByStatus($documentObj)
+    {
+        return $this->getLinksStructureFromByStatus($documentObj)
+            ->andWhere(
+                ['=', $this->linkFieldsArray['level'], 1]
+            );
+    }
+
+    /**
+     * The method returns a list of structure links leading to the source statuses of the current one
+     *
+     * @return ActiveQuery
+     */
+    public function getLinksStructureFrom()
+    {
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
+        return $this->getLinksFrom()
+            ->andOnCondition($linkClass::extraWhere());
+    }
+
+    /**
+     * The method returns a list of structure links leading to the target statuses of the current one
+     *
+     * @return ActiveQuery
+     */
+    public function getLinksStructureTo()
+    {
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
+        return $this->getLinksTo()
+            ->andOnCondition($linkClass::extraWhere());
+    }
+
+    /**
+     * Получаем связи и фильтруем по условиям, указанным в extraWhere
+     *
+     * @param Statuses|Document $documentObj - Объект документа
+     *
+     * @return ActiveQuery
+     */
+    public function getLinksStructureFromByStatus($documentObj)
+    {
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
+        return $this->getLinksFromByStatus($documentObj)
+            ->andOnCondition($linkClass::extraWhere());
+    }
+
+    /**
+     * Получаем связи и фильтруем по условиям, указанным в extraWhere
+     *
+     * @param Statuses|Document $documentObj - Объект документа
+     *
+     * @return ActiveQuery
+     */
+    public function getLinksStructureToByStatus($documentObj)
+    {
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
+        return $this->getLinksToByStatus($documentObj)
+            ->andOnCondition($linkClass::extraWhere());
+    }
+
+    /**
+     * Получаем все статусы со связью с родителем
+     *
+     * @param integer $docTypeId - id типа документа
+     *
+     * @return ActiveQuery
+     */
+    public function getDocumentsWithFlTreeLinks1Level($docTypeId)
+    {
+        $owner = $this->owner;
+
+        return $owner::find()
+            ->where(['doc_type_id' => $docTypeId])
+            ->orderBy([$this->orderedField => SORT_ASC])
+            ->with('linksParent')
+            ->indexBy('tag');
+    }
+
+    /**
+     * Получаем родительские связи 1 и 2 уровня
+     *
+     * @return ActiveQuery
+     */
+    public function getParentLinks1And2Levels()
+    {
+        return $this->getLinksStructureFrom()
+            ->andWhere(['in', $this->linkFieldsArray['level'], [1, 2]])
+            ->indexBy($this->linkFieldsArray['level']);
+    }
+
+    /**
+     * Получаем родительские документы 1 и 2 уровня
+     *
+     * @return ActiveQuery
+     */
+    public function getParentDocuments1And2Levels()
+    {
+        return $this->owner
+            ->hasMany(
+                $this->owner->currentName,
+                [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
+            )
+            ->via('parentLinks1And2Levels')
+            ->indexBy($this->linkFieldsArray['node_id']);
     }
 }

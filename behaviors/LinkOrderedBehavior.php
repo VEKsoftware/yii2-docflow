@@ -8,22 +8,14 @@
 
 namespace docflow\behaviors;
 
-use docflow\Docflow;
-use docflow\models\Link;
+use docflow\models\Document;
 use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
-use yii\db\Transaction;
 
 class LinkOrderedBehavior extends LinkStructuredBehavior
 {
-    public function attach($owner)
-    {
-        parent::attach($owner);
-    }
-
     /**
      * Повышаем позицию статуса в уровне вложенности на более высокую позицию
      *
@@ -31,7 +23,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function orderUp()
     {
-        return $this->setStatusInTreeVertical($this->owner->tag, 'Up');
+        return $this->setStatusInTreeVertical('Up');
     }
 
     /**
@@ -41,7 +33,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function orderDown()
     {
-        return $this->setStatusInTreeVertical($this->owner->tag, 'Down');
+        return $this->setStatusInTreeVertical('Down');
     }
 
     /**
@@ -51,7 +43,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function levelUp()
     {
-        return $this->setStatusInTreeHorizontal($this->owner->tag, 'Right');
+        return $this->setStatusInTreeHorizontal('Right');
     }
 
     /**
@@ -61,30 +53,29 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     public function levelDown()
     {
-        return $this->setStatusInTreeHorizontal($this->owner->tag, 'Left');
+        return $this->setStatusInTreeHorizontal('Left');
     }
 
     /**
-     * Изменяем позицию статуса
+     * Изменяем позицию документа
      *
-     * @param array    $changeArray   - содержит данные для изменения позиции статуса
-     * @param Statuses $currentStatus - модель перемещаемого статуса
+     * @param Statuses|Document $changeDocument - документ, с которым будет происходить обмен позиций
      *
      * @return array
-     *
-     * @throws \yii\db\Exception
      */
-    protected function changeStatusPositionIinTreeOnUpOrDown(array $changeArray, $currentStatus)
+    protected function changeStatusPositionIinTreeOnUpOrDown($changeDocument)
     {
-        // Получаем статус, c  которым поменяемся местами
-        $changeStatus = Statuses::getStatusForTag($changeArray['change']['tag']);
-
         try {
-            /* Изменяем им положения */
-            $currentStatus->setAttribute('order_idx', $changeArray['change']['orderIdx']);
-            $changeStatus->setAttribute('order_idx', $changeArray['current']['orderIdx']);
+            /* Массив, содержащий позицию текущего документа и с которым будет произведен обмен местами */
+            $array = [
+                'current' => $this->owner->{$this->orderedField},
+                'change' => $changeDocument->{$this->orderedField},
+            ];
+            /* Меняем положения */
+            $this->owner->setAttribute($this->orderedField, $array['change']);
+            $changeDocument->setAttribute($this->orderedField, $array['current']);
 
-            if ((!$currentStatus->save()) || (!$changeStatus->save())) {
+            if ((!$changeDocument->save()) || (!$this->owner->save())) {
                 throw new ErrorException('Позиция не изменена');
             }
 
@@ -101,39 +92,27 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     /**
      * Перемещаем Статус вертикально в зависимости от $actionInTree
      *
-     * @param string $statusTag    - тэг перемещаемого статуса
      * @param string $actionInTree - Up или Down
      *
      * @return array
      */
-    protected function setStatusInTreeVertical($statusTag, $actionInTree)
+    protected function setStatusInTreeVertical($actionInTree)
     {
         try {
-            if (!is_string($statusTag)) {
-                throw new ErrorException('Тэг статуса не строкового типа');
+            /* Получаем все документы с ближайшей родительский связью */
+            $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level($this->owner->doc_type_id)->all();
+
+            /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
+            $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);
+
+            /* Получаем документ, с которым будет производиться обмен позиций */
+            $changeDocument = $this->getChangeDocument($documentsOnLevel, $actionInTree);
+
+            if ($changeDocument === null) {
+                throw new ErrorException('Позиция не может быть изменена');
             }
 
-            $currentStatusArray = Statuses::getStatusForTag($statusTag, true);
-            $this->owner->setAttributes($currentStatusArray, false);
-            $this->owner->setIsNewRecord(false);
-
-            $orderIdxInLevelArray = Statuses::getStatusesForLevel(
-                $currentStatusArray['fromId'],
-                $currentStatusArray['level'],
-                $currentStatusArray['doc_type_id']
-            );
-
-            $changeArray = $this->getChangeArrayForActionInTree(
-                $currentStatusArray['order_idx'],
-                $orderIdxInLevelArray,
-                $actionInTree
-            );
-
-            $result = ['error' => 'Позиция не может быть изменена'];
-
-            if (count($changeArray) !== 0) {
-                $result = $this->changeStatusPositionIinTreeOnUpOrDown($changeArray, $this->owner);
-            }
+            $result = $this->changeStatusPositionIinTreeOnUpOrDown($changeDocument);
         } catch (ErrorException $e) {
             $result = ['error' => $e->getMessage()];
         }
@@ -142,169 +121,160 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     }
 
     /**
-     * Получаем структуру, необходимую для изменения положения статуса для действия
+     * Получаем документы находящиеся на одном уровне с текущим документом
      *
-     * @param integer $currentOrderIdx - номер положения перемещаемого статуса
-     * @param array   $array           - массив, содержащий статусы находящиеся на одном уровне с перемещаемым статусом
-     * @param string  $action          - содержит совершаемое действие
+     * @param array $documents - массив с документами
      *
      * @return array
      */
-    protected function getChangeArrayForActionInTree($currentOrderIdx, array $array, $action)
+    protected function getDocumentsWithLevel(array $documents)
     {
-        try {
-            $position = $this->checkPositionInTreeArray($currentOrderIdx, $array);
+        /**
+         * @var array $parentLink
+         */
+        $parentLink = $documents[$this->owner->tag]->linksParent;
 
-            if ($position === '') {
-                throw new ErrorException('Не найдена позиция');
+        $currentDocumentParent = null;
+
+        if (count($parentLink) > 0) {
+            $currentDocumentParent = $parentLink[0][$this->linkFieldsArray['status_from']];
+        }
+
+        /**
+         * Выбираем статусы из массива:
+         * 1)Если родительской связи нет, то все документы без родительской связи
+         * 2)Если родительская связь есть, то все документы с общим родителем
+         */
+        $statusesList = array_filter(
+            $documents,
+            function ($var) use ($currentDocumentParent) {
+                if ($currentDocumentParent === null) {
+                    if ($var->linksParent === []) {
+                        return $var;
+                    }
+                } else {
+                    if (($var->linksParent !== []) && ($var->linksParent[0][$this->linkFieldsArray['status_from']] === $currentDocumentParent)) {
+                        return $var;
+                    }
+                }
             }
+        );
 
-            $return = [];
+        return $statusesList;
+    }
 
-            switch ($action) {
-                case 'Up':
-                    $return = $this->getStructureForUp($array, $position);
-                    break;
-                case 'Down':
-                    $return = $this->getStructureForDown($array, $position);
-                    break;
-            }
-        } catch (ErrorException $e) {
-            $return = [];
+    /**
+     * Получаем документ, с которым будет произведен обмент позициями по вертикали
+     *
+     * @param array  $docsOnLevel - отсортированный (от меньшего к большему )по сортировочному полю массив,
+     *                            содержит документы находящиеся на одном уровне с текущим(включая его самого)
+     * @param string $action      - действие: Up - переместить выше, Down - переместить ниже
+     *
+     * @return Document|Statuses|null
+     */
+    protected function getChangeDocument(array $docsOnLevel, $action)
+    {
+        $return = null;
+
+        if ($action === 'Up') {
+            $return = $this->getUpDocument($docsOnLevel);
+        }
+
+        if ($action === 'Down') {
+            $return = $this->getDownDocument($docsOnLevel);
         }
 
         return $return;
     }
 
     /**
-     * Находим позицию в массиве
+     * Получаем документ, находящийся выше текущего
      *
-     * @param integer $currentOrderIdx - номер положения перемещаемого статуса
-     * @param array   $array           - массив, содержащий статусы находящиеся на одном уровне с перемещаемым статусом
+     * @param array $docsOnLevel - отсортированный (от меньшего к большему )по сортировочному полю массив,
+     *                           содержит документы находящиеся на одном уровне с текущим(включая его самого)
      *
-     * @return int|string
+     * @return Document|Statuses|null
      */
-    protected function checkPositionInTreeArray($currentOrderIdx, $array)
+    protected function getUpDocument(array $docsOnLevel)
     {
-        $position = '';
-        //TODO переписать
-        foreach ($array as $key => $value) {
-            if ((string)$value['orderIdx'] === (string)$currentOrderIdx) {
-                $position = $key;
+        $document = null;
+
+        /**
+         * @var Statuses|Document $value
+         */
+        foreach ($docsOnLevel as $value) {
+            if ($value->{$this->orderedField} < $this->owner->{$this->orderedField}) {
+                $document = $value;
+            }
+        }
+
+        return $document;
+    }
+
+    /**
+     * Получаем документ, находящийся ниже текущего
+     *
+     * @param array $docsOnLevel - отсортированный (от меньшего к большему) по сортировочному полю массив,
+     *                           содержит документы находящиеся на одном уровне с текущим(включая его самого)
+     *
+     * @return Document|Statuses|null
+     */
+    protected function getDownDocument(array $docsOnLevel)
+    {
+        $document = null;
+
+        /**
+         * @var Statuses|Document $value
+         */
+        foreach ($docsOnLevel as $value) {
+            /* Если нашли документ на сменту, то выходим из перебора */
+            if ($value->{$this->orderedField} > $this->owner->{$this->orderedField}) {
+                $document = $value;
                 break;
             }
         }
 
-        return $position;
+        return $document;
     }
 
     /**
-     * Получаем массив с данными, необходимыми для поднятия статуса в дереве
+     * Перемещение документа:
+     * 1)Right - во внутрь(вложенный уровень) другого документа
+     * 2)Left - вынесение из вложенного уровня во внешний
      *
-     * @param array   $array    - массив, содержащий статусы находящиеся на одном уровне с перемещаемым статусом
-     * @param integer $position - позиция перемещаемого статуса в массиве $array
-     *
-     * @return array
-     */
-    protected function getStructureForUp(array $array, $position)
-    {
-        $changePosition = ($position - 1);
-
-        $return = [];
-
-        if ($position > 0) {
-            $return = $this->getStructure($array, $position, $changePosition);
-        }
-
-        return $return;
-    }
-
-    /**
-     * Получаем массив с данными, необходимыми для понижения статуса в дереве
-     *
-     * @param array   $array    - массив, содержащий статусы находящиеся на одном уровне с перемещаемым статусом
-     * @param integer $position - позиция перемещаемого статуса в массиве $array
+     * @param string $actionInTree - действие: Right - во внутренний уровень, Left - во внешний уровень
      *
      * @return array
      */
-    protected function getStructureForDown(array $array, $position)
-    {
-        $changePosition = ($position + 1);
-
-        $return = [];
-
-        if ($position < (count($array) - 1)) {
-            $return = $this->getStructure($array, $position, $changePosition);
-        }
-
-        return $return;
-    }
-
-    /**
-     * Формируем структуру необходимую для изменения полложения статуса
-     *
-     * @param array   $array          - массив, содержащий статусы находящиеся на одном уровне с перемещаемым статусом
-     * @param integer $position       - позиция перемещаемого статуса в массиве $array
-     * @param integer $changePosition - позиция статуса (на который переместится перемещаемый статус) в массиве $array
-     *
-     * @return array
-     */
-    protected function getStructure(array $array, $position, $changePosition)
-    {
-        return [
-            'current' => [
-                'orderIdx' => $array[$position]['orderIdx'],
-                'tag' => $array[$position]['tag']
-            ],
-            'change' => [
-                'orderIdx' => $array[$changePosition]['orderIdx'],
-                'tag' => $array[$changePosition]['tag']
-            ]
-        ];
-    }
-
-    /**
-     * Перемещение статуса во внутрь(вложенный уровень) другого статуса или вынесение из вложенного уровня во внешний
-     *
-     * @param string $statusTag    - Тэг статуса
-     * @param string $actionInTree - действие Right - во внутренний уровень, действие Left - во внешний уровень
-     *
-     * @return array
-     */
-    protected function setStatusInTreeHorizontal($statusTag, $actionInTree)
+    protected function setStatusInTreeHorizontal($actionInTree)
     {
         $return = [];
-
         try {
-            if (!is_string($statusTag)) {
-                throw new ErrorException('Тэг статуса не строкового типа');
-            }
-
-            $statusArray = Statuses::getStatusForTag($statusTag, true);
-
             switch ($actionInTree) {
                 case 'Left':
-                    $flTreeLinks = $this->getFlTreeLinkForStatusForLevel1And2(
-                        $statusArray['id']
-                    );
-                    $return = $this->setStatusInTreeLeft($flTreeLinks);
+                    /* Получаем родительские связи 1 и 2 уровней */
+                    $parentLinks = $this->owner->parentLinks1And2Levels;
+
+                    /* Получаем родительские документы 1 и 2 уровней */
+                    $parentDocuments = $this->owner->parentDocuments1And2Levels;
+
+                    $return = $this->setStatusInTreeLeft($parentDocuments, $parentLinks);
                     break;
                 case 'Right':
-                    $statusLinksArray = Statuses::getStatusesForLevel(
-                        $statusArray['fromId'],
-                        $statusArray['level'],
-                        $statusArray['doc_type_id']
-                    );
-                    $flTreeLink = $this->getFlTreeLinkForStatusForLevel1(
-                        $statusArray['id']
-                    );
-                    $paramsNewLink = [
-                        'status_to' => $statusArray['id'],
-                        'to_tag' => $statusArray['tag'],
-                        'type' => 'fltree',
-                        'level' => 1,
-                    ];
-                    $return = $this->setStatusInTreeRight($paramsNewLink, $statusLinksArray, $flTreeLink);
+                    /* Получаем все документы с ближайшей родительский связью */
+                    $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level($this->owner->doc_type_id)->all();
+
+                    /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
+                    $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);
+
+                    /* Получаем новый родительский документ, для перемещаемого */
+                    $newRootDocument = $this->getUpDocument($documentsOnLevel);
+
+                    if ($newRootDocument === null) {
+                        throw new ErrorException('Позиция не может быть изменена');
+                    }
+
+                    $return = $this->setStatusInTreeRight($newRootDocument);
                     break;
             }
         } catch (ErrorException $e) {
@@ -317,137 +287,45 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     /**
      * Перемещаем статус внутрь уровня верхлежащего статуса
      *
-     * @param array                               $params           - массив с данными для перемещения перемещаемого статуса
-     * @param array                               $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
-     * @param \docflow\models\StatusesLinks|array $flTreeLink       - ссылка 1-го уровня для перемещаемого статуса
+     * @param Document|Statuses $newRootDocument - документ, в который перемещаем
      *
      * @return array
      */
-    protected function setStatusInTreeRight(array $params, array $statusLinksArray, $flTreeLink)
+    protected function setStatusInTreeRight($newRootDocument)
     {
-        try {
-            /* Если на уровне 1 элемент перенос невозможен */
-            if (count($statusLinksArray) < 2) {
-                throw new ErrorException('Переход невозможен');
-            }
+        $this->owner->setParent($newRootDocument);
 
-            /* Если верхний статус в уровне равен переносимому, то перенос не возможен */
-            if ($statusLinksArray[0]['id'] === $params['status_to']) {
-                throw new ErrorException('Переход невозможен');
-            }
-
-            /* Массив с информацией о статусе в который перемещаем */
-            $valueFrom = $this->getStatusFrom($params['status_to'], $statusLinksArray);
-
-            if (empty($flTreeLink)) {
-                /**
-                 * @var Link $newStatusLink
-                 */
-                $newStatusLink = new $this->linkClass;
-
-                $newStatusLink->setScenario(Link::LINK_TYPE_FLTREE);
-
-                $newStatusLink->status_from = $valueFrom['id'];
-                $newStatusLink->status_to = $params['status_to'];
-                $newStatusLink->type = $params['type'];
-                $newStatusLink->level = $params['level'];
-
-                $relationType = Link::getRelationType();
-                if (!empty($relationType) && is_string($relationType)) {
-                    $newStatusLink->relation_type = $relationType;
-                }
-
-                $result = $newStatusLink->save();
-            } else {
-                $flTreeLink->setScenario(Link::LINK_TYPE_FLTREE);
-                $flTreeLink->status_from = $valueFrom['id'];
-
-                $result = $flTreeLink->save();
-            }
-
-            $return = $this->moveResult($result);
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
-        }
-
-        return $return;
+        return ['success' => 'Позиция изменена'];
     }
 
     /**
-     * Возвращяем сообщение в зависимости от результата
+     * Перемещаем статус из внутренного уровня во внешний:
+     * 1)Если у документа есть родительская связь 2 уровня, то меняем текущего родителя на родителя 2 уровня
+     * 2)Если у документа нет родительской связи 2 уровня, но есть 1-го, то удляем родительскую свзь (переходим в корень)
+     * 3)Если у документа нет родительской связи 2 и 1 уровней, то смена позиции невозможна, т.к текущая позиция - корень
      *
-     * @param bool $result - результат перемещения,
-     *                     true - перемещение произошло удачно,
-     *                     false - перемещение не произошло
+     * @param array $parentDocuments - родительские документы 1 и 2 уровней
+     * @param array $parentLinks     - родительские связи 1 и 2 уровней
      *
      * @return array
      */
-    protected function moveResult($result)
+    protected function setStatusInTreeLeft(array $parentDocuments, array $parentLinks)
     {
-        $return = ['error' => 'Ошибка перемещения'];
+        if (array_key_exists(2, $parentLinks)) {
+            /* Меняем родителя */
+            $documentId = $parentLinks[2]->{$this->linkFieldsArray['status_from']};
+            $this->owner->setParent($parentDocuments[$documentId]);
 
-        if ($result === true) {
             $return = ['success' => 'Позиция изменена'];
+        } elseif (array_key_exists(1, $parentLinks)) {
+            /* Удаляем родителей */
+            $this->owner->removeParents;
+
+            $return = ['success' => 'Позиция изменена'];
+        } else {
+            $return = ['error' => 'Перемещение невозможно'];
         }
 
         return $return;
-    }
-
-    /**
-     * Получаем массив с данными о статусе в который перемещается перемещаемый статус,
-     * статус в который перемещаем находится на 1 позицию выше перемещаемого(сортировка по номеру позиции в уровне)
-     *
-     * @param integer $ids              - id перемещаемого статуса
-     * @param array   $statusLinksArray - массив с данными о статусах на одном (1-ом) уровне с перемещаемым статусом
-     *
-     * @return array
-     */
-    protected function getStatusFrom($ids, array $statusLinksArray)
-    {
-        $oldValue = [];
-
-        foreach ($statusLinksArray as $value) {
-            if ($value['id'] === $ids) {
-                break;
-            }
-
-            $oldValue = $value;
-        }
-
-        return $oldValue;
-    }
-
-    /**
-     * Перемещаем статус из внутренного уровня во внешний
-     *
-     * @param array $flTreeLinks - массив с ссылками 1 и 2 уровня перемещаемого статуса
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    protected function setStatusInTreeLeft(array $flTreeLinks)
-    {
-        if (array_key_exists(2, $flTreeLinks)) {
-            /**
-             * @var StatusesLinks $link
-             */
-            $link = $flTreeLinks[1];
-
-            $link->status_from = $flTreeLinks[2][$this->linkFieldsArray['status_from']];
-            $link->setScenario(Link::LINK_TYPE_FLTREE);
-
-            $result = $link->save();
-        } elseif (array_key_exists(1, $flTreeLinks)) {
-            /**
-             * @var StatusesLinks $link
-             */
-            $link = $flTreeLinks[1];
-            $result = (bool)$link->delete();
-        } else {
-            $result = false;
-        }
-
-        return $this->moveResult($result);
     }
 }

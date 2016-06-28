@@ -2,14 +2,10 @@
 
 namespace docflow\models;
 
+use docflow\Docflow;
 use yii;
-
-use yii\base\InvalidParamException;
 use yii\base\ErrorException;
-
-use yii\db\ActiveQueryInterface;
 use yii\helpers\ArrayHelper;
-
 use docflow\base\CommonRecord;
 
 /**
@@ -367,7 +363,7 @@ abstract class Link extends CommonRecord
     /**
      * Массовое удаление всех простых связей у текущего статуса
      *
-     * @param string $relationType - указан relation_type
+     * @param integer $statusFromId - идентификатор документа, у которого удаляем все простые связи
      *
      * @return bool
      */
@@ -375,7 +371,7 @@ abstract class Link extends CommonRecord
     {
         $delCondition = [
             static::$_fieldLinkFrom => $statusFromId,
-            static::$_typeField => Link::LINK_TYPE_SIMPLE
+            static::$_typeField => static::LINK_TYPE_SIMPLE
         ];
 
         $relationType = static::getRelationType();
@@ -386,21 +382,22 @@ abstract class Link extends CommonRecord
 
         /* Удаляем все текущие простые связи */
 
-        return (bool)Link::deleteAll($delCondition);
+        return (bool)static::deleteAll($delCondition);
     }
 
 
     /**
      * Массово добавляем простые связи
      *
-     * @param Statuses|Document $owner       - Документ
-     * @param array             $tagsToArray - массив, содержащий объекты статусов, к которым устанавливается простая связь
+     * @param Statuses|Document $owner          - Документ
+     * @param array             $documentsArray - массив, содержащий объекты документов, к которым устанавливается простая связь
      *
      * @return bool
      *
+     * @throws \yii\base\ErrorException
      * @throws \yii\db\Exception
      */
-    public static function batchAddSimpleLinks($owner, $tagsToArray)
+    public static function batchAddSimpleLinks($owner, $documentsArray)
     {
         $relationType = static::getRelationType();
 
@@ -408,13 +405,13 @@ abstract class Link extends CommonRecord
         $cols = static::getColsForSimpleLink($relationType);
 
         /* Подготавливаем содержимое для массового добавления */
-        $rows = static::getRowsForSimpleLink($owner, $tagsToArray, $relationType);
+        $rows = static::getRowsForSimpleLink($owner, $documentsArray, $relationType);
 
         /* Массово добавляем */
 
-        return (bool)Yii::$app->db
+        return (bool)Yii::$app->{Docflow::getInstance()->db}
             ->createCommand()
-            ->batchInsert(static::className(), $cols, $rows)
+            ->batchInsert(static::tableName(), $cols, $rows)
             ->execute();
     }
 
@@ -427,7 +424,7 @@ abstract class Link extends CommonRecord
      */
     protected static function getColsForSimpleLink($relationType)
     {
-        $return = [
+        $cols = [
             static::$_fieldLinkFrom,
             static::$_fieldLinkTo,
             static::$_rightTagField,
@@ -435,40 +432,50 @@ abstract class Link extends CommonRecord
         ];
 
         if (!empty($relationType)) {
-            $return[] = static::$_relationTypeField;
+            $cols[] = static::$_relationTypeField;
         }
 
-        return $return;
+        return $cols;
     }
 
     /**
      * Формируем данные для добавления
      *
-     * @param Statuses|Document $owner        - документ
-     * @param array             $tagsToArray  - массив, содержащий объекты статусов, к которым устанавливается простая связь
-     * @param string            $relationType - тип
+     * @param Statuses|Document $owner          - документ
+     * @param array             $documentsArray - массив, содержащий объекты документов, к которым устанавливается простая связь
+     * @param string            $relationType   - тип
      *
      * @return array
+     *
+     * @throws \yii\base\ErrorException
      */
-    protected static function getRowsForSimpleLink($owner, $tagsToArray, $relationType)
+    protected static function getRowsForSimpleLink($owner, $documentsArray, $relationType)
     {
-        $return = [];
-        foreach ($tagsToArray as $value) {
+        $rows = [];
+        foreach ($documentsArray as $value) {
+            if (!($value instanceof Document)) {
+                throw new ErrorException('Не все документы, к которым устанавливается простая связь, являются наследником документа');
+            }
+
+            if ($owner->{static::$_fieldNodeId} === $value->{static::$_fieldNodeId}) {
+                throw new ErrorException('Нельзя назначить связь на себя');
+            }
+
             $attr = [
-                $owner->id,
-                $value->id,
+                $owner->{static::$_fieldNodeId},
+                $value->{static::$_fieldNodeId},
                 $owner->docType->tag . '.' . $owner->tag . '.' . $value->tag,
-                Link::LINK_TYPE_SIMPLE
+                static::LINK_TYPE_SIMPLE
             ];
 
             if (!empty($relationType)) {
                 $attr[] = $relationType;
             }
 
-            $return[] = $attr;
+            $rows[] = $attr;
         }
 
-        return $return;
+        return $rows;
     }
 
     /**
@@ -481,6 +488,7 @@ abstract class Link extends CommonRecord
         /**
          * @var $extraWhere array
          */
+        /** @noinspection DynamicInvocationViaScopeResolutionInspection */
         $extraWhere = static::extraWhere();
 
         return (!empty($extraWhere['relation_type'])) ? $extraWhere['relation_type'] : '';
@@ -496,6 +504,7 @@ abstract class Link extends CommonRecord
         /**
          * @var $extraWhere array
          */
+        /** @noinspection DynamicInvocationViaScopeResolutionInspection */
         $extraWhere = static::extraWhere();
 
         return (!empty($extraWhere['type'])) ? $extraWhere['type'] : '';

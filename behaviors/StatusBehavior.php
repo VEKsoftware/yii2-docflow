@@ -4,6 +4,7 @@ namespace docflow\behaviors;
 
 use yii;
 use yii\base\Behavior;
+use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\base\ErrorException;
 
@@ -12,13 +13,12 @@ use yii\helpers\ArrayHelper;
 use docflow\models\DocTypes;
 use docflow\models\Document;
 use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
 
 /**
  * Behavior class for checking access to set status field and setting it if accessed.
  *
- * @property integer                  statusIdField Название поля со статусом в таблице
- * @property \docflow\models\Statuses status
+ * @property integer  statusIdField Название поля со статусом в таблице
+ * @property Statuses status
  */
 class StatusBehavior extends Behavior
 {
@@ -33,59 +33,68 @@ class StatusBehavior extends Behavior
     public $statusIdField = 'status_id';
 
     /**
-     * @var string Корневой статус
+     * Корневой статус
+     *
+     * @var string
      */
     public $statusRootTag;
 
     /**
-     * @var string id корневого статуса
+     * Объект корневого статуса
+     *
+     * @var Statuses
      */
-    protected $statusRootId;
+    protected $statusRootObj;
 
     /**
      * @inheritdoc
+     * @throws \yii\base\ErrorException
      */
     public function attach($owner)
     {
         parent::attach($owner);
 
-        if (!$owner instanceOf Document) {
+        if (!$owner instanceof Document) {
             throw new ErrorException('You can attach StatusesBehavior only to instances of docflow\models\Document');
         }
 
         if (empty($this->statusRootTag)) {
-            throw new ErrorException('StatusBehavior: You have to set status tag for new instance of the model ' . $owner->className());
+            throw new ErrorException('StatusBehavior: You have to set status tag for new instance of the model ' . $owner::className());
         }
 
-        // To avoid infinit loop
-        if (!$owner instanceOf DocTypes) {
-            if (!isset($owner->doc->statuses[$this->statusRootTag])) {
+        /* Получаем объект корневого статуса */
+        $this->statusRootObj = $this->findAndSetStatusRootObj();
+
+        if (!($owner instanceof DocTypes)) {
+            if (!isset($this->statusRootObj)) {
                 throw new ErrorException('StatusBehavior: wrong root status: ' . $this->statusRootTag);
             }
         }
-
-        $this->statusRootId = $this->findAndSetStatusRootId();
     }
 
     public function events()
     {
         return [
-            ActiveRecord::EVENT_AFTER_FIND => 'checkWhatStatusTheChildRootStatusWhenEventInitOrAfterFind',
-            ActiveRecord::EVENT_INIT => 'checkWhatStatusTheChildRootStatusWhenEventInitOrAfterFind',
+            ActiveRecord::EVENT_AFTER_FIND => 'checkWhatStatusFromRootStatus'
         ];
     }
 
     /**
-     * Находим id корневого статуса по его тэгу
+     * Находим корневой статус по тэгу
      *
      * @return integer
+     *
+     * @throws ErrorException
      */
-    protected function findAndSetStatusRootId()
+    protected function findAndSetStatusRootObj()
     {
         $statusesObj = $this->owner->doc->statuses;
-        $statusObj = $statusesObj[$this->statusRootTag];
 
-        return $statusObj->id;
+        if (!array_key_exists($this->statusRootTag, $statusesObj)) {
+            throw new ErrorException('Корневой статус не найден');
+        }
+
+        return $statusesObj[$this->statusRootTag];
     }
 
     /**
@@ -93,12 +102,16 @@ class StatusBehavior extends Behavior
      *
      * @return void
      *
-     * @throws \yii\base\ErrorException
+     * @throws ErrorException
      */
-    public function checkWhatStatusTheChildRootStatusWhenEventInitOrAfterFind()
+    public function checkWhatStatusFromRootStatus()
     {
-        $key = array_search($this->owner->{$this->statusIdField}, array_column($this->getAllStatuses(), 'status_to'));
-        if (($key === false) && ($this->owner->{$this->statusIdField} !== null)) {
+        $key = array_search(
+            $this->owner->{$this->statusIdField},
+            array_column($this->getAllStatuses()->all(), 'id')
+        );
+
+        if ($key === false) {
             throw new ErrorException('Текущий статус не принадлежит корневому статусу');
         }
     }
@@ -112,12 +125,15 @@ class StatusBehavior extends Behavior
      */
     protected function hasWhatStatusTheChildRootStatus($statusId)
     {
-        $key = array_search($statusId, array_column($this->getAllStatuses(), 'status_to'));
+        $key = array_search(
+            $statusId,
+            array_column($this->getAllStatuses()->all(), 'id')
+        );
+
+        $return = true;
 
         if ($key === false) {
             $return = false;
-        } else {
-            $return = true;
         }
 
         return $return;
@@ -126,94 +142,118 @@ class StatusBehavior extends Behavior
     /**
      * Метод возвращает текущий устанвленный статус
      *
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
+     *
+     * @throws \yii\base\ErrorException
      */
     public function getStatus()
     {
+        if (($this->owner->{$this->statusIdField} === null) || (!is_int($this->owner->{$this->statusIdField}))) {
+            throw new ErrorException('Идектификатор статуса не определен');
+        }
+
         return Statuses::getStatusById($this->owner->{$this->statusIdField});
     }
 
     /**
      * Получаем массив всех статусов потомков корневого статуса
      *
-     * @return array
+     * @return ActiveQuery
+     *
+     * @throws \yii\base\ErrorException
      */
     public function getAllStatuses()
     {
-        return StatusesLinks::getChildStatusesForStatus($this->statusRootId, false);
+        /* Проверка на наличие корневого статуса происходит при инициализации поведения */
+        return $this->statusRootObj->getChildes();
     }
 
     /**
      * Сеттер для установки статуса, проверяет доступен ли назначаемый статус и устанавливает его.
      * Используйте setStatusSafe() если статус нужно установить без проверки прав доступа.
      *
-     * @param object $statusObj - Объект статуса
+     * @param Statuses $statusObj - Объект статуса
      *
-     * @return array
+     * @return void
+     *
+     * @throws ErrorException
      */
     public function setStatus($statusObj)
     {
-        try {
-            $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
-
-            if ($hasChild === false) {
-                throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
-            }
-
-            $simpleLink = StatusesLinks::getSimpleLinkForStatusFromIdAndStatusToId(
-                $this->owner->{$this->statusIdField},
-                $statusObj->id
-            );
-
-            if (empty($simpleLink->right_tag)) {
-                throw new ErrorException('Отсутствует тэг доступа');
-            }
-
-            if (!($this->owner->isAllowed($simpleLink->right_tag))) {
-                throw new ErrorException('Нет права доступа для установки статуса');
-            }
-
-            $this->owner->{$this->statusIdField} = $statusObj->id;
-
-            $return = ['success' => 'Статус установлен'];
-
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
+        if (!($statusObj instanceof Statuses)) {
+            throw new ErrorException('Устанавливаемый статус не принадлежит Statuses');
         }
 
-        return $return;
+        if (($statusObj->id === null) || !is_int($statusObj->id)) {
+            throw new ErrorException('Устанавливаемый статус не определен');
+        }
+
+        /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */
+        $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
+
+        if ($hasChild === false) {
+            throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
+        }
+
+        if ($this->owner->{$this->statusIdField} === $statusObj->id) {
+            throw new ErrorException('Текущий статус равен устанавливаемому');
+        }
+
+        /* Получаем текущий статус */
+        $status = $this->getStatus()->one();
+
+        /* Получаем простые связи для текущего статуса */
+        $simpleLink = $status->getSimpleLinkByDocument($statusObj)->one();
+
+        if (empty($simpleLink->right_tag)) {
+            throw new ErrorException('Отсутствует тэг доступа');
+        }
+
+        if (!($this->owner->isAllowed($simpleLink->right_tag))) {
+            throw new ErrorException('Нет права доступа для установки статуса');
+        }
+
+        /* Присваиваем документу новый статус, сохранеие необходимо производить отдельно */
+        $this->owner->{$this->statusIdField} = $statusObj->id;
     }
 
     /**
      * Setter for setting the status_id for the document without check of the access rights.
      * Use [[static::setStatus()]] for setting new status with check of the rights.
      *
-     * @param object $statusObj - объект статуса
+     * @param Statuses $statusObj - объект статуса
      *
-     * @return array
+     * @return void
+     *
+     * @throws \yii\base\ErrorException
      */
     public function setStatusSafe($statusObj)
     {
-        try {
-            $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
-
-            if ($hasChild === false) {
-                throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
-            }
-
-            $this->owner->{$this->statusIdField} = $statusObj->id;
-
-            $return = ['success' => 'Статус установлен'];
-
-        } catch (ErrorException $e) {
-            $return = ['error' => $e->getMessage()];
+        if (!($statusObj instanceof Statuses)) {
+            throw new ErrorException('Устанавливаемый статус не принадлежит Statuses');
         }
 
-        return $return;
+        if (($statusObj->id === null) || !is_int($statusObj->id)) {
+            throw new ErrorException('Устанавливаемый статус не определен');
+        }
+
+        /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */
+        $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
+
+        if ($hasChild === false) {
+            throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
+        }
+
+        if ($this->owner->{$this->statusIdField} === $statusObj->id) {
+            throw new ErrorException('Текущий статус равен устанавливаемому');
+        }
+
+        /* Присваиваем документу новый статус, сохранеие необходимо производить отдельно */
+        $this->owner->{$this->statusIdField} = $statusObj->id;
     }
 
     /**
-     * Получаем массив содержащий статусы, на которые можно сменить текущий статус:
+     * Получаем статусы, на которые можно сменить текущий статус:
      * 1)Находятся в корневом статусе.
      * 2)Имеется право доступа.
      *
@@ -221,19 +261,30 @@ class StatusBehavior extends Behavior
      */
     public function getAvailableStatuses()
     {
-        $statusesTo = $this->allStatuses;
-        $simpleLinksArray = StatusesLinks::getSimpleLinksByTagFromIdWhereTagToArray(
-            $this->owner->{$this->statusIdField},
-            ArrayHelper::getColumn($statusesTo, 'status_to')
-        );
+        /* Получаем дочерние статусы корневого статуса */
+        $childStatuses = $this->getAllStatuses()->all();
 
-        $result = [];
-        foreach ($simpleLinksArray as $status) {
-            if ($this->owner->isAllowed($status->right_tag)) {
-                $result[] = $status;
+        /* Получаем простые связи для текущего статуса */
+        $simpleLinks = $this->getStatus()->one()->getLinksTransitionsTo()->all();
+
+        /* Формируем массив содержащий: ключ - тэг статуса, значение - id статуса, необходим для поиска по id */
+        $childStatusesIdArray = ArrayHelper::getColumn($childStatuses, 'id');
+
+        /* Инициализируем массив, который будет содержать статусы, на которые возможен переход с текущего статуса */
+        $statuses = [];
+
+        // Проверяем на доступ простую связь и если проверка прошла,
+        // то добавляем к массиву статус, на который может измениться текущий статус
+        foreach ($simpleLinks as $value) {
+            if ($this->owner->isAllowed($value->right_tag)) {
+                $key = array_search($value->status_to, $childStatusesIdArray);
+
+                if ($key !== false) {
+                    $statuses[$key] = $childStatuses[$key];
+                }
             }
         }
 
-        return $result;
+        return $statuses;
     }
 }

@@ -319,7 +319,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $return = ['success' => 'Позиция изменена'];
         } elseif (array_key_exists(1, $parentLinks)) {
             /* Удаляем родителей */
-            $this->owner->removeParents;
+            $this->owner->removeParents();
 
             $return = ['success' => 'Позиция изменена'];
         } else {

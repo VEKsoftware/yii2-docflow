@@ -30,7 +30,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      * @throws Exception
      * @throws ErrorException
      */
-    public function getRemoveParents()
+    public function removeParents()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
             throw new ErrorException('Текущий документ (owner) не определен');

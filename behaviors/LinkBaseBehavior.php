@@ -13,6 +13,7 @@
 namespace docflow\behaviors;
 
 use Closure;
+use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Statuses;
 use yii\base\Behavior;
@@ -75,15 +76,15 @@ class LinkBaseBehavior extends Behavior
         $this->setLinkFieldsArray();
 
         if (!($owner instanceof Document)) {
-            throw new ErrorException('Класс узла не принадлежит Document');
+            throw new ErrorException(BehaviorsMessages::B_OWNER_NOT_DOCUMENT);
         }
 
         if (empty($this->linkClass) || !is_string($this->linkClass)) {
-            throw new ErrorException('Отсутствует наимнование класса связи или не строкового типа');
+            throw new ErrorException(BehaviorsMessages::B_LINK_CLASS_EMPTY_OR_NOT_STRING);
         }
 
         if (($this->documentQuery === null) || !($this->documentQuery instanceof Closure)) {
-            throw new ErrorException('Запрос на поиск документов не определен или не принадлежит Closure');
+            throw new ErrorException(BehaviorsMessages::B_DOCUMENT_QUERY_NULL_OR_NOT_INSTANCEOF_CLOSURE);
         }
 
         /*

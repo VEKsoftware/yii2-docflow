@@ -2,6 +2,7 @@
 
 namespace docflow\behaviors;
 
+use docflow\messages\behaviors\BehaviorsMessages;
 use yii;
 use yii\base\Behavior;
 use yii\db\ActiveQuery;
@@ -55,21 +56,15 @@ class StatusBehavior extends Behavior
         parent::attach($owner);
 
         if (!$owner instanceof Document) {
-            throw new ErrorException('You can attach StatusesBehavior only to instances of docflow\models\Document');
+            throw new ErrorException(BehaviorsMessages::STAT_OWNER_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (empty($this->statusRootTag)) {
-            throw new ErrorException('StatusBehavior: You have to set status tag for new instance of the model ' . $owner::className());
+            throw new ErrorException(BehaviorsMessages::STAT_PROPERTY_STATUS_ROOT_TAG_IS_EMPTY . $owner::className());
         }
 
         /* Получаем объект корневого статуса */
         $this->statusRootObj = $this->findAndSetStatusRootObj();
-
-        if (!($owner instanceof DocTypes)) {
-            if (!isset($this->statusRootObj)) {
-                throw new ErrorException('StatusBehavior: wrong root status: ' . $this->statusRootTag);
-            }
-        }
     }
 
     public function events()
@@ -91,7 +86,7 @@ class StatusBehavior extends Behavior
         $statusesObj = $this->owner->doc->statuses;
 
         if (!array_key_exists($this->statusRootTag, $statusesObj)) {
-            throw new ErrorException('Корневой статус не найден');
+            throw new ErrorException(BehaviorsMessages::STAT_STATUS_ROOT_NOT_FOUND);
         }
 
         return $statusesObj[$this->statusRootTag];
@@ -112,7 +107,7 @@ class StatusBehavior extends Behavior
         );
 
         if ($key === false) {
-            throw new ErrorException('Текущий статус не принадлежит корневому статусу');
+            throw new ErrorException(BehaviorsMessages::STAT_CURRENT_STATUS_NOT_ONE_OF_CHILD_ROOT_STATUS);
         }
     }
 
@@ -144,7 +139,7 @@ class StatusBehavior extends Behavior
      *
      * @return ActiveQuery
      *
-     * @throws \yii\base\ErrorException
+     * @throws ErrorException
      */
     public function getStatus()
     {
@@ -160,7 +155,7 @@ class StatusBehavior extends Behavior
      *
      * @return ActiveQuery
      *
-     * @throws \yii\base\ErrorException
+     * @throws ErrorException
      */
     public function getAllStatuses()
     {

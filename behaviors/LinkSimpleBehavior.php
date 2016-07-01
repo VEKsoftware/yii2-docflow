@@ -9,6 +9,7 @@
 namespace docflow\behaviors;
 
 use docflow\Docflow;
+use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
@@ -32,11 +33,11 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function getSimpleLinks()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого получаем простые связи, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_OWNER_NOT_HAS_AVAILABLE);
         }
 
         return $this->getLinksTransitionsTo();
@@ -57,15 +58,15 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function setSimpleLinks(array $documentsArray)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
         if (count($documentsArray) < 1) {
-            throw new ErrorException('Массив с объектами документов пуст');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENTS_ARRAY_EMPTY);
         }
 
         /* Проверяем документы содержащиеся в массиве на соответвтвие условиям */
@@ -115,19 +116,19 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     {
         foreach ($documentsArray as $value) {
             if (!($value instanceof Document)) {
-                throw new ErrorException('Не все документы, к которым устанавливается простая связь, являются наследником Document');
+                throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_INSTANCEOF_DOCUMENT);
             }
 
             if (($value->{$this->linkFieldsArray['node_id']} === null) || !is_int($value->{$this->linkFieldsArray['node_id']})) {
-                throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержит данных');
+                throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NODE_ID_EMPTY_OR_NOT_INT);
             }
 
             if ($this->owner->{$this->linkFieldsArray['node_id']} === $value->{$this->linkFieldsArray['node_id']}) {
-                throw new ErrorException('Нельзя назначить связь на себя');
+                throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
             }
 
             if (!array_key_exists($value->tag, $this->getAvailableDocuments())) {
-                throw new ErrorException('В списке присутствует документ, который не входит в список разрешенных');
+                throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
             }
         }
     }
@@ -145,27 +146,27 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function addSimpleLink($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержит данных');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
         if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Документ, к которому устанавливаем простую связь, не является наследником Document');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержит данных');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
         }
 
         if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
-            throw new ErrorException('Нельзя назначить связь на себя');
+            throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
         }
 
         $result = ['error' => 'Добавление простой связи не удалось'];
@@ -174,7 +175,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $statusSimpleLink = $this->getSimpleLinkByDocument($documentObj)->one();
 
         if (is_object($statusSimpleLink)) {
-            throw new ErrorException('Простая связь уже существует');
+            throw new ErrorException(BehaviorsMessages::SL_IS_SET);
         }
 
         /* Сохраняем простую связь */
@@ -233,23 +234,23 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function delSimpleLink($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Документ, от которого удаляем простую связь, не содержит данных');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, от которого удаляем простую связь, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NOT_HAS_AVAILABLE);
         }
 
         if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Передаваемый документ не является наследником Document');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Документ, к которому удаляем простую связь, не содержит данных');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, к которому удаляем простую связь, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NOT_HAS_AVAILABLE);
         }
 
         $result = ['error' => 'Просатя связь не удалена'];
@@ -258,7 +259,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $statusSimpleLink = $this->getSimpleLinkByDocument($documentObj)->one();
 
         if (!is_object($statusSimpleLink)) {
-            throw new ErrorException('Простая связь не найдена');
+            throw new ErrorException(BehaviorsMessages::SL_NOT_SET);
         }
 
         /* Удаляем простую связь */

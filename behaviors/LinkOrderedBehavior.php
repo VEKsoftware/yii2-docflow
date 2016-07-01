@@ -8,6 +8,7 @@
 
 namespace docflow\behaviors;
 
+use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Statuses;
 use yii;
@@ -26,11 +27,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function orderUp()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого повышаем позицию статуса, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_UP_NOT_HAS_AVAILABLE);
         }
 
         return $this->setStatusInTreeVertical('Up');
@@ -46,11 +47,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function orderDown()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого понижаем позицию статуса, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_DOWN_NOT_HAS_AVAILABLE);
         }
 
         return $this->setStatusInTreeVertical('Down');
@@ -66,11 +67,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function levelUp()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого понижаем уровень вложения, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_UP_NOT_HAS_AVAILABLE);
         }
 
         return $this->setStatusInTreeHorizontal('Right');
@@ -86,11 +87,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     public function levelDown()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого понижаем уровень вложения, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_DOWN_NOT_HAS_AVAILABLE);
         }
 
         return $this->setStatusInTreeHorizontal('Left');
@@ -116,7 +117,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $changeDocument->setAttribute($this->orderedField, $array['current']);
 
             if ((!$changeDocument->save()) || (!$this->owner->save())) {
-                throw new ErrorException('Позиция не изменена');
+                throw new ErrorException(BehaviorsMessages::ORD_POSITION_NOT_CHANGE);
             }
 
             $return = ['success' => 'Позиция изменена'];
@@ -149,7 +150,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $changeDocument = $this->getChangeDocument($documentsOnLevel, $actionInTree);
 
             if ($changeDocument === null) {
-                throw new ErrorException('Позиция не может быть изменена');
+                throw new ErrorException(BehaviorsMessages::ORD_POSITION_CAN_NOT_CHANGE);
             }
 
             $result = $this->changeStatusPositionIinTreeOnUpOrDown($changeDocument);
@@ -311,7 +312,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
                     $newRootDocument = $this->getUpDocument($documentsOnLevel);
 
                     if ($newRootDocument === null) {
-                        throw new ErrorException('Позиция не может быть изменена');
+                        throw new ErrorException(BehaviorsMessages::ORD_POSITION_CAN_NOT_CHANGE);
                     }
 
                     $return = $this->setStatusInTreeRight($newRootDocument);

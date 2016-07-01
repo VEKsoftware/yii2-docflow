@@ -8,6 +8,7 @@
 
 namespace docflow\behaviors;
 
+use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
@@ -33,11 +34,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function removeParents()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого удаляем родителей, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_DEL_PARENT_NOT_HAS_AVAILABLE);
         }
 
         /**
@@ -48,7 +49,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         $flTreeLink = $this->getLinksParent()->one();
 
         if (empty($flTreeLink->id)) {
-            throw new ErrorException('Родительская связь отсутствует');
+            throw new ErrorException(BehaviorsMessages::STR_PARENT_LINK_1_LVL_NOT_SET);
         }
 
         $flTreeLink->delete();
@@ -64,11 +65,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function getParents()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого получаем родителей, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_PARENT_NOT_HAS_AVAILABLE);
         }
 
         $owner = $this->owner;
@@ -98,34 +99,34 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function setParent($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого устанавливаем нового родителя, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
         if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Новый родитель не является наследником Document');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Новый родитель пуст');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, устанавливаемый новым родителем, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
         if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
-            throw new ErrorException('Нельзя назначить связь на себя');
+            throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
         }
 
         /* Получаем детей у текущего документа */
         $childes = $this->getChildes()->all();
 
         if (array_key_exists($documentObj->tag, $childes)) {
-            throw new ErrorException('Нельзя устанавливать ребенка текущего документа родителем');
+            throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_CHILDES_HOW_PARENT);
         }
 
         /**
@@ -145,7 +146,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             $this->prepareAndAddFlTreeLinks($documentObj);
         } else {
             if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
-                throw new ErrorException('Новый родитель является текущим');
+                throw new ErrorException(BehaviorsMessages::STR_NEW_PARENT_IS_CURRENT);
             }
 
             /* Меняем родителя */
@@ -163,11 +164,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function getChildes()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, у которого получаем детей, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_CHILD_NOT_HAS_AVAILABLE);
         }
 
         $owner = $this->owner;
@@ -197,34 +198,34 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function setChild($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) пуст');
+            throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
         if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, к которому устанавливаем нового ребенка, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
         if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Новый дочерний документ не является наследником Document');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Новый дочерний документ пуст');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
         if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
-            throw new ErrorException('Документ, устанавливаемый новым ребенком, не содержится в списке доступных документов');
+            throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
         if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
-            throw new ErrorException('Нельзя назначить связь на себя');
+            throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
         }
 
         /* Получаем родителей у текущего документа */
         $parents = $this->getParents()->all();
 
         if (array_key_exists($documentObj->tag, $parents)) {
-            throw new ErrorException('Нельзя устанавливать родителя ребенком');
+            throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_PARENTS_HOW_CHILD);
         }
 
         /**
@@ -239,7 +240,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             $this->prepareAndAddFlTreeLinks($documentObj, false);
         } else {
             if ($flTreeLink->{$this->linkFieldsArray['status_from']} === $this->owner->{$this->linkFieldsArray['node_id']}) {
-                throw new ErrorException('Устанавливаемый ребенок уже является установленым');
+                throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_PARENTS_HOW_CHILD);
             }
 
             /* Меняем родителя */

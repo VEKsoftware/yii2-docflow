@@ -30,6 +30,7 @@ abstract class Link extends CommonRecord
     protected static $_levelField;
     protected static $_typeField;
     protected static $_rightTagField;
+    protected static $_relationTypeField;
 
     protected $upperLinksOld;
     protected $upperLinksNew;
@@ -172,8 +173,8 @@ abstract class Link extends CommonRecord
                     $this->upperLinksNew,
                     [
                         (object)[
-                            'status_from' => $this->from_new,
-                            'level' => 0
+                            $from => $this->from_new,
+                            $level => 0
                         ]
                     ]
                 );
@@ -210,8 +211,8 @@ abstract class Link extends CommonRecord
                                 'not',
                                 [
                                     'and',
-                                    ['=', 'level', 1],
-                                    ['=', 'status_to', $this->getOldAttribute($to)]
+                                    ['=', $level, 1],
+                                    ['=', $to, $this->getOldAttribute($to)]
                                 ]
                             ],
                         ],
@@ -453,18 +454,10 @@ abstract class Link extends CommonRecord
     {
         $rows = [];
         foreach ($documentsArray as $value) {
-            if (!($value instanceof Document)) {
-                throw new ErrorException('Не все документы, к которым устанавливается простая связь, являются наследником документа');
-            }
-
-            if ($owner->{static::$_fieldNodeId} === $value->{static::$_fieldNodeId}) {
-                throw new ErrorException('Нельзя назначить связь на себя');
-            }
-
             $attr = [
                 $owner->{static::$_fieldNodeId},
                 $value->{static::$_fieldNodeId},
-                $owner->docType->tag . '.' . $owner->tag . '.' . $value->tag,
+                $owner->docTag() . '.' . $owner->tag . '.' . $value->tag,
                 static::LINK_TYPE_SIMPLE
             ];
 
@@ -491,7 +484,7 @@ abstract class Link extends CommonRecord
         /** @noinspection DynamicInvocationViaScopeResolutionInspection */
         $extraWhere = static::extraWhere();
 
-        return (!empty($extraWhere['relation_type'])) ? $extraWhere['relation_type'] : '';
+        return (!empty($extraWhere[static::$_relationTypeField])) ? $extraWhere[static::$_relationTypeField] : '';
     }
 
     /**
@@ -507,6 +500,6 @@ abstract class Link extends CommonRecord
         /** @noinspection DynamicInvocationViaScopeResolutionInspection */
         $extraWhere = static::extraWhere();
 
-        return (!empty($extraWhere['type'])) ? $extraWhere['type'] : '';
+        return (!empty($extraWhere[static::$_typeField])) ? $extraWhere[static::$_typeField] : '';
     }
 }

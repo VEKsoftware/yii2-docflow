@@ -4,6 +4,7 @@ namespace docflow\models;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\behaviors\LinkStructuredBehavior;
 use yii;
 
 use docflow\Docflow;
@@ -56,10 +57,16 @@ class Statuses extends Document
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => StatusesLinksStructure::className(),
                 'orderedField' => 'order_idx',
+                'documentQuery' => function () {
+                    return static::find()->where(['doc_type_id' => $this->doc_type_id]);
+                }
             ],
             'transitions' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => StatusesLinksTransitions::className(),
+                'documentQuery' => function () {
+                    return static::find();
+                }
             ],
         ];
     }
@@ -201,15 +208,5 @@ class Statuses extends Document
     {
         return static::find()
             ->where(['=', 'id', $statusId]);
-    }
-
-    /**
-     * Получаем имя класса
-     *
-     * @return string
-     */
-    public function getCurrentName()
-    {
-        return static::className();
     }
 }

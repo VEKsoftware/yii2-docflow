@@ -20,9 +20,19 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * Повышаем позицию статуса в уровне вложенности на более высокую позицию
      *
      * @return array
+     *
+     * @throws ErrorException
      */
     public function orderUp()
     {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого повышаем позицию статуса, не содержится в списке доступных документов');
+        }
+
         return $this->setStatusInTreeVertical('Up');
     }
 
@@ -30,9 +40,19 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * Опускаем позицию статуса в уровне вложенности на более низкую позицию
      *
      * @return array
+     *
+     * @throws ErrorException
      */
     public function orderDown()
     {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого понижаем позицию статуса, не содержится в списке доступных документов');
+        }
+
         return $this->setStatusInTreeVertical('Down');
     }
 
@@ -40,9 +60,19 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * Повышаем уровень вхождения
      *
      * @return array
+     *
+     * @throws ErrorException
      */
     public function levelUp()
     {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого понижаем уровень вложения, не содержится в списке доступных документов');
+        }
+
         return $this->setStatusInTreeHorizontal('Right');
     }
 
@@ -50,9 +80,19 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * Понижаем уровень вхождения
      *
      * @return array
+     *
+     * @throws ErrorException
      */
     public function levelDown()
     {
+        if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого понижаем уровень вложения, не содержится в списке доступных документов');
+        }
+
         return $this->setStatusInTreeHorizontal('Left');
     }
 
@@ -100,7 +140,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     {
         try {
             /* Получаем все документы с ближайшей родительский связью */
-            $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level($this->owner->doc_type_id)->all();
+            $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level()->all();
 
             /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
             $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);
@@ -262,7 +302,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
                     break;
                 case 'Right':
                     /* Получаем все документы с ближайшей родительский связью */
-                    $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level($this->owner->doc_type_id)->all();
+                    $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level()->all();
 
                     /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
                     $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);

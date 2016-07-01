@@ -48,7 +48,7 @@ class StatusBehavior extends Behavior
 
     /**
      * @inheritdoc
-     * @throws \yii\base\ErrorException
+     * @throws ErrorException
      */
     public function attach($owner)
     {
@@ -75,7 +75,7 @@ class StatusBehavior extends Behavior
     public function events()
     {
         return [
-            ActiveRecord::EVENT_AFTER_FIND => 'checkWhatStatusFromRootStatus'
+            Statuses::EVENT_AFTER_FIND => 'checkWhatStatusFromRootStatus'
         ];
     }
 
@@ -185,7 +185,7 @@ class StatusBehavior extends Behavior
         }
 
         if (($statusObj->id === null) || !is_int($statusObj->id)) {
-            throw new ErrorException('Устанавливаемый статус не определен');
+            throw new ErrorException('Устанавливаемый статус пуст');
         }
 
         /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */
@@ -234,7 +234,7 @@ class StatusBehavior extends Behavior
         }
 
         if (($statusObj->id === null) || !is_int($statusObj->id)) {
-            throw new ErrorException('Устанавливаемый статус не определен');
+            throw new ErrorException('Устанавливаемый статус пуст');
         }
 
         /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */

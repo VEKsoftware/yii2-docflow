@@ -32,7 +32,11 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function getSimpleLinks()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого получаем простые связи, не содержится в списке доступных документов');
         }
 
         return $this->getLinksTransitionsTo();
@@ -53,12 +57,19 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     public function setSimpleLinks(array $documentsArray)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержится в списке доступных документов');
         }
 
         if (count($documentsArray) < 1) {
             throw new ErrorException('Массив с объектами документов пуст');
         }
+
+        /* Проверяем документы содержащиеся в массиве на соответвтвие условиям */
+        $this->checkDocumentsArray($documentsArray);
 
         $return = ['success' => 'Простые связи установлены'];
 
@@ -87,6 +98,41 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     }
 
     /**
+     * Проверяем документы в массиве на соответствие:
+     * 1)Должны принадлежать классу Document.
+     * 2)Документ должен присутствовать с списке разрешенных документов.
+     * 3)Нельзя создать связь самому с собой.
+     * P.S Разрешенные документы - это документы, которые получаем по запросу,
+     * переданным ползователем в поведение при инициализации
+     *
+     * @param array $documentsArray - массив документов
+     *
+     * @return void
+     *
+     * @throws \yii\base\ErrorException
+     */
+    protected function checkDocumentsArray(array $documentsArray)
+    {
+        foreach ($documentsArray as $value) {
+            if (!($value instanceof Document)) {
+                throw new ErrorException('Не все документы, к которым устанавливается простая связь, являются наследником Document');
+            }
+
+            if (($value->{$this->linkFieldsArray['node_id']} === null) || !is_int($value->{$this->linkFieldsArray['node_id']})) {
+                throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержит данных');
+            }
+
+            if ($this->owner->{$this->linkFieldsArray['node_id']} === $value->{$this->linkFieldsArray['node_id']}) {
+                throw new ErrorException('Нельзя назначить связь на себя');
+            }
+
+            if (!array_key_exists($value->tag, $this->getAvailableDocuments())) {
+                throw new ErrorException('В списке присутствует документ, который не входит в список разрешенных');
+            }
+        }
+    }
+
+    /**
      * Добавляем простую связь между текущим документом (owner) и документом передаваемом в аргументе
      *
      * @param Statuses|Document $documentObj - Объект документа
@@ -98,16 +144,24 @@ class LinkSimpleBehavior extends LinkBaseBehavior
      */
     public function addSimpleLink($documentObj)
     {
-        if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Передаваемый документ не является наследником Document');
-        }
-
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
             throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержит данных');
         }
 
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, от которого устанавливаем простую связь, не содержится в списке доступных документов');
+        }
+
+        if (!($documentObj instanceof Document)) {
+            throw new ErrorException('Документ, к которому устанавливаем простую связь, не является наследником Document');
+        }
+
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
             throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержит данных');
+        }
+
+        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, к которому устанавливаем простую связь, не содержится в списке доступных документов');
         }
 
         if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
@@ -156,7 +210,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $statusLinkClass->{$this->linkFieldsArray['status_from']} = $this->owner->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['status_to']} = $documentObj->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['type']} = $linkClass::LINK_TYPE_SIMPLE;
-        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docType->tag . '.' . $this->owner->tag . '.' . $documentObj->tag;
+        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docTag() . '.' . $this->owner->tag . '.' . $documentObj->tag;
 
         if (!empty($relationType) && is_string($relationType)) {
             $statusLinkClass->{$this->linkFieldsArray['relation_type']} = $relationType;
@@ -178,16 +232,24 @@ class LinkSimpleBehavior extends LinkBaseBehavior
      */
     public function delSimpleLink($documentObj)
     {
-        if (!($documentObj instanceof Document)) {
-            throw new ErrorException('Передаваемый документ не является наследником Document');
-        }
-
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
             throw new ErrorException('Документ, от которого удаляем простую связь, не содержит данных');
         }
 
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, от которого удаляем простую связь, не содержится в списке доступных документов');
+        }
+
+        if (!($documentObj instanceof Document)) {
+            throw new ErrorException('Передаваемый документ не является наследником Document');
+        }
+
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
             throw new ErrorException('Документ, к которому удаляем простую связь, не содержит данных');
+        }
+
+        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, к которому удаляем простую связь, не содержится в списке доступных документов');
         }
 
         $result = ['error' => 'Просатя связь не удалена'];
@@ -231,12 +293,18 @@ class LinkSimpleBehavior extends LinkBaseBehavior
      */
     public function getStatusesTransitionTo()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksTransitionsTo')
+            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 
@@ -247,12 +315,18 @@ class LinkSimpleBehavior extends LinkBaseBehavior
      */
     public function getStatusesTransitionFrom()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksTransitionsFrom')
+            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 

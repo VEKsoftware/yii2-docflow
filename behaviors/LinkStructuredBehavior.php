@@ -33,7 +33,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function removeParents()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого удаляем родителей, не содержится в списке доступных документов');
         }
 
         /**
@@ -60,15 +64,24 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function getParents()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
         }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого получаем родителей, не содержится в списке доступных документов');
+        }
+
+        $owner = $this->owner;
+        $linkClass = $this->linkClass;
 
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksStructureFrom')
+            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 
@@ -85,7 +98,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function setParent($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого устанавливаем нового родителя, не содержится в списке доступных документов');
         }
 
         if (!($documentObj instanceof Document)) {
@@ -93,7 +110,15 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Новый родитель не определен');
+            throw new ErrorException('Новый родитель пуст');
+        }
+
+        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, устанавливаемый новым родителем, не содержится в списке доступных документов');
+        }
+
+        if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
+            throw new ErrorException('Нельзя назначить связь на себя');
         }
 
         /* Получаем детей у текущего документа */
@@ -138,15 +163,24 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function getChildes()
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
         }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, у которого получаем детей, не содержится в списке доступных документов');
+        }
+
+        $owner = $this->owner;
+        $linkClass = $this->linkClass;
 
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksStructureTo')
+            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 
@@ -163,7 +197,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     public function setChild($documentObj)
     {
         if (($this->owner->{$this->linkFieldsArray['node_id']} === null) || !is_int($this->owner->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Текущий документ (owner) не определен');
+            throw new ErrorException('Текущий документ (owner) пуст');
+        }
+
+        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, к которому устанавливаем нового ребенка, не содержится в списке доступных документов');
         }
 
         if (!($documentObj instanceof Document)) {
@@ -171,7 +209,15 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         }
 
         if (($documentObj->{$this->linkFieldsArray['node_id']} === null) || !is_int($documentObj->{$this->linkFieldsArray['node_id']})) {
-            throw new ErrorException('Новый дочерний документ не определен');
+            throw new ErrorException('Новый дочерний документ пуст');
+        }
+
+        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+            throw new ErrorException('Документ, устанавливаемый новым ребенком, не содержится в списке доступных документов');
+        }
+
+        if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
+            throw new ErrorException('Нельзя назначить связь на себя');
         }
 
         /* Получаем родителей у текущего документа */
@@ -305,12 +351,19 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getStatusChildren()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         $query = $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksChildren')
+            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere())
+                    ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+            })
             ->inverseOf('statusParent');
 
         if (!empty($this->orderedField) && is_string($this->orderedField)) {
@@ -349,9 +402,11 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getStatusesTo()
     {
+        $owner = $this->owner;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
             ->via('linksTo')
@@ -363,12 +418,18 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getStatusesLower()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksStructureTo')
+            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 
@@ -377,12 +438,18 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getStatusesUpper()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksStructureFrom')
+            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere());
+            })
             ->indexBy('tag');
     }
 
@@ -393,12 +460,19 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getStatusParent()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasOne(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksParent');
+            ->via('linksParent', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere())
+                    ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+            });
     }
 
     /**
@@ -479,19 +553,21 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     /**
      * Получаем все статусы со связью с родителем
      *
-     * @param integer $docTypeId - id типа документа
-     *
      * @return ActiveQuery
      */
-    public function getDocumentsWithFlTreeLinks1Level($docTypeId)
+    public function getDocumentsWithFlTreeLinks1Level()
     {
-        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
 
-        return $owner::find()
-            ->where(['doc_type_id' => $docTypeId])
+        return $this->getDocuments()
             ->orderBy([$this->orderedField => SORT_ASC])
-            ->with('linksParent')
-            ->indexBy('tag');
+            ->with([
+                'linksFrom' => function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere())
+                        ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+                }
+            ]);
     }
 
     /**
@@ -513,12 +589,20 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      */
     public function getParentDocuments1And2Levels()
     {
+        $owner = $this->owner;
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+
         return $this->owner
             ->hasMany(
-                $this->owner->currentName,
+                $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('parentLinks1And2Levels')
+            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
+                $query->andOnCondition($linkClass::extraWhere())
+                    ->andWhere(['in', $this->linkFieldsArray['level'], [1, 2]])
+                    ->indexBy($this->linkFieldsArray['level']);
+            })
             ->indexBy($this->linkFieldsArray['node_id']);
     }
 }

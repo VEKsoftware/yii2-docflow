@@ -12,10 +12,12 @@
 
 namespace docflow\behaviors;
 
+use Closure;
 use docflow\models\Document;
 use docflow\models\Statuses;
 use yii\base\Behavior;
 use yii\base\ErrorException;
+use yii\db\ActiveQuery;
 
 class LinkBaseBehavior extends Behavior
 {
@@ -25,18 +27,32 @@ class LinkBaseBehavior extends Behavior
     public $owner;
 
     /**
-     * Имя класса связи
+     * Имя класса связи - обязательное свойство
      *
-     * @var object
+     * @var string
      */
     public $linkClass;
 
     /**
-     * Массив, содержащий имена полей в таблице со связями
+     * Массив, содержащий имена полей в таблице со связями - формируется в attach
      *
      * @var array
      */
     public $linkFieldsArray;
+
+    /**
+     * Callback, содержащий запрос ActiveQuery
+     *
+     * @var Closure
+     */
+    public $documentQuery;
+
+    /**
+     * Массив, содержащий доступные документы
+     *
+     * @var array
+     */
+    public $availableDocuments;
 
     /**
      * Поле, по которому будет идти сортировка
@@ -58,12 +74,16 @@ class LinkBaseBehavior extends Behavior
 
         $this->setLinkFieldsArray();
 
-        if (!($owner instanceof Statuses)) {
-            throw new ErrorException('Класс узла не принадлежит Statuses');
+        if (!($owner instanceof Document)) {
+            throw new ErrorException('Класс узла не принадлежит Document');
         }
 
-        if (empty($this->linkClass)) {
-            throw new ErrorException('Отсутствует класс связей');
+        if (empty($this->linkClass) || !is_string($this->linkClass)) {
+            throw new ErrorException('Отсутствует наимнование класса связи или не строкового типа');
+        }
+
+        if (($this->documentQuery === null) || !($this->documentQuery instanceof Closure)) {
+            throw new ErrorException('Запрос на поиск документов не определен или не принадлежит Closure');
         }
 
         /*
@@ -71,7 +91,6 @@ class LinkBaseBehavior extends Behavior
             throw new ErrorException('Отсутствует класс связей или не принадлежит Link');
         }*/
     }
-
 
     /**
      * Устанавливаем имена полей таблицы со связями
@@ -160,5 +179,31 @@ class LinkBaseBehavior extends Behavior
                 $this->linkClass,
                 [$this->linkFieldsArray['status_from'] => $this->linkFieldsArray['node_id']]
             );
+    }
+
+    /**
+     * Получаем документы по переданному в поведения запросу
+     *
+     * @return ActiveQuery
+     */
+    public function getDocuments()
+    {
+        return call_user_func($this->documentQuery)
+            ->indexBy($this->indexBy);
+    }
+
+    /**
+     * Получаем массив доступных документов.
+     * Если свойство пусто, то получаем из базы
+     *
+     * @return array
+     */
+    public function getAvailableDocuments()
+    {
+        if ($this->availableDocuments === null) {
+            $this->availableDocuments = $this->getDocuments()->all();
+        }
+
+        return $this->availableDocuments;
     }
 }

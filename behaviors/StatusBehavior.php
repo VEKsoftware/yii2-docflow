@@ -144,7 +144,7 @@ class StatusBehavior extends Behavior
     public function getStatus()
     {
         if (($this->owner->{$this->statusIdField} === null) || (!is_int($this->owner->{$this->statusIdField}))) {
-            throw new ErrorException('Идектификатор статуса не определен');
+            throw new ErrorException(BehaviorsMessages::STAT_STATUS_IS_EMPTY);
         }
 
         return Statuses::getStatusById($this->owner->{$this->statusIdField});
@@ -176,22 +176,22 @@ class StatusBehavior extends Behavior
     public function setStatus($statusObj)
     {
         if (!($statusObj instanceof Statuses)) {
-            throw new ErrorException('Устанавливаемый статус не принадлежит Statuses');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_TO_NOT_INSTANCEOF_STATUSES);
         }
 
         if (($statusObj->id === null) || !is_int($statusObj->id)) {
-            throw new ErrorException('Устанавливаемый статус пуст');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_ID_EMPTY_OR_NOT_INT);
         }
 
         /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */
         $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
 
         if ($hasChild === false) {
-            throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_NOT_CHILD_BY_ROOT_STATUS);
         }
 
         if ($this->owner->{$this->statusIdField} === $statusObj->id) {
-            throw new ErrorException('Текущий статус равен устанавливаемому');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_EQUAL_OLD_STATUS);
         }
 
         /* Получаем текущий статус */
@@ -201,11 +201,11 @@ class StatusBehavior extends Behavior
         $simpleLink = $status->getSimpleLinkByDocument($statusObj)->one();
 
         if (empty($simpleLink->right_tag)) {
-            throw new ErrorException('Отсутствует тэг доступа');
+            throw new ErrorException(BehaviorsMessages::STAT_SIMPLE_LINK_RIGHT_TAG_IS_EMPTY);
         }
 
         if (!($this->owner->isAllowed($simpleLink->right_tag))) {
-            throw new ErrorException('Нет права доступа для установки статуса');
+            throw new ErrorException(BehaviorsMessages::STAT_SIMPLE_LINK_NOT_ALLOWED);
         }
 
         /* Присваиваем документу новый статус, сохранеие необходимо производить отдельно */
@@ -225,22 +225,22 @@ class StatusBehavior extends Behavior
     public function setStatusSafe($statusObj)
     {
         if (!($statusObj instanceof Statuses)) {
-            throw new ErrorException('Устанавливаемый статус не принадлежит Statuses');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_TO_NOT_INSTANCEOF_STATUSES);
         }
 
         if (($statusObj->id === null) || !is_int($statusObj->id)) {
-            throw new ErrorException('Устанавливаемый статус пуст');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_ID_EMPTY_OR_NOT_INT);
         }
 
         /* Проверяем, что устанавливаемый статус является дочерним корневого статуса */
         $hasChild = $this->hasWhatStatusTheChildRootStatus($statusObj->id);
 
         if ($hasChild === false) {
-            throw new ErrorException('Устанавливаемый статус не является дочерним корневого статуса');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_NOT_CHILD_BY_ROOT_STATUS);
         }
 
         if ($this->owner->{$this->statusIdField} === $statusObj->id) {
-            throw new ErrorException('Текущий статус равен устанавливаемому');
+            throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_EQUAL_OLD_STATUS);
         }
 
         /* Присваиваем документу новый статус, сохранеие необходимо производить отдельно */

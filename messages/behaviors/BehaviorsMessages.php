@@ -82,9 +82,17 @@ class BehaviorsMessages extends Model
 
     const ORD_POSITION_NOT_CHANGE = 'Позиция не изменена';
     const ORD_POSITION_CAN_NOT_CHANGE = 'Позиция не может быть изменена';
-    
+
     const STAT_OWNER_NOT_INSTANCEOF_DOCUMENT = 'You can attach StatusesBehavior only to instances of docflow\models\Document';
     const STAT_PROPERTY_STATUS_ROOT_TAG_IS_EMPTY = 'StatusBehavior: You have to set status tag for new instance of the model ';
     const STAT_STATUS_ROOT_NOT_FOUND = 'Корневой статус не найден';
     const STAT_CURRENT_STATUS_NOT_ONE_OF_CHILD_ROOT_STATUS = 'Текущий статус не принадлежит корневому статусу';
+    const STAT_STATUS_IS_EMPTY = 'Идектификатор статуса не определен';
+    const STAT_NEW_STATUS_TO_NOT_INSTANCEOF_STATUSES = 'Устанавливаемый статус не является наследником Statuses';
+    const STAT_NEW_STATUS_ID_EMPTY_OR_NOT_INT = 'Устанавливаемый статус пуст';
+    const STAT_NEW_STATUS_NOT_CHILD_BY_ROOT_STATUS = 'Устанавливаемый статус не является дочерним корневого статуса';
+    const STAT_NEW_STATUS_EQUAL_OLD_STATUS = 'Устанавливаемый статус является текущим';
+    const STAT_SIMPLE_LINK_RIGHT_TAG_IS_EMPTY = 'Между устанавливаемым и старым статусом отсутствует простая связь или у протстой связи отсутствует тэг доступа';
+    const STAT_SIMPLE_LINK_NOT_ALLOWED = 'Нет права доступа для установки статуса';
+    
 }

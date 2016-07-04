@@ -1,5 +1,46 @@
 <?php
 
+/**
+ * Поведение предназначено для работы со статусами документа.
+ *
+ * Обязательные параметры:
+ * 1)statusRootTag - тэг корневого статуса
+ *
+ * Не обязательные параметры:
+ * 1)statusIdField - поле, в котором указывается значение статуса
+ *
+ * Методы:
+ * 1)getStatus() - получаем текущий статус документа, к которому прикреплено поведение
+ * 2)getAllStatuses() - получаем статусы, которые являются дочерними корневого статуса
+ * 3)setStatus(Obj) - устанавливаем новый статус документу, к которому прикреплено поведение
+ * 4)setStatusSafe(Obj) -устанавливаем новый статус документу, к которому прикреплено поведение, без проверки на право установки
+ * 5)getAvailableStatuses() - получаем статусы, на которые можно сменить текущий статус:
+ *                            1)дочерние корневого статуса
+ *                            2)имеют простую связь к статусу, к которому прикреплено поведение
+ *                            3)имеют тэг доступа
+ *                            4)разрешен доступ по тэгу доутупа
+ *
+ *
+ * Behavior is designed to work with the status of the document.
+ *
+ * Required parameters:
+ * 1)statusRootTag - root tag status
+ *
+ * Optional parameters:
+ * 1)statusIdField - field, which indicates the status value
+ *
+ * Methods:
+ * 1)getStatus() - get the current status of the document, which is attached behavior
+ * 2)getAllStatuses() - acquires the status of that are children of the root status
+ * 3)setStatus(Obj) - establish a new status document, which is attached behavior
+ * 4)setStatusSafe(Obj) - establish a new status document, which is attached to the behavior, without checking for the right to set
+ * 5)getAvailableStatuses() - receive the statuses, which can change the current status:
+ *                            1)the child of the root status
+ *                            2)have a simple links to the status to which the behavior is attached
+ *                            3)have right tag
+ *                            4) allow access for right tag
+ */
+
 namespace docflow\behaviors;
 
 use docflow\messages\behaviors\BehaviorsMessages;
@@ -11,7 +52,6 @@ use yii\base\ErrorException;
 
 use yii\helpers\ArrayHelper;
 
-use docflow\models\DocTypes;
 use docflow\models\Document;
 use docflow\models\Statuses;
 
@@ -24,17 +64,21 @@ use docflow\models\Statuses;
 class StatusBehavior extends Behavior
 {
     /**
-     * @var ActiveRecord the owner of this behavior
+     * The owner of this behavior
+     *
+     * @var ActiveRecord
      */
     public $owner;
 
     /**
-     * @var string The name of a field in the table for ID of the status
+     * The name of a field in the table for ID of the status
+     *
+     * @var string
      */
     public $statusIdField = 'status_id';
 
     /**
-     * Корневой статус
+     * Корневой статус - обязательный параметр
      *
      * @var string
      */
@@ -56,7 +100,7 @@ class StatusBehavior extends Behavior
         parent::attach($owner);
 
         if (!$owner instanceof Document) {
-            throw new ErrorException(BehaviorsMessages::STAT_OWNER_NOT_INSTANCEOF_DOCUMENT);
+            throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_NOT_INSTANCEOF_DOCUMENT);
         }
 
         if (empty($this->statusRootTag)) {
@@ -107,7 +151,7 @@ class StatusBehavior extends Behavior
         );
 
         if ($key === false) {
-            throw new ErrorException(BehaviorsMessages::STAT_CURRENT_STATUS_NOT_ONE_OF_CHILD_ROOT_STATUS);
+            throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_NOT_ONE_OF_CHILD_ROOT_STATUS);
         }
     }
 
@@ -144,7 +188,7 @@ class StatusBehavior extends Behavior
     public function getStatus()
     {
         if (($this->owner->{$this->statusIdField} === null) || (!is_int($this->owner->{$this->statusIdField}))) {
-            throw new ErrorException(BehaviorsMessages::STAT_STATUS_IS_EMPTY);
+            throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_IS_EMPTY);
         }
 
         return Statuses::getStatusById($this->owner->{$this->statusIdField});

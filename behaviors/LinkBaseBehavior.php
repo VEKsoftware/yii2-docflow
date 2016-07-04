@@ -42,14 +42,14 @@ class LinkBaseBehavior extends Behavior
     public $linkFieldsArray;
 
     /**
-     * Callback, содержащий запрос ActiveQuery
+     * Callback, содержащий запрос ActiveQuery  - обязательное свойство
      *
      * @var Closure
      */
     public $documentQuery;
 
     /**
-     * Массив, содержащий доступные документы
+     * Массив, содержащий доступные документы  - формируется в attach
      *
      * @var array
      */

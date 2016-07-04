@@ -4,6 +4,45 @@
  * User: dolgikh
  * Date: 16.06.16
  * Time: 12:15
+ *
+ * Поведение предназначено для работы с простыми связями.
+ * Подключается только к классу - наследнику Documents
+ *
+ * Обязательные параметры:
+ * 1)linkClass - полное имя класса связи
+ * 2)documentQuery - callback, содержащий ActiveQuery запрос на получение документов
+ *
+ * Не обязательные параметры:
+ * 1)orderedField  - поле, по которому будет идти упорядочивание
+ * 2)indexBy - поле, по которому будет идти индексирование
+ *
+ * Методы:
+ * 1)getDocuments() - получаем документы по переданному в поведение запросу
+ * 2)getSimpleLinks() - получение простых связей у документа, к которому прикреплено поведение
+ * 3)setSimpleLinks([Obj, Obj, ..]) - массово устанавливаем простые связи между документом, к которому прикреплено поведение
+ *                                    и документами переданными в массиве
+ * 4)addSimpleLink(Obj) - добавляем простую связь между документом, к которому прикреплено поведение и документом переданным в поведении
+ * 5)delSimpleLink(Obj) - удаляем простую связь между документом, к которому прикреплено поведение и документом переданным в поведении
+ *
+ *
+ * Behavior is designed to work with simple links.
+ * It connects only to the class - successor Documents
+ *
+ * Required parameters:
+ * 1)linkClass - the full name of the node class
+ * 2)documentQuery - callback, containing ActiveQuery request for documents
+ *
+ * Optional parameters:
+ * 1)orderedField  - field on which will go ordering
+ * 2)indexBy - field on which will go Indexed
+ *
+ * Methods:
+ * 1)getDocuments() - obtain the documents transmitted to the behavior of the request
+ * 2)getSimpleLinks() - obtaining simple links in the document to which the behavior is attached
+ * 3)setSimpleLinks([Obj, Obj, ..]) - mass establishes a simple links between the document to which the behavior is attached,
+ *                                    and the documents transmitted in the array
+ * 4)addSimpleLink(Obj) - add a simple link between the document, which is attached to the conduct and document transmitted in behavior
+ * 5)delSimpleLink(Obj) - delete a simple links between the document, which is attached to the conduct and document transmitted in behavior
  */
 
 namespace docflow\behaviors;

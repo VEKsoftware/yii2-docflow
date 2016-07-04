@@ -4,6 +4,43 @@
  * User: dolgikh
  * Date: 16.06.16
  * Time: 12:16
+ *
+ * Поведение предназначено для работы с fltree связями в графическом виде
+ * Подключается только к классу - наследнику Documents
+ *
+ * Обязательные параметры:
+ * 1)linkClass - полное имя класса связи
+ * 2)documentQuery - callback, содержащий ActiveQuery запрос на получение документов
+ *
+ * Не обязательные параметры:
+ * 1)orderedField  - поле, по которому будет идти упорядочивание
+ * 2)indexBy - поле, по которому будет идти индексирование
+ *
+ * Методы:
+ * 1)getDocuments() - получаем документы по переданному в поведение запросу
+ * 2)orderUp() - повышаем позицию статуса в уровне вложенности на более высокую позицию
+ * 3)orderDown() - опускаем позицию статуса в уровне вложенности на более низкую позицию
+ * 4)levelUp() - повышаем уровень вхождения
+ * 5)levelDown() - понижаем уровень вхождения
+ *
+ *
+ * Behavior is designed to work with fltree links in graphical form
+ * It connects only to the class - successor Documents
+ *
+ * Required parameters:
+ * 1)linkClass - the full name of the node class
+ * 2)documentQuery - callback, containing ActiveQuery request for documents
+ *
+ * Optional parameters:
+ * 1)orderedField  - field on which will go ordering
+ * 2)indexBy - field on which will go Indexed
+ *
+ * Methods:
+ * 1)getDocuments() - obtain the documents transmitted to the behavior of the request
+ * 2)orderUp() - raise the status of the position in the nesting level to a higher position
+ * 3)orderDown() - omit status position in the nesting level to a lower position
+ * 4)levelUp() - raise the level of entry
+ * 5)levelDown() - lowers entry
  */
 
 namespace docflow\behaviors;

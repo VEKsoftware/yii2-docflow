@@ -49,13 +49,6 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     public $documentQuery;
 
     /**
-     * Массив, содержащий доступные документы  - формируется в attach
-     *
-     * @var array
-     */
-    public $availableDocuments;
-
-    /**
      * Поле, по которому будет идти сортировка
      *
      * @var string
@@ -192,20 +185,5 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
         return call_user_func($this->documentQuery)
             ->orderBy([$this->orderedField => SORT_ASC])
             ->indexBy($this->indexBy);
-    }
-
-    /**
-     * Получаем массив доступных документов.
-     * Если свойство пусто, то получаем из базы
-     *
-     * @return array
-     */
-    public function getAvailableDocuments()
-    {
-        if ($this->availableDocuments === null) {
-            $this->availableDocuments = $this->getDocuments()->all();
-        }
-
-        return $this->availableDocuments;
     }
 }

@@ -43,13 +43,13 @@
 
 namespace docflow\behaviors;
 
+use docflow\base\ActivePropertiesBehavior;
 use docflow\messages\behaviors\BehaviorsMessages;
+
 use yii;
-use yii\base\Behavior;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\base\ErrorException;
-
 use yii\helpers\ArrayHelper;
 
 use docflow\models\Document;
@@ -61,7 +61,7 @@ use docflow\models\Statuses;
  * @property integer  statusIdField Название поля со статусом в таблице
  * @property Statuses status
  */
-class StatusBehavior extends Behavior
+class StatusBehavior extends ActivePropertiesBehavior
 {
     /**
      * The owner of this behavior
@@ -147,7 +147,7 @@ class StatusBehavior extends Behavior
     {
         $key = array_search(
             $this->owner->{$this->statusIdField},
-            array_column($this->getAllStatuses()->all(), 'id')
+            array_column($this->allStatuses, 'id')
         );
 
         if ($key === false) {
@@ -166,7 +166,7 @@ class StatusBehavior extends Behavior
     {
         $key = array_search(
             $statusId,
-            array_column($this->getAllStatuses()->all(), 'id')
+            array_column($this->allStatuses, 'id')
         );
 
         $return = true;
@@ -301,10 +301,10 @@ class StatusBehavior extends Behavior
     public function getAvailableStatuses()
     {
         /* Получаем дочерние статусы корневого статуса */
-        $childStatuses = $this->getAllStatuses()->all();
+        $childStatuses = $this->allStatuses;
 
         /* Получаем простые связи для текущего статуса */
-        $simpleLinks = $this->getStatus()->one()->getLinksTransitionsTo()->all();
+        $simpleLinks = $this->status->linksTransitionsTo;
 
         /* Формируем массив содержащий: ключ - тэг статуса, значение - id статуса, необходим для поиска по id */
         $childStatusesIdArray = ArrayHelper::getColumn($childStatuses, 'id');

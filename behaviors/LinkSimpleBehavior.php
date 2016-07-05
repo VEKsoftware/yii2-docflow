@@ -75,7 +75,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_OWNER_NOT_HAS_AVAILABLE);
         }
 
@@ -100,7 +100,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -166,7 +166,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
                 throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
             }
 
-            if (!array_key_exists($value->tag, $this->getAvailableDocuments())) {
+            if (!array_key_exists($value->tag, $this->documents)) {
                 throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
             }
         }
@@ -188,7 +188,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -200,7 +200,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($documentObj->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -210,18 +210,22 @@ class LinkSimpleBehavior extends LinkBaseBehavior
 
         $result = ['error' => 'Добавление простой связи не удалось'];
 
-        /* Проверяем, есть ли в БД уже такая связь */
-        $statusSimpleLink = $this->getSimpleLinkByDocument($documentObj)->one();
+        try {
+            /* Проверяем, есть ли в БД уже такая связь */
+            $statusSimpleLink = $this->getSimpleLinkByDocument($documentObj)->one();
 
-        if (is_object($statusSimpleLink)) {
-            throw new ErrorException(BehaviorsMessages::SL_IS_SET);
-        }
+            if (is_object($statusSimpleLink)) {
+                throw new ErrorException(BehaviorsMessages::SL_IS_SET);
+            }
 
-        /* Сохраняем простую связь */
-        $isSave = $this->prepareAndAddSimpleLink($documentObj);
+            /* Сохраняем простую связь */
+            $isSave = $this->prepareAndAddSimpleLink($documentObj);
 
-        if ($isSave === true) {
-            $result = ['success' => 'Простая связь успешно добавлена'];
+            if ($isSave === true) {
+                $result = ['success' => 'Простая связь успешно добавлена'];
+            }
+        } catch (ErrorException $e) {
+            $result = ['error' => $e->getMessage()];
         }
 
         return $result;
@@ -276,7 +280,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NOT_HAS_AVAILABLE);
         }
 
@@ -288,7 +292,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($documentObj->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NOT_HAS_AVAILABLE);
         }
 
@@ -409,43 +413,5 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     {
         return $this->getLinksTransitionsTo()
             ->andWhere(['in', $this->linkFieldsArray['status_to'], $list]);
-    }
-
-    /**
-     * Получаем структуру дерева статусов, для simple links
-     *
-     * @return array
-     */
-    public function getTreeWithSimpleLinks()
-    {
-        return array_map([$this, 'treeBranchWithSimpleLinks'], $this->owner->docType->statusesStructure);
-    }
-
-    /**
-     * Формируем ветви с учётом simple links
-     *
-     * @param mixed $val - Ветка
-     *
-     * @return array
-     */
-    protected function treeBranchWithSimpleLinks($val)
-    {
-        $linkBool = isset($this->owner->statusesTransitionTo[$val->tag]);
-
-        return array_merge(
-            [
-                'text' => $val->name,
-                'href' => '&tagFrom=' . $this->owner->tag . '&tagDoc=' . $val->docType->tag . '&tagTo=' . $val->tag,
-            ],
-            ($val->tag === $this->owner->tag)
-                ? ['backColor' => 'gray']
-                : [],
-            ($linkBool === true)
-                ? ['state' => ['checked' => true]]
-                : [],
-            (empty($val->statusChildren))
-                ? []
-                : ['nodes' => array_map([$this, 'treeBranchWithSimpleLinks'], $val->statusChildren)]
-        );
     }
 }

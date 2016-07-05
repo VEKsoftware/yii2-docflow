@@ -67,7 +67,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_UP_NOT_HAS_AVAILABLE);
         }
 
@@ -87,7 +87,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_DOWN_NOT_HAS_AVAILABLE);
         }
 
@@ -107,7 +107,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_UP_NOT_HAS_AVAILABLE);
         }
 
@@ -127,7 +127,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->getAvailableDocuments())) {
+        if (!array_key_exists($this->owner->tag, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_DOWN_NOT_HAS_AVAILABLE);
         }
 
@@ -178,7 +178,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     {
         try {
             /* Получаем все документы с ближайшей родительский связью */
-            $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level()->all();
+            $documentsWithParentLinks = $this->documentsWithFlTreeLinks1Level;
 
             /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
             $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);
@@ -340,7 +340,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
                     break;
                 case 'Right':
                     /* Получаем все документы с ближайшей родительский связью */
-                    $documentsWithParentLinks = $this->getDocumentsWithFlTreeLinks1Level()->all();
+                    $documentsWithParentLinks = $this->documentsWithFlTreeLinks1Level;
 
                     /* Получаем все документы, находящиеся на одном уровне с текущим документом, включая текущий */
                     $documentsOnLevel = $this->getDocumentsWithLevel($documentsWithParentLinks);

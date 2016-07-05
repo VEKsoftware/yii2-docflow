@@ -10,6 +10,7 @@
 
 namespace docflow\base;
 
+use docflow\models\Document;
 use yii\base\Behavior;
 use yii\base\UnknownPropertyException;
 use yii\db\ActiveQueryInterface;
@@ -38,7 +39,10 @@ class ActivePropertiesBehavior extends Behavior
 
         $value = parent::__get($name);
         if ($value instanceof ActiveQueryInterface) {
-            return $this->_cache[$name] = $value->findFor($name, $this);
+            /**
+             * @var Document $this->owner
+             */
+            return $this->_cache[$name] = $value->findFor($name, $this->owner);
         } else {
             return $value;
         }

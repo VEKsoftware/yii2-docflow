@@ -4,8 +4,13 @@ namespace docflow\controllers;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\testing\Users;
 use yii;
 
+use yii\base\ErrorException;
+use yii\base\InvalidConfigException;
+use yii\base\InvalidParamException;
+use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
@@ -47,7 +52,10 @@ class DocTypesController extends Controller
 
     /**
      * Lists all DocTypes models.
+     *
      * @return mixed
+     *
+     * @throws InvalidParamException
      * @throws ForbiddenHttpException
      */
     public function actionIndex()
@@ -70,7 +78,10 @@ class DocTypesController extends Controller
      * Displays a single DocTypes model.
      *
      * @param int $doc type_doc tag
+     *
      * @return mixed
+     *
+     * @throws InvalidParamException
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
@@ -123,7 +134,10 @@ class DocTypesController extends Controller
     /**
      * Creates a new DocTypes model.
      * If creation is successful, the browser will be redirected to the 'view' page.
+     *
      * @return mixed
+     *
+     * @throws \yii\base\InvalidParamException
      * @throws ForbiddenHttpException
      */
     public function actionCreate()
@@ -137,9 +151,7 @@ class DocTypesController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'doc' => $model->tag]);
         } else {
-            return $this->render('create', [
-                'model' => $model,
-            ]);
+            return $this->render('create', ['model' => $model]);
         }
     }
 
@@ -148,7 +160,10 @@ class DocTypesController extends Controller
      * If update is successful, the browser will be redirected to the 'view' page.
      *
      * @param int $doc type_doc tag
+     *
      * @return mixed
+     *
+     * @throws InvalidParamException
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      */
@@ -163,9 +178,7 @@ class DocTypesController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'doc' => $model->tag]);
         } else {
-            return $this->render('update', [
-                'model' => $model,
-            ]);
+            return $this->render('update', ['model' => $model]);
         }
     }
 
@@ -174,7 +187,10 @@ class DocTypesController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      *
      * @param int $doc doc_type tag
+     *
      * @return mixed
+     *
+     * @throws StaleObjectException
      * @throws ForbiddenHttpException
      * @throws NotFoundHttpException
      * @throws \Exception
@@ -197,8 +213,13 @@ class DocTypesController extends Controller
     /**
      * Creates a new Statuses model.
      * If creation is successful, the browser will be redirected to the 'view' page.
-     * @param string $tag the tag of the doc_type
+     *
+     * @param string $doc the tag of the doc_type
+     *
      * @return mixed
+     *
+     * @throws InvalidParamException
+     * @throws NotFoundHttpException
      * @throws ForbiddenHttpException
      */
     public function actionCreateStatus($doc)
@@ -233,10 +254,10 @@ class DocTypesController extends Controller
      *
      * @return mixed
      *
-     * @throws \yii\base\InvalidParamException
-     * @throws \yii\base\InvalidConfigException
-     * @throws \yii\web\ForbiddenHttpException
-     * @throws \yii\web\NotFoundHttpException
+     * @throws InvalidParamException
+     * @throws InvalidConfigException
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionStatusView($doc, $tag)
     {
@@ -252,22 +273,17 @@ class DocTypesController extends Controller
             throw new ForbiddenHttpException(Yii::t('docflow', 'Access restricted'));
         }
 
-        /**
-         * @var LinkSimpleBehavior $behavior
-         */
-        $behavior = $model->getBehavior('transitions');
-
         if (Yii::$app->request->isAjax) {
             return $this->renderAjax('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $behavior->getTreeWithSimpleLinks(),
+                'documents' => $document->statuses
             ]);
         } else {
             return $this->render('view-status', [
                 'doc' => $doc,
                 'model' => $model,
-                'tree' => $behavior->getTreeWithSimpleLinks(),
+                'documents' => $document->statuses
             ]);
         }
     }
@@ -278,9 +294,9 @@ class DocTypesController extends Controller
      * @param string $docTag - тэг типа документа
      * @param string $tag    - тэг документа
      *
-     * @return \docflow\models\Statuses
+     * @return Statuses
      *
-     * @throws \yii\web\NotFoundHttpException
+     * @throws NotFoundHttpException
      */
     protected function findStatusModel($docTag, $tag)
     {
@@ -295,11 +311,15 @@ class DocTypesController extends Controller
 
     /**
      * Обновляем статус документа
+     *
      * @param string $doc    Тэг документа
      * @param string $status Тэг статуса документа
-     * @return string|\yii\web\Response
-     * @throws \yii\web\ForbiddenHttpException
-     * @throws \yii\web\NotFoundHttpException
+     *
+     * @return string|Response
+     *
+     * @throws InvalidParamException
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionStatusUpdate($doc, $status)
     {
@@ -321,12 +341,16 @@ class DocTypesController extends Controller
 
     /**
      * Удаляем статус документа
+     *
      * @param string $doc    Тэг документа
      * @param string $status Тэг Статуса документа
-     * @return \yii\web\Response
+     *
+     * @return Response
+     *
+     * @throws StaleObjectException
      * @throws \Exception
-     * @throws \yii\web\ForbiddenHttpException
-     * @throws \yii\web\NotFoundHttpException
+     * @throws ForbiddenHttpException
+     * @throws NotFoundHttpException
      */
     public function actionStatusDelete($doc, $status)
     {
@@ -348,7 +372,9 @@ class DocTypesController extends Controller
      * @param string $docTag    - Тэг документа
      *
      * @return mixed
-     * @throws \yii\web\NotFoundHttpException
+     *
+     * @throws ErrorException
+     * @throws NotFoundHttpException
      */
     public function actionAjaxStatusTreeUp($statusTag, $docTag)
     {
@@ -372,8 +398,9 @@ class DocTypesController extends Controller
      *
      * @return mixed
      *
-     * @throws \yii\web\NotFoundHttpException
-     * @throws \yii\base\InvalidConfigException
+     * @throws ErrorException
+     * @throws NotFoundHttpException
+     * @throws InvalidConfigException
      */
     public function actionAjaxStatusTreeDown($statusTag, $docTag)
     {
@@ -397,8 +424,8 @@ class DocTypesController extends Controller
      *
      * @return array
      *
-     * @throws \yii\web\NotFoundHttpException
-     * @throws \yii\base\InvalidConfigException
+     * @throws NotFoundHttpException
+     * @throws InvalidConfigException
      */
     public function actionAjaxTree($docTag, $statusTag)
     {
@@ -425,9 +452,10 @@ class DocTypesController extends Controller
      *
      * @return array
      *
-     * @throws \yii\web\NotFoundHttpException
+     * @throws ErrorException
+     * @throws NotFoundHttpException
      * @throws \Exception
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function actionAjaxStatusTreeRight($statusTag, $docTag)
     {
@@ -451,9 +479,10 @@ class DocTypesController extends Controller
      *
      * @return array
      *
-     * @throws \yii\web\NotFoundHttpException
+     * @throws ErrorException
+     * @throws NotFoundHttpException
      * @throws \Exception
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function actionAjaxStatusTreeLeft($statusTag, $docTag)
     {
@@ -478,9 +507,9 @@ class DocTypesController extends Controller
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
-     * @throws \yii\web\NotFoundHttpException
-     * @throws \yii\base\ErrorException
-     * @throws \yii\base\InvalidConfigException
+     * @throws NotFoundHttpException
+     * @throws ErrorException
+     * @throws InvalidConfigException
      */
     public function actionAjaxAddSimpleLink($tagTo, $tagFrom, $tagDoc)
     {
@@ -505,10 +534,11 @@ class DocTypesController extends Controller
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
-     * @throws \yii\web\NotFoundHttpException
-     * @throws \yii\db\StaleObjectException
+     * @throws ErrorException
+     * @throws NotFoundHttpException
+     * @throws StaleObjectException
      * @throws \Exception
-     * @throws \yii\base\InvalidConfigException
+     * @throws InvalidConfigException
      */
     public function actionAjaxRemoveSimpleLink($tagTo, $tagFrom, $tagDoc)
     {

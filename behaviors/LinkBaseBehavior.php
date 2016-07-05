@@ -13,14 +13,14 @@
 namespace docflow\behaviors;
 
 use Closure;
+use docflow\base\ActivePropertiesBehavior;
 use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Statuses;
-use yii\base\Behavior;
 use yii\base\ErrorException;
 use yii\db\ActiveQuery;
 
-class LinkBaseBehavior extends Behavior
+class LinkBaseBehavior extends ActivePropertiesBehavior
 {
     /**
      * @var Statuses|Document
@@ -190,6 +190,7 @@ class LinkBaseBehavior extends Behavior
     public function getDocuments()
     {
         return call_user_func($this->documentQuery)
+            ->orderBy([$this->orderedField => SORT_ASC])
             ->indexBy($this->indexBy);
     }
 

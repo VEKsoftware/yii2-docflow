@@ -4,16 +4,21 @@ namespace docflow\controllers;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\behaviors\LinkStructuredBehavior;
 use docflow\testing\Users;
+use docflow\widgets\FlTreeWidget;
+use docflow\widgets\FlTreeWithSimpleLinksWidget;
 use yii;
 
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
+use yii\data\ActiveDataProvider;
 use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
+use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -29,6 +34,11 @@ use yii\web\Response;
  */
 class DocTypesController extends Controller
 {
+    /**
+     * Описываем поведения
+     *
+     * @return array
+     */
     public function behaviors()
     {
         return [
@@ -68,10 +78,13 @@ class DocTypesController extends Controller
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('index', [
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
-        ]);
+        return $this->render(
+            'index',
+            [
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider
+            ]
+        );
     }
 
     /**
@@ -103,11 +116,257 @@ class DocTypesController extends Controller
 
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
-        return $this->render('view', [
-            'model' => $model,
-            'searchModel' => $searchModel,
-            'dataProvider' => $dataProvider,
+        return $this->render(
+            'view',
+            [
+                'model' => $model,
+                'searchModel' => $searchModel,
+                'dataProvider' => $dataProvider,
+                'dataUrl' => Url::toRoute(['doc-types/ajax-get-child'])
+            ]
+        );
+    }
+
+    /**
+     * Получаем документы для родительского документа, которые находятся на переданной странице(номер)
+     *
+     * @param integer    $page        - номер страницы
+     * @param null|mixed $docIdentVal - значение идентификатора документа
+     *                                (идентификатор документа - поле, по которому находится документ)
+     *
+     * @return array
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
+     * @throws NotFoundHttpException
+     */
+    public function actionAjaxGetNext($page, $docIdentVal = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /* Поле, по которому идентифицируем документ */
+        $docIdentField = 'tag';
+
+        if ($docIdentVal === null) {
+            $statuses = new Statuses();
+        } else {
+            $statuses = $this->findStatusModel('vid', $docIdentVal);
+        }
+
+        /**
+         * @var LinkStructuredBehavior $structureBehavior
+         */
+        $structureBehavior = $statuses->getBehavior('structure');
+
+        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
+        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
+
+        /* Страница для провайдера берется из url */
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 2,
+                'totalCount' => $query->groupBy($groupBy)->count()
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
+                ]
+            ],
         ]);
+
+        $config = [
+            'docIdentField' => $docIdentField,
+            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'routeNext' => 'doc-types/ajax-get-next',
+            'routeChild' => 'doc-types/ajax-get-child',
+            'page' => $page
+        ];
+
+        return FlTreeWidget::getStructure($dataProvider, $config);
+    }
+
+    /**
+     * Формируем детей документа, идентификатор которого передан в аргументе
+     *
+     * @param mixed $docIdentVal - значение идентификатора документа
+     *                           (идентификатор документа - поле, по которому находится документ)
+     *
+     * @return array
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
+     * @throws NotFoundHttpException
+     */
+    public function actionAjaxGetChild($docIdentVal = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if ($docIdentVal === null) {
+            $statuses = new Statuses();
+        } else {
+            $statuses = $this->findStatusModel('vid', $docIdentVal);
+        }
+
+        /* Поле, по которому идентифицируем документ */
+        $docIdentField = 'tag';
+
+        /**
+         * @var LinkStructuredBehavior $structureBehavior
+         */
+        $structureBehavior = $statuses->getBehavior('structure');
+
+        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
+        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
+
+        /* Страница для провайдера берется из url */
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 2,
+                'totalCount' => $query->groupBy($groupBy)->count()
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
+                ]
+            ],
+        ]);
+
+        $config = [
+            'docIdentField' => $docIdentField,
+            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'routeNext' => 'doc-types/ajax-get-next',
+            'routeChild' => 'doc-types/ajax-get-child',
+            'page' => 1
+        ];
+
+        return FlTreeWidget::getStructure($dataProvider, $config);
+    }
+
+    /**
+     * Получаем документы для родительского документа, которые находятся на переданной странице(номер)
+     *
+     * @param integer    $page               - номер страницы
+     * @param mixed      $currentDocIdentVal - значение индентификатора документа от которого будем работать с простыми связями
+     * @param null|mixed $docIdentVal        - значение идентификатора документа
+     *                                       (идентификатор документа - поле, по которому находится документ)
+     *
+     * @return array
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
+     * @throws NotFoundHttpException
+     */
+    public function actionAjaxGetNextWithSimple($page, $currentDocIdentVal, $docIdentVal = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /* Поле, по которому идентифицируем документ */
+        $docIdentField = 'tag';
+
+        if ($docIdentVal === null) {
+            $statuses = new Statuses();
+        } else {
+            $statuses = $this->findStatusModel('vid', $docIdentVal);
+        }
+
+        /**
+         * @var LinkStructuredBehavior $structureBehavior
+         */
+        $structureBehavior = $statuses->getBehavior('structure');
+
+        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
+        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
+
+        /* Страница для провайдера берется из url */
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 2,
+                'totalCount' => $query->groupBy($groupBy)->count()
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
+                ]
+            ],
+        ]);
+
+        $config = [
+            'currentDocIdentVal' => $currentDocIdentVal,
+            'docIdentField' => $docIdentField,
+            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'routeNext' => 'doc-types/ajax-get-next-with-simple',
+            'routeChild' => 'doc-types/ajax-get-child-with-simple',
+            'routeAddSLink' => 'doc-types/ajax-add-simple-link',
+            'routeDelSLink' => 'doc-types/ajax-remove-simple-link',
+            'page' => $page
+        ];
+
+        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
+    }
+
+    /**
+     * Формируем детей документа, идентификатор которого передан в аргументе
+     *
+     * @param mixed $currentDocIdentVal - значение индентификатора документа от которого будем работать с простыми связями
+     * @param mixed $docIdentVal        - значение идентификатора документа
+     *                                  (идентификатор документа - поле, по которому находится документ)
+     *
+     * @return array
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
+     * @throws NotFoundHttpException
+     */
+    public function actionAjaxGetChildWithSimple($currentDocIdentVal, $docIdentVal = null)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        if ($docIdentVal === null) {
+            $statuses = new Statuses();
+        } else {
+            $statuses = $this->findStatusModel('vid', $docIdentVal);
+        }
+
+        /* Поле, по которому идентифицируем документ */
+        $docIdentField = 'tag';
+
+        /**
+         * @var LinkStructuredBehavior $structureBehavior
+         */
+        $structureBehavior = $statuses->getBehavior('structure');
+
+        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
+        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
+
+        /* Страница для провайдера берется из url */
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'pagination' => [
+                'pageSize' => 2,
+                'totalCount' => $query->groupBy($groupBy)->count()
+            ],
+            'sort' => [
+                'defaultOrder' => [
+                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
+                ]
+            ],
+        ]);
+
+        $config = [
+            'currentDocIdentVal' => $currentDocIdentVal,
+            'docIdentField' => $docIdentField,
+            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'routeNext' => 'doc-types/ajax-get-next-with-simple',
+            'routeChild' => 'doc-types/ajax-get-child-with-simple',
+            'routeAddSLink' => 'doc-types/ajax-add-simple-link',
+            'routeDelSLink' => 'doc-types/ajax-remove-simple-link',
+            'page' => 1
+        ];
+
+        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
     }
 
     /**
@@ -137,7 +396,7 @@ class DocTypesController extends Controller
      *
      * @return mixed
      *
-     * @throws \yii\base\InvalidParamException
+     * @throws InvalidParamException
      * @throws ForbiddenHttpException
      */
     public function actionCreate()
@@ -239,10 +498,13 @@ class DocTypesController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['view', 'doc' => $docObj->tag, 'tag' => $model->tag]);
         } else {
-            return $this->render('create-status', [
-                'doc' => $docObj,
-                'model' => $model,
-            ]);
+            return $this->render(
+                'create-status',
+                [
+                    'doc' => $docObj,
+                    'model' => $model
+                ]
+            );
         }
     }
 
@@ -274,17 +536,23 @@ class DocTypesController extends Controller
         }
 
         if (Yii::$app->request->isAjax) {
-            return $this->renderAjax('view-status', [
-                'doc' => $doc,
-                'model' => $model,
-                'documents' => $document->statuses
-            ]);
+            return $this->renderAjax(
+                'view-status',
+                [
+                    'doc' => $doc,
+                    'model' => $model,
+                    'dataUrl' => Url::toRoute(['doc-types/ajax-get-child-with-simple', 'currentDocIdentVal' => $tag])
+                ]
+            );
         } else {
-            return $this->render('view-status', [
-                'doc' => $doc,
-                'model' => $model,
-                'documents' => $document->statuses
-            ]);
+            return $this->render(
+                'view-status',
+                [
+                    'doc' => $doc,
+                    'model' => $model,
+                    'dataUrl' => Url::toRoute(['doc-types/ajax-get-child-with-simple', 'currentDocIdentVal' => $tag])
+                ]
+            );
         }
     }
 
@@ -332,10 +600,13 @@ class DocTypesController extends Controller
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             return $this->redirect(['status-view', 'doc' => $doc, 'tag' => $model->tag]);
         } else {
-            return $this->render('update-status', [
-                'model' => $model,
-                'doc' => $doc
-            ]);
+            return $this->render(
+                'update-status',
+                [
+                    'model' => $model,
+                    'doc' => $doc
+                ]
+            );
         }
     }
 
@@ -418,6 +689,7 @@ class DocTypesController extends Controller
 
     /**
      * Получаем древо по Ajax запросу
+     * TODO устаревший, не работает
      *
      * @param string $docTag    - Тэг документа
      * @param string $statusTag - Тэг статуса
@@ -501,9 +773,8 @@ class DocTypesController extends Controller
     /**
      * Действие добавления SimpleLink
      *
-     * @param string $tagTo   - Тэг статуса To
-     * @param string $tagFrom - Тэг статуса From
-     * @param string $tagDoc  - Тэг документа
+     * @param string $docIdentValFrom - значение идентификатора документа From
+     * @param string $docIdentValTo   - значение идентификатора документа To
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
@@ -511,26 +782,25 @@ class DocTypesController extends Controller
      * @throws ErrorException
      * @throws InvalidConfigException
      */
-    public function actionAjaxAddSimpleLink($tagTo, $tagFrom, $tagDoc)
+    public function actionAjaxAddSimpleLink($docIdentValFrom, $docIdentValTo)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $model = $this->findStatusModel($tagDoc, $tagFrom);
+        $model = $this->findStatusModel('vid', $docIdentValFrom);
 
         /**
          * @var LinkSimpleBehavior $behavior
          */
         $behavior = $model->getBehavior('transitions');
 
-        return $behavior->addSimpleLink($this->findStatusModel($tagDoc, $tagTo));
+        return $behavior->addSimpleLink($this->findStatusModel('vid', $docIdentValTo));
     }
 
     /**
      * Действие удаления SimpleLink
      *
-     * @param string $tagTo   - Тэг статуса To
-     * @param string $tagFrom - Тэг статуса From
-     * @param string $tagDoc  - Тэг документа
+     * @param string $docIdentValFrom - значение идентификатора документа From
+     * @param string $docIdentValTo   - значение идентификатора документа To
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
@@ -540,17 +810,80 @@ class DocTypesController extends Controller
      * @throws \Exception
      * @throws InvalidConfigException
      */
-    public function actionAjaxRemoveSimpleLink($tagTo, $tagFrom, $tagDoc)
+    public function actionAjaxRemoveSimpleLink($docIdentValFrom, $docIdentValTo)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $model = $this->findStatusModel($tagDoc, $tagFrom);
+        $model = $this->findStatusModel('vid', $docIdentValFrom);
 
         /**
          * @var LinkSimpleBehavior $behavior
          */
         $behavior = $model->getBehavior('transitions');
 
-        return $behavior->delSimpleLink($this->findStatusModel($tagDoc, $tagTo));
+        return $behavior->delSimpleLink($this->findStatusModel('vid', $docIdentValTo));
+    }
+
+    public function actionTestWidget()
+    {
+        //$testUsers = new Users();
+        $testUsers = Users::getUsersByShortName('a');
+
+        /* Поведения: simple, flTree, ordered */
+        /* Simple */
+        $departments = $testUsers->getBehavior('departments');
+        $representatives = $testUsers->getBehavior('representatives');
+
+        /* FlTree */
+        $firmTree = $testUsers->getBehavior('firmTree');
+        $partnerProgram = $testUsers->getBehavior('partnerProgram');
+        $subordination = $testUsers->getBehavior('subordination');
+
+        /* Ordered */
+        $firmTreeOrdered = $testUsers->getBehavior('firmTreeOrdered');
+        $partnerProgramOrdered = $testUsers->getBehavior('partnerProgramOrdered');
+        $subordinationOrdered = $testUsers->getBehavior('subordinationOrdered');
+
+        $documents = $firmTree->documents;
+
+        /*
+        echo '<pre>';
+        var_dump($documents);
+        echo '</pre>';
+        exit;
+        */
+
+        return $this->render('test', ['documents' => $documents]);
+    }
+
+    public function actionTest()
+    {
+        $testUsers = new Users();
+        //$testUsers = Users::getUsersByShortName('a');
+
+        /* Поведения: simple, flTree, ordered */
+        /* Simple */
+        $departments = $testUsers->getBehavior('departments');
+        $representatives = $testUsers->getBehavior('representatives');
+
+        /* FlTree */
+        $firmTree = $testUsers->getBehavior('firmTree');
+        $partnerProgram = $testUsers->getBehavior('partnerProgram');
+        $subordination = $testUsers->getBehavior('subordination');
+
+        /* Ordered */
+        $firmTreeOrdered = $testUsers->getBehavior('firmTreeOrdered');
+        $partnerProgramOrdered = $testUsers->getBehavior('partnerProgramOrdered');
+        $subordinationOrdered = $testUsers->getBehavior('subordinationOrdered');
+
+        $query = $firmTree->getDocumentsWithChild1LevelByRootDocument();
+        $groupBy = $firmTree->linkFieldsArray['node_id'];
+
+        $structure = Tree::getStructure($query, $groupBy, 1);
+
+        echo '<pre>';
+        var_dump($structure);
+        echo '</pre>';
+        exit;
     }
 }

@@ -41,7 +41,7 @@ class Statuses extends Document
      */
     public static function docTag()
     {
-        return 'status';
+        return 'vid';
     }
 
     /**
@@ -58,14 +58,22 @@ class Statuses extends Document
                 'linkClass' => StatusesLinksStructure::className(),
                 'orderedField' => 'order_idx',
                 'documentQuery' => function () {
-                    return static::find()->where(['doc_type_id' => $this->doc_type_id]);
+                    $query = static::find()->where(['doc_type_id' => 2]);
+                    /* True - конечный результат будет All(); null, false - one() */
+                    $query->multiple = true;
+
+                    return $query;
                 }
             ],
             'transitions' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => StatusesLinksTransitions::className(),
                 'documentQuery' => function () {
-                    return static::find();
+                    $query = static::find();
+                    /* True - конечный результат будет All(); null, false - one() */
+                    $query->multiple = true;
+
+                    return $query;
                 }
             ],
         ];
@@ -208,5 +216,15 @@ class Statuses extends Document
     {
         return static::find()
             ->where(['=', 'id', $statusId]);
+    }
+
+    /**
+     * Return field name which use how Document `name`
+     *
+     * @return string Document name
+     */
+    public static function docName()
+    {
+        return 'name';
     }
 }

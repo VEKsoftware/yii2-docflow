@@ -51,13 +51,16 @@ use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
+
 use Exception;
+
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
+
 use yii\db\ActiveQuery;
 use yii\db\StaleObjectException;
-use yii\helpers\Url;
+
+use yii\helpers\ArrayHelper;
 
 class LinkStructuredBehavior extends LinkBaseBehavior
 {
@@ -614,5 +617,73 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                     ->indexBy($this->linkFieldsArray['level']);
             })
             ->indexBy($this->linkFieldsArray['node_id']);
+    }
+
+    /**
+     * Получаем документы и их подчиненные связи 1 уровня для корневого документа
+     * 1)Если корневой документ не указан, то берем корневые документы
+     * 2)Если корневой документ указан, то берем его подчиненные документы
+     *
+     * @return ActiveQuery
+     */
+    public function getDocumentsWhichChild1LevelByRootDocument()
+    {
+        /* Передаем название класса связи в переменную ради удобства */
+        $linkClass = $this->linkClass;
+        $owner = $this->owner;
+
+        /* Запрос на получение документов, указанных в запросе при инициализации поведения, с подчиненными связями */
+        $query = $this->getDocuments()
+            ->with(
+                [
+                    'linksTo' => function (ActiveQuery $query) use ($linkClass) {
+                        $query->andOnCondition($linkClass::extraWhere())
+                            ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+                    },
+                ]
+            );
+
+
+        // Если текущий документ($owner) не загружен, то выбираем корневые документы (не имеют родеителя),
+        // если загружен, то дочерние документы 1 уровня текущего документа($owner)
+        if ($this->owner->isNewRecord === true) {
+            /* Получаем корневые документы (не имеют родеителя) */
+            $query->leftJoin(
+                $linkClass::tableName(),
+                [
+                    'and',
+                    $owner::tableName() . '.' . $this->linkFieldsArray['node_id'] . ' = ' . $linkClass::tableName() . '.' . $this->linkFieldsArray['status_to'],
+                    [$linkClass::tableName() . '.' . $this->linkFieldsArray['type'] => $linkClass::getType()],
+                    (isset($this->linkFieldsArray['relation_type']))
+                        ? [$linkClass::tableName() . '.' . $this->linkFieldsArray['relation_type'] => $linkClass::getRelationType()]
+                        : [],
+                ]
+            )
+                ->andWhere(
+                    ['is', $linkClass::tableName() . '.' . $this->linkFieldsArray['status_to'], null]
+                );
+        } else {
+            /* Получаем дочерние классы текущего документа($owner) */
+            $subQuery = $this->owner
+                ->hasMany(
+                    $owner::className(),
+                    [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
+                )
+                ->via(
+                    'linksTo',
+                    function (ActiveQuery $query) {
+                        $query->andWhere([$this->linkFieldsArray['level'] => 1]);
+                    }
+                )
+                ->indexBy($this->indexBy);
+
+            /* Получаем список id дочерних документов текущего документа ($owner) */
+            $childDocTagArray = ArrayHelper::getColumn($subQuery->all(), $this->linkFieldsArray['node_id']);
+
+            /* Получаем только те документы, которые есть в списке разрешенных */
+            $query->andWhere(['in', $this->linkFieldsArray['node_id'], $childDocTagArray]);
+        }
+
+        return $query;
     }
 }

@@ -1,18 +1,15 @@
 <?php
 
+use docflow\widgets\FlTreeWidget;
 use yii\helpers\Html;
-use yii\helpers\Url;
 
 use yii\widgets\DetailView;
-//use yii\widgets\Pjax;
 
-use yii\grid\GridView;
-
-use yii\web\JsExpression;
-use docflow\assets\TreeViewAsset;
-
-/* @var $this yii\web\View */
-/* @var $model docflow\models\DocTypes */
+/**
+ * @var $this yii\web\View
+ * @var $model docflow\models\DocTypes
+ * @var $dataUrl string
+ */
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses Doctypes'), 'url' => ['index']];
@@ -46,75 +43,5 @@ $this->params['breadcrumbs'][] = $this->title;
         <?= Html::a(Yii::t('docflow', 'Create Statuses'), ['create-status', 'doc' => $model->tag], ['class' => 'btn btn-success']) ?>
     </p>
 
-<div class="row">
-    <div class="col-sm-3">
-        <h3> <?=Yii::t('docflow', 'List of statuses')?> </h3>
-        <span id="tree-change-status"></span>
-        <div id="tree"></div>
-    </div>
-    <div class="col-sm-9">
-        <div id="tree-leaf"></div>
-    </div>
-</div>
-
-<?php
-function treeBranch($val)
-{
-    return array_merge(
-        [
-            'text' => $val->name,
-            'href' => Url::to(['status-view', 'doc' => $val->docType->tag, 'tag' => $val->tag]),
-        ],
-        (empty($val->statusChildren))
-            ? []
-            : ['nodes' => array_map('treeBranch', $val->statusChildren)]
-    );
-}
-
-$items = array_map('treeBranch', $model->statusesStructure);
-
-$data = json_encode($items);
-$this->registerJs("var data = $data");
-
-TreeViewAsset::register($this);
-
-$this->registerJs(<<<'JS'
-var onSelect = function (undefined, item) {
-    if (item.href !== location.pathname) {
-        $("#tree-leaf").load(item.href, function() {
-            $("#tree-leaf").trigger("domChanged");
-        });
-    }
-}
-
-var onUnselect = function (undefined, item) {
-    $("#tree-leaf").html('');
-}
-
-var $searchableTree = $('#tree').treeview({
-    data: data,
-    levels: 5,
-    onNodeSelected: onSelect,
-    onNodeUnselected: onUnselect
-});
-
-var search = function(e) {
-    var pattern = $('#input-search').val();
-    var options = {
-        ignoreCase: $('#chk-ignore-case').is(':checked'),
-        exactMatch: $('#chk-exact-match').is(':checked'),
-        revealResults: $('#chk-reveal-results').is(':checked')
-    };
-    var results = $searchableTree.treeview('search', [ pattern, options ]);
-
-    var output = '<p>' + results.length + ' matches found</p>';
-    $.each(results, function (index, result) {
-        output += '<p>- ' + result.text + '</p>';
-    });
-    $('#search-output').html(output);
-}
-JS
-);
-?>
-
+    <?php echo FlTreeWidget::widget(['renderView' => 'flTree', 'dataUrl' => $dataUrl]) ?>
 </div>

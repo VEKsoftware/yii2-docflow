@@ -6,16 +6,19 @@ use yii\web\AssetBundle;
 /**
  * Bower asset for Bootstrap Tree View
  *
- * @author eXeCUT
  */
 class TreeViewAsset extends AssetBundle {
-    public $sourcePath = '@bower/bootstrap-treeview/dist';
+    public $sourcePath = '@bower/bootstrap-treeview/src';
+    public $publishOptions = [
+        'forceCopy' => true,
+        'linkAssets' => true,
+    ];
     public $js = [
-        'bootstrap-treeview.min.js',
+        'js/bootstrap-treeview.js',
     ];
 
     public $css = [
-        'bootstrap-treeview.min.css',
+        'css/bootstrap-treeview.css',
     ];
 
     public $depends = [

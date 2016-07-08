@@ -9,6 +9,7 @@ use docflow\assets\TreeViewAsset;
 
 /**
  * @var $items array
+ * @var $dataUrl string
  */
 ?>
     <div class="row">
@@ -23,13 +24,35 @@ use docflow\assets\TreeViewAsset;
     </div>
 <?php
 
-$data = json_encode($items);
-$this->registerJs("var data = $data");
+$this->registerJs("var dataUrl = $dataUrl");
 
 TreeViewAsset::register($this);
 
 $this->registerJs(<<<'JS'
-var onSelect = function (undefined, item) {
+var onSelect = function (event, item) {
+    var tree = $('#tree').treeview(true);
+    
+    if (item.href_child && item.nodes === undefined) {
+        $.get(item.href_child, function(vars) {
+            var parent = tree.findNodes(item.text, 'text')[0];
+            tree.addNode(vars, parent, 0, { silent: true });
+        });
+    }
+    
+    if (item.href_next) {
+       $.get(item.href_next, function(vars) {
+            var parrent = false;
+    
+            if (item.parentId !== undefined)
+            {
+                parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+            }
+            
+            tree.removeNode( item, { silent: true });
+            tree.addNode(vars, parrent, false, { silent: true });
+        });
+    }
+    
     if (item.href !== location.pathname) {
         $("#tree-leaf").load(item.href, function() {
             $("#tree-leaf").trigger("domChanged");
@@ -37,31 +60,39 @@ var onSelect = function (undefined, item) {
     }
 }
 
-var onUnselect = function (undefined, item) {
+var onUnselect = function (event, item) {
     $("#tree-leaf").html('');
 }
 
-var $searchableTree = $('#tree').treeview({
-    data: data,
-    levels: 5,
-    onNodeSelected: onSelect,
-    onNodeUnselected: onUnselect
-});
-
-var search = function(e) {
-    var pattern = $('#input-search').val();
-    var options = {
-        ignoreCase: $('#chk-ignore-case').is(':checked'),
-        exactMatch: $('#chk-exact-match').is(':checked'),
-        revealResults: $('#chk-reveal-results').is(':checked')
+var onCollapsed = function(event, item) {
+    var tree = $('#tree').treeview(true);
+    var currentNode = {
+        'text': item.text,
+        'href': item.href,
+        'href_child': item.href_child,
+        'tags': item.tags
     };
-    var results = $searchableTree.treeview('search', [ pattern, options ]);
+    var currentIndex = item.index;
+    var parrent = false;
+    
+    if (item.parentId !== undefined)
+    {
+        parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+    }
 
-    var output = '<p>' + results.length + ' matches found</p>';
-    $.each(results, function (index, result) {
-        output += '<p>- ' + result.text + '</p>';
-    });
-    $('#search-output').html(output);
+    tree.removeNode(item, { silent: true });
+    tree.addNode(currentNode, parrent, currentIndex, { silent: true });
 }
+
+var $searchableTree = $('#tree').treeview({
+    dataUrl: {
+        url: dataUrl,
+    },
+    levels: 5,
+    showTags: true,
+    onNodeSelected: onSelect,
+    onNodeUnselected: onUnselect,
+    onNodeCollapsed: onCollapsed
+});
 JS
 );

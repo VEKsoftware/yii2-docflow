@@ -31,7 +31,16 @@ abstract class Document extends CommonRecord
      *
      * @return string Document name
      */
-    abstract public static function docName();
+    abstract public static function docNameField();
+
+    /**
+     * Получаем документ по его идентификатору
+     *
+     * @param integer $nodeId - id документа
+     *
+     * @return mixed
+     */
+    abstract public static function getDocumentByNodeId($nodeId);
 
     /**
      * Return description of the type of current document

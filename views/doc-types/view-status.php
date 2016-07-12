@@ -14,6 +14,9 @@ use yii\widgets\DetailView;
  * @var array    $documents
  * @var          $doc
  * @var string   $dataUrl
+ * @var array    $extra
+ * @var string   $flTreeUrl
+ * @var string   $flTreeWithSimpleUrl
  */
 
 TreeViewAsset::register($this);
@@ -24,8 +27,7 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
     <div class="statuses-view">
 
-        <h1><?= Html::encode($this->title) ?></h1>
-
+        <h1><?php echo Html::encode($this->title) ?></h1>
         <p>
         <div class="row">
             <div class="col-xs-2 text-left">
@@ -45,11 +47,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             [
                                 'ajax-status-tree-left',
                                 'statusTag' => $model->tag,
-                                'docTag' => $doc
+                                'docTag' => $doc,
+                                'extra' => $extra
                             ]
                         ),
-                        'data-doc-type' => $doc,
-                        'data-status-tag' => $model->tag,
+                        'data-doc-name' => $model->{$model->docNameField()},
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-fl-tree-with-simple-url' => $flTreeWithSimpleUrl,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
                     ]
                 ) ?>
@@ -62,11 +66,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             [
                                 'ajax-status-tree-up',
                                 'statusTag' => $model->tag,
-                                'docTag' => $doc
+                                'docTag' => $doc,
+                                'extra' => $extra
                             ]
                         ),
-                        'data-doc-type' => $doc,
-                        'data-status-tag' => $model->tag,
+                        'data-doc-name' => $model->{$model->docNameField()},
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-fl-tree-with-simple-url' => $flTreeWithSimpleUrl,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
                     ]
                 ) ?>
@@ -79,11 +85,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             [
                                 'ajax-status-tree-down',
                                 'statusTag' => $model->tag,
-                                'docTag' => $doc
+                                'docTag' => $doc,
+                                'extra' => $extra
                             ]
                         ),
-                        'data-doc-type' => $doc,
-                        'data-status-tag' => $model->tag,
+                        'data-doc-name' => $model->{$model->docNameField()},
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-fl-tree-with-simple-url' => $flTreeWithSimpleUrl,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
                     ]
                 ) ?>
@@ -96,11 +104,13 @@ $this->params['breadcrumbs'][] = $this->title;
                             [
                                 'ajax-status-tree-right',
                                 'statusTag' => $model->tag,
-                                'docTag' => $doc
+                                'docTag' => $doc,
+                                'extra' => $extra
                             ]
                         ),
-                        'data-doc-type' => $doc,
-                        'data-status-tag' => $model->tag,
+                        'data-doc-name' => $model->{$model->docNameField()},
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-fl-tree-with-simple-url' => $flTreeWithSimpleUrl,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
                     ]
                 ) ?>
@@ -134,4 +144,7 @@ $this->params['breadcrumbs'][] = $this->title;
 
     </div>
 
-<?php echo FlTreeWithSimpleLinksWidget::widget(['renderView' => 'flTreeWithSimpleLinks', 'dataUrl' => $dataUrl]);
+<?php echo FlTreeWithSimpleLinksWidget::widget([
+    'renderView' => 'flTreeWithSimpleLinks',
+    'dataUrl' => $flTreeWithSimpleUrl
+]);

@@ -62,6 +62,13 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
      */
     public $indexBy = 'tag';
 
+    /**
+     * Условия дополнителоьной фильтрации из внешних источников
+     *
+     * @var array
+     */
+    public $extraFilter = [];
+
     public function attach($owner)
     {
         parent::attach($owner);
@@ -183,6 +190,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     public function getDocuments()
     {
         return call_user_func($this->documentQuery)
+            ->andWhere($this->extraFilter)
             ->orderBy([$this->orderedField => SORT_ASC])
             ->indexBy($this->indexBy);
     }

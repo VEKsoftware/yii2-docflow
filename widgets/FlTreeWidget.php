@@ -57,14 +57,15 @@ class FlTreeWidget extends Widget
      */
     public static function getStructure(ActiveDataProvider $docADP, array $config)
     {
-        static::checkConfiguration($config);
+        //TODO разкоментировать и переписать проверки
+        //static::checkConfiguration($config);
 
-        $structure = static::getMainStructure($docADP, $config);
-        $structure = static::getNextPageButton($docADP, $config, $structure);
-
-        return $structure;
+        return array_merge(
+            static::prepareMainStructure($docADP, $config),
+            static::prepareNextPageButtonStructure($docADP, $config)
+        );
     }
-    
+
     /**
      * Получаем основную структуру
      *
@@ -72,35 +73,19 @@ class FlTreeWidget extends Widget
      * @param array              $config - конфигурация
      *
      * @return array
-     * @throws \yii\base\InvalidParamException
+     *
+     * @throws InvalidParamException
      */
-    protected static function getMainStructure(ActiveDataProvider $docADP, array $config)
+    protected static function prepareMainStructure(ActiveDataProvider $docADP, array $config)
     {
         return array_map(
             function (Document $value) use ($config) {
-                /* Проверяем, есть-ли у документа подчиненные документы */
-                $haveChild = static::checkChild($value);
-                /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
-                $countChild = count($value->linksTo);
+                $main = static::getMainPart($value, $config);
+                $child = static::getChildPart($value, $config);
 
                 return array_merge(
-                    [
-                        'text' => $value->{$value->docName()},
-                        //TODO надо сдлеать абстрактно переменные
-                        'href' => Url::to(['status-view', 'doc' => $value->docTag(), 'tag' => $value->tag, 'currentDocIdentVal' => $value->tag]),
-                    ],
-                    ($haveChild === true)
-                        ?
-                        [
-                            'href_child' => Url::toRoute(
-                                [
-                                    $config['routeChild'],
-                                    'docIdentVal' => $value->{$config['docIdentField']}
-                                ]
-                            ),
-                            'tags' => [$countChild],
-                        ]
-                        : []
+                    $main,
+                    $child
                 );
             },
             array_values($docADP->models)
@@ -108,17 +93,101 @@ class FlTreeWidget extends Widget
     }
 
     /**
-     * Добавляем к структуре кнопку для отображения следующего набора данных(следующая страница)
+     * Формируем и получаем основную часть структуры
      *
-     * @param ActiveDataProvider $documentsADP - провайдер с документами
-     * @param array              $config       - конфигурация
-     * @param array              $structure    - структура для передачи в treeview
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
      *
      * @return array
      *
      * @throws InvalidParamException
      */
-    protected static function getNextPageButton(ActiveDataProvider $documentsADP, array $config, array $structure)
+    protected static function getMainPart(Document $value, array $config)
+    {
+        return [
+            'text' => $value->{$value->docNameField()},
+            'href' => static::getDocumentViewLink($config, $value),
+        ];
+    }
+
+    /**
+     * Формируем и получаем часть структуры, которая описывает наличие детей у документа
+     *
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function getChildPart(Document $value, array $config)
+    {
+        $child = [];
+
+        /* Проверяем, есть-ли у документа подчиненные документы */
+        $haveChild = static::checkChild($value);
+
+        /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
+        $countChild = count($value->linksTo);
+
+        if ($haveChild === true) {
+            $child = [
+                'href_child' => Url::toRoute(
+                    [
+                        $config['routeChild'],
+                        'nodeIdValue' => $value->{$config['nodeIdField']},
+                        'extra' => $config['extra']
+                    ]
+                ),
+                'tags' => [$countChild],
+            ];
+        }
+
+        return $child;
+    }
+
+    /**
+     * Формируем ссылку на просмотр документа
+     *
+     * @param array    $config - конфигурация
+     * @param Document $value  - Документ
+     *
+     * @return string
+     *
+     * @throws InvalidParamException
+     */
+    protected static function getDocumentViewLink(array $config, $value)
+    {
+        $routeArray = [$config['routeDocumentView']];
+
+        foreach ($config['documentViewParam'] as $param) {
+            $paramValue = '';
+
+            if ($param['type'] === 'property') {
+                $paramValue = $value->{$param['value']};
+            }
+
+            if ($param['type'] === 'function') {
+                $paramValue = call_user_func([$value::className(), $param['value']]);
+            }
+
+            $routeArray = array_merge($routeArray, [$param['key'] => $paramValue]);
+        }
+
+        return Url::to($routeArray);
+    }
+
+    /**
+     * Добавляем к структуре кнопку для отображения следующего набора данных(следующая страница)
+     *
+     * @param ActiveDataProvider $documentsADP - провайдер с документами
+     * @param array              $config       - конфигурация
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function prepareNextPageButtonStructure(ActiveDataProvider $documentsADP, array $config)
     {
         /* Структура следующей страницы */
         $nextPage = [];
@@ -133,20 +202,36 @@ class FlTreeWidget extends Widget
         $countLast = ($documentsADP->totalCount - ($currentPage * $pageSize));
 
         if ($currentPage < $pagination->pageCount) {
-            $nextPage = [
-                [
-                    'text' => '...',
-                    'href_next' => Url::toRoute([
-                        $config['routeNext'],
-                        'page' => ++$config['page'],
-                        'docIdentVal' => $config['docIdentVal']
-                    ]),
-                    'tags' => [$countLast]
-                ]
-            ];
+            $nextPage = static::getNextPagePart($config, $countLast);
         }
 
-        return array_merge($structure, $nextPage);
+        return $nextPage;
+    }
+
+    /**
+     * Формируем и получаем структуру, описывающую элемент - подгружащий документы, которые не вошли в прошлую выборку
+     *
+     * @param array   $config    - конфигурация
+     * @param integer $countLast - количество оставшихся документов не раскрытыми
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function getNextPagePart(array $config, $countLast)
+    {
+        return [
+            [
+                'text' => '...',
+                'href_next' => Url::toRoute([
+                    $config['routeNext'],
+                    'page' => ++$config['page'],
+                    'nodeIdValue' => $config['nodeIdValue'],
+                    'extra' => $config['extra']
+                ]),
+                'tags' => [$countLast]
+            ]
+        ];
     }
 
     /**

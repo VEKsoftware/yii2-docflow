@@ -204,13 +204,13 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
         }
 
-        if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
-            throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
-        }
-
         $result = ['error' => 'Добавление простой связи не удалось'];
 
         try {
+            if ($this->owner->{$this->linkFieldsArray['node_id']} === $documentObj->{$this->linkFieldsArray['node_id']}) {
+                throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
+            }
+
             /* Проверяем, есть ли в БД уже такая связь */
             $statusSimpleLink = $this->getSimpleLinkByDocument($documentObj)->one();
 
@@ -349,7 +349,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**
@@ -371,7 +371,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**

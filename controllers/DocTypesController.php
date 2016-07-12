@@ -122,7 +122,10 @@ class DocTypesController extends Controller
                 'model' => $model,
                 'searchModel' => $searchModel,
                 'dataProvider' => $dataProvider,
-                'dataUrl' => Url::toRoute(['doc-types/ajax-get-child'])
+                'dataUrl' => Url::toRoute([
+                    'doc-types/ajax-get-child',
+                    'extra' => json_encode(['doc_type_id' => $model->id])
+                ])
             ]
         );
     }
@@ -130,9 +133,9 @@ class DocTypesController extends Controller
     /**
      * Получаем документы для родительского документа, которые находятся на переданной странице(номер)
      *
-     * @param integer    $page        - номер страницы
-     * @param null|mixed $docIdentVal - значение идентификатора документа
-     *                                (идентификатор документа - поле, по которому находится документ)
+     * @param integer      $page        - номер страницы
+     * @param string|null  $extra       - json строка содержащая данные для доп фильтрации документов
+     * @param integer|null $nodeIdValue - значение идентификатора документа
      *
      * @return array
      *
@@ -140,23 +143,24 @@ class DocTypesController extends Controller
      * @throws InvalidParamException
      * @throws NotFoundHttpException
      */
-    public function actionAjaxGetNext($page, $docIdentVal = null)
+    public function actionAjaxGetNext($page, $extra = null, $nodeIdValue = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        /* Поле, по которому идентифицируем документ */
-        $docIdentField = 'tag';
-
-        if ($docIdentVal === null) {
+        if ($nodeIdValue === null) {
             $statuses = new Statuses();
         } else {
-            $statuses = $this->findStatusModel('vid', $docIdentVal);
+            $statuses = Statuses::getDocumentByNodeId($nodeIdValue)->one();
         }
 
         /**
          * @var LinkStructuredBehavior $structureBehavior
          */
         $structureBehavior = $statuses->getBehavior('structure');
+
+        if ($extra !== null) {
+            $structureBehavior->extraFilter = (array)json_decode($extra);
+        }
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
         $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
@@ -165,7 +169,7 @@ class DocTypesController extends Controller
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 50,
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
@@ -176,10 +180,18 @@ class DocTypesController extends Controller
         ]);
 
         $config = [
-            'docIdentField' => $docIdentField,
-            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'extra' => $extra,
+            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdValue' => ($statuses->{$statuses->linkFieldsArray['node_id']})
+                ? $statuses->{$statuses->linkFieldsArray['node_id']}
+                : null,
             'routeNext' => 'doc-types/ajax-get-next',
             'routeChild' => 'doc-types/ajax-get-child',
+            'routeDocumentView' => 'status-view',
+            'documentViewParam' => [
+                ['type' => 'function', 'key' => 'doc', 'value' => 'docTag'],
+                ['type' => 'property', 'key' => 'tag', 'value' => 'tag']
+            ],
             'page' => $page
         ];
 
@@ -189,8 +201,8 @@ class DocTypesController extends Controller
     /**
      * Формируем детей документа, идентификатор которого передан в аргументе
      *
-     * @param mixed $docIdentVal - значение идентификатора документа
-     *                           (идентификатор документа - поле, по которому находится документ)
+     * @param string|null  $extra       - json строка содержащая данные для доп фильтрации документов
+     * @param integer|null $nodeIdValue - значение идентификатора документа
      *
      * @return array
      *
@@ -198,23 +210,24 @@ class DocTypesController extends Controller
      * @throws InvalidParamException
      * @throws NotFoundHttpException
      */
-    public function actionAjaxGetChild($docIdentVal = null)
+    public function actionAjaxGetChild($extra = null, $nodeIdValue = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($docIdentVal === null) {
+        if ($nodeIdValue === null) {
             $statuses = new Statuses();
         } else {
-            $statuses = $this->findStatusModel('vid', $docIdentVal);
+            $statuses = Statuses::getDocumentByNodeId($nodeIdValue)->one();
         }
-
-        /* Поле, по которому идентифицируем документ */
-        $docIdentField = 'tag';
 
         /**
          * @var LinkStructuredBehavior $structureBehavior
          */
         $structureBehavior = $statuses->getBehavior('structure');
+
+        if ($extra !== null) {
+            $structureBehavior->extraFilter = (array)json_decode($extra);
+        }
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
         $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
@@ -223,7 +236,7 @@ class DocTypesController extends Controller
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 50,
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
@@ -234,10 +247,18 @@ class DocTypesController extends Controller
         ]);
 
         $config = [
-            'docIdentField' => $docIdentField,
-            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'extra' => $extra,
+            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdValue' => ($statuses->{$statuses->linkFieldsArray['node_id']})
+                ? $statuses->{$statuses->linkFieldsArray['node_id']}
+                : null,
             'routeNext' => 'doc-types/ajax-get-next',
             'routeChild' => 'doc-types/ajax-get-child',
+            'routeDocumentView' => 'status-view',
+            'documentViewParam' => [
+                ['type' => 'function', 'key' => 'doc', 'value' => 'docTag'],
+                ['type' => 'property', 'key' => 'tag', 'value' => 'tag']
+            ],
             'page' => 1
         ];
 
@@ -247,10 +268,10 @@ class DocTypesController extends Controller
     /**
      * Получаем документы для родительского документа, которые находятся на переданной странице(номер)
      *
-     * @param integer    $page               - номер страницы
-     * @param mixed      $currentDocIdentVal - значение индентификатора документа от которого будем работать с простыми связями
-     * @param null|mixed $docIdentVal        - значение идентификатора документа
-     *                                       (идентификатор документа - поле, по которому находится документ)
+     * @param integer     $page          - номер страницы
+     * @param integer     $fromNodeId    - значение индентификатора документа от которого будем работать с простыми связями
+     * @param string|null $extra         - json строка содержащая данные для доп фильтрации документов
+     * @param integer     $currentNodeId - идентификатор текущего документв в структуре с простыми связями
      *
      * @return array
      *
@@ -258,23 +279,24 @@ class DocTypesController extends Controller
      * @throws InvalidParamException
      * @throws NotFoundHttpException
      */
-    public function actionAjaxGetNextWithSimple($page, $currentDocIdentVal, $docIdentVal = null)
+    public function actionAjaxGetNextWithSimple($page, $fromNodeId, $extra = null, $currentNodeId = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        /* Поле, по которому идентифицируем документ */
-        $docIdentField = 'tag';
-
-        if ($docIdentVal === null) {
+        if ($currentNodeId === null) {
             $statuses = new Statuses();
         } else {
-            $statuses = $this->findStatusModel('vid', $docIdentVal);
+            $statuses = Statuses::getDocumentByNodeId($currentNodeId)->one();
         }
 
         /**
          * @var LinkStructuredBehavior $structureBehavior
          */
         $structureBehavior = $statuses->getBehavior('structure');
+
+        if ($extra !== null) {
+            $structureBehavior->extraFilter = (array)json_decode($extra);
+        }
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
         $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
@@ -283,7 +305,7 @@ class DocTypesController extends Controller
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 50,
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
@@ -293,10 +315,17 @@ class DocTypesController extends Controller
             ],
         ]);
 
+        /* Получаем документы с родительскими связями 1 уровня */
+        $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        $simpleBehavior = $parentDocument->getBehavior('transitions');
+        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
+
         $config = [
-            'currentDocIdentVal' => $currentDocIdentVal,
-            'docIdentField' => $docIdentField,
-            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'extra' => $extra,
+            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'fromNodeId' => $fromNodeId,
+            'currentNodeId' => ($currentNodeId === null) ? null : $statuses->{$statuses->linkFieldsArray['node_id']},
+            'toNodeIdField' => $statuses->linkFieldsArray['node_id'],
             'routeNext' => 'doc-types/ajax-get-next-with-simple',
             'routeChild' => 'doc-types/ajax-get-child-with-simple',
             'routeAddSLink' => 'doc-types/ajax-add-simple-link',
@@ -310,9 +339,9 @@ class DocTypesController extends Controller
     /**
      * Формируем детей документа, идентификатор которого передан в аргументе
      *
-     * @param mixed $currentDocIdentVal - значение индентификатора документа от которого будем работать с простыми связями
-     * @param mixed $docIdentVal        - значение идентификатора документа
-     *                                  (идентификатор документа - поле, по которому находится документ)
+     * @param integer     $fromNodeId    - значение индентификатора документа от которого будем работать с простыми связями
+     * @param string|null $extra         - json строка содержащая данные для доп фильтрации документов
+     * @param integer     $currentNodeId - идентификатор текущего документв в структуре с простыми связями
      *
      * @return array
      *
@@ -320,23 +349,24 @@ class DocTypesController extends Controller
      * @throws InvalidParamException
      * @throws NotFoundHttpException
      */
-    public function actionAjaxGetChildWithSimple($currentDocIdentVal, $docIdentVal = null)
+    public function actionAjaxGetChildWithSimple($fromNodeId, $extra = null, $currentNodeId = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($docIdentVal === null) {
+        if ($currentNodeId === null) {
             $statuses = new Statuses();
         } else {
-            $statuses = $this->findStatusModel('vid', $docIdentVal);
+            $statuses = Statuses::getDocumentByNodeId($currentNodeId)->one();
         }
-
-        /* Поле, по которому идентифицируем документ */
-        $docIdentField = 'tag';
 
         /**
          * @var LinkStructuredBehavior $structureBehavior
          */
         $structureBehavior = $statuses->getBehavior('structure');
+
+        if ($extra !== null) {
+            $structureBehavior->extraFilter = (array)json_decode($extra);
+        }
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
         $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
@@ -345,7 +375,7 @@ class DocTypesController extends Controller
         $dataProvider = new ActiveDataProvider([
             'query' => $query,
             'pagination' => [
-                'pageSize' => 2,
+                'pageSize' => 50,
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
@@ -355,10 +385,17 @@ class DocTypesController extends Controller
             ],
         ]);
 
+        /* Получаем документы с родительскими связями 1 уровня */
+        $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        $simpleBehavior = $parentDocument->getBehavior('transitions');
+        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
+
         $config = [
-            'currentDocIdentVal' => $currentDocIdentVal,
-            'docIdentField' => $docIdentField,
-            'docIdentVal' => ($statuses->{$docIdentField}) ? $statuses->{$docIdentField} : null,
+            'extra' => $extra,
+            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'fromNodeId' => $fromNodeId,
+            'toNodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'currentNodeId' => ($currentNodeId === null) ? null : $statuses->{$statuses->linkFieldsArray['node_id']},
             'routeNext' => 'doc-types/ajax-get-next-with-simple',
             'routeChild' => 'doc-types/ajax-get-child-with-simple',
             'routeAddSLink' => 'doc-types/ajax-add-simple-link',
@@ -524,6 +561,7 @@ class DocTypesController extends Controller
     public function actionStatusView($doc, $tag)
     {
         $document = $this->findModel($doc);
+        $extra = json_encode(['doc_type_id' => $document->id]);
 
         $model = $document->statuses[$tag];
 
@@ -541,7 +579,20 @@ class DocTypesController extends Controller
                 [
                     'doc' => $doc,
                     'model' => $model,
-                    'dataUrl' => Url::toRoute(['doc-types/ajax-get-child-with-simple', 'currentDocIdentVal' => $tag])
+                    'extra' => $extra,
+                    'flTreeUrl' => Url::toRoute(
+                        [
+                            'doc-types/ajax-get-child',
+                            'extra' => $extra,
+                        ]
+                    ),
+                    'flTreeWithSimpleUrl' => Url::toRoute(
+                        [
+                            'doc-types/ajax-get-child-with-simple',
+                            'extra' => $extra,
+                            'fromNodeId' => $model->id
+                        ]
+                    )
                 ]
             );
         } else {
@@ -550,7 +601,20 @@ class DocTypesController extends Controller
                 [
                     'doc' => $doc,
                     'model' => $model,
-                    'dataUrl' => Url::toRoute(['doc-types/ajax-get-child-with-simple', 'currentDocIdentVal' => $tag])
+                    'extra' => $extra,
+                    'flTreeUrl' => Url::toRoute(
+                        [
+                            'doc-types/ajax-get-child',
+                            'extra' => $extra,
+                        ]
+                    ),
+                    'flTreeWithSimpleUrl' => Url::toRoute(
+                        [
+                            'doc-types/ajax-get-child-with-simple',
+                            'extra' => $extra,
+                            'fromNodeId' => $model->id,
+                        ]
+                    )
                 ]
             );
         }
@@ -639,15 +703,16 @@ class DocTypesController extends Controller
     /**
      * Перемещаем статус на позицию выше (в пределах своего уровня вложенности)
      *
-     * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
+     * @param string      $statusTag - Тэг статуса
+     * @param string      $docTag    - Тэг документа
+     * @param string|null $extra     - json строка содержащая данные для доп фильтрации документов
      *
      * @return mixed
      *
      * @throws ErrorException
      * @throws NotFoundHttpException
      */
-    public function actionAjaxStatusTreeUp($statusTag, $docTag)
+    public function actionAjaxStatusTreeUp($statusTag, $docTag, $extra = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -657,6 +722,10 @@ class DocTypesController extends Controller
          * @var LinkOrderedBehavior $behavior
          */
         $behavior = $model->getBehavior('structure');
+
+        if ($extra !== null) {
+            $behavior->extraFilter = (array)json_decode($extra);
+        }
 
         return $behavior->orderUp();
     }
@@ -664,8 +733,9 @@ class DocTypesController extends Controller
     /**
      * Перемещаем статус на позицию ниже в древе (в пределах своего уровня вложенности)
      *
-     * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
+     * @param string      $statusTag - Тэг статуса
+     * @param string      $docTag    - Тэг документа
+     * @param string|null $extra     - json строка содержащая данные для доп фильтрации документов
      *
      * @return mixed
      *
@@ -673,7 +743,7 @@ class DocTypesController extends Controller
      * @throws NotFoundHttpException
      * @throws InvalidConfigException
      */
-    public function actionAjaxStatusTreeDown($statusTag, $docTag)
+    public function actionAjaxStatusTreeDown($statusTag, $docTag, $extra = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -683,44 +753,20 @@ class DocTypesController extends Controller
          * @var LinkOrderedBehavior $behavior
          */
         $behavior = $model->getBehavior('structure');
+
+        if ($extra !== null) {
+            $behavior->extraFilter = (array)json_decode($extra);
+        }
 
         return $behavior->orderDown();
     }
 
     /**
-     * Получаем древо по Ajax запросу
-     * TODO устаревший, не работает
-     *
-     * @param string $docTag    - Тэг документа
-     * @param string $statusTag - Тэг статуса
-     *
-     * @return array
-     *
-     * @throws NotFoundHttpException
-     * @throws InvalidConfigException
-     */
-    public function actionAjaxTree($docTag, $statusTag)
-    {
-        Yii::$app->response->format = Response::FORMAT_JSON;
-
-        $model = $this->findStatusModel($docTag, $statusTag);
-        if (empty($model)) {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
-
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
-        $behavior = $model->getBehavior('structure');
-
-        return $behavior->getTree();
-    }
-
-    /**
      * Перемещение стутуса из текущего уровня во внутренний верх лежащего статуса
      *
-     * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
+     * @param string      $statusTag - Тэг статуса
+     * @param string      $docTag    - Тэг документа
+     * @param string|null $extra     - json строка содержащая данные для доп фильтрации документов
      *
      * @return array
      *
@@ -729,7 +775,7 @@ class DocTypesController extends Controller
      * @throws \Exception
      * @throws InvalidConfigException
      */
-    public function actionAjaxStatusTreeRight($statusTag, $docTag)
+    public function actionAjaxStatusTreeRight($statusTag, $docTag, $extra = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -739,6 +785,10 @@ class DocTypesController extends Controller
          * @var LinkOrderedBehavior $behavior
          */
         $behavior = $model->getBehavior('structure');
+
+        if ($extra !== null) {
+            $behavior->extraFilter = (array)json_decode($extra);
+        }
 
         return $behavior->levelUp();
     }
@@ -746,8 +796,9 @@ class DocTypesController extends Controller
     /**
      * Перемещение статуса из текущего уровня родительского статуса во внешний уровень, к родительскому статусу
      *
-     * @param string $statusTag - Тэг статуса
-     * @param string $docTag    - Тэг документа
+     * @param string      $statusTag - Тэг статуса
+     * @param string      $docTag    - Тэг документа
+     * @param null|string $extra     - json строка содержащая данные для доп фильтрации документов
      *
      * @return array
      *
@@ -756,7 +807,7 @@ class DocTypesController extends Controller
      * @throws \Exception
      * @throws InvalidConfigException
      */
-    public function actionAjaxStatusTreeLeft($statusTag, $docTag)
+    public function actionAjaxStatusTreeLeft($statusTag, $docTag, $extra = null)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
@@ -767,14 +818,18 @@ class DocTypesController extends Controller
          */
         $behavior = $model->getBehavior('structure');
 
+        if ($extra !== null) {
+            $behavior->extraFilter = (array)json_decode($extra);
+        }
+
         return $behavior->levelDown();
     }
 
     /**
      * Действие добавления SimpleLink
      *
-     * @param string $docIdentValFrom - значение идентификатора документа From
-     * @param string $docIdentValTo   - значение идентификатора документа To
+     * @param string $fromNodeId - значение идентификатора документа From (node_id)
+     * @param string $toNodeId   - значение идентификатора документа To (node_id)
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
@@ -782,25 +837,26 @@ class DocTypesController extends Controller
      * @throws ErrorException
      * @throws InvalidConfigException
      */
-    public function actionAjaxAddSimpleLink($docIdentValFrom, $docIdentValTo)
+    public function actionAjaxAddSimpleLink($fromNodeId, $toNodeId)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $model = $this->findStatusModel('vid', $docIdentValFrom);
+        $documentFrom = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        $documentTo = Statuses::getDocumentByNodeId($toNodeId)->one();
 
         /**
          * @var LinkSimpleBehavior $behavior
          */
-        $behavior = $model->getBehavior('transitions');
+        $behavior = $documentFrom->getBehavior('transitions');
 
-        return $behavior->addSimpleLink($this->findStatusModel('vid', $docIdentValTo));
+        return $behavior->addSimpleLink($documentTo);
     }
 
     /**
      * Действие удаления SimpleLink
      *
-     * @param string $docIdentValFrom - значение идентификатора документа From
-     * @param string $docIdentValTo   - значение идентификатора документа To
+     * @param string $fromNodeId - значение идентификатора документа From (node_id)
+     * @param string $toNodeId   - значение идентификатора документа To (node_id)
      *
      * @return array - ['error' => .....] or ['success' => .....]
      *
@@ -810,18 +866,19 @@ class DocTypesController extends Controller
      * @throws \Exception
      * @throws InvalidConfigException
      */
-    public function actionAjaxRemoveSimpleLink($docIdentValFrom, $docIdentValTo)
+    public function actionAjaxRemoveSimpleLink($fromNodeId, $toNodeId)
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        $model = $this->findStatusModel('vid', $docIdentValFrom);
+        $documentFrom = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        $documentTo = Statuses::getDocumentByNodeId($toNodeId)->one();
 
         /**
          * @var LinkSimpleBehavior $behavior
          */
-        $behavior = $model->getBehavior('transitions');
+        $behavior = $documentFrom->getBehavior('transitions');
 
-        return $behavior->delSimpleLink($this->findStatusModel('vid', $docIdentValTo));
+        return $behavior->delSimpleLink($documentTo);
     }
 
     public function actionTestWidget()

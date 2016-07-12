@@ -210,7 +210,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
         /**
          * @var array $parentLink
          */
-        $parentLink = $documents[$this->owner->tag]->linksParent;
+        $parentLink = $documents[$this->owner->{$this->orderedField}]->linksFrom;
 
         $currentDocumentParent = null;
 
@@ -227,11 +227,11 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             $documents,
             function ($var) use ($currentDocumentParent) {
                 if ($currentDocumentParent === null) {
-                    if ($var->linksParent === []) {
+                    if ($var->linksFrom === []) {
                         return $var;
                     }
                 } else {
-                    if (($var->linksParent !== []) && ($var->linksParent[0][$this->linkFieldsArray['status_from']] === $currentDocumentParent)) {
+                    if (($var->linksFrom !== []) && ($var->linksFrom[0][$this->linkFieldsArray['status_from']] === $currentDocumentParent)) {
                         return $var;
                     }
                 }

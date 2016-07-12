@@ -8,6 +8,7 @@ use docflow\behaviors\LinkStructuredBehavior;
 use yii;
 
 use docflow\Docflow;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "statuses". It is user through model DocTypes.
@@ -58,7 +59,7 @@ class Statuses extends Document
                 'linkClass' => StatusesLinksStructure::className(),
                 'orderedField' => 'order_idx',
                 'documentQuery' => function () {
-                    $query = static::find()->where(['doc_type_id' => 2]);
+                    $query = static::find();
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -206,25 +207,24 @@ class Statuses extends Document
     }
 
     /**
-     * Получаем статус по его id
-     *
-     * @param integer $statusId - id статуса
-     *
-     * @return yii\db\ActiveQuery
-     */
-    public static function getStatusById($statusId)
-    {
-        return static::find()
-            ->where(['=', 'id', $statusId]);
-    }
-
-    /**
      * Return field name which use how Document `name`
      *
      * @return string Document name
      */
-    public static function docName()
+    public static function docNameField()
     {
         return 'name';
+    }
+
+    /**
+     * Получаем документ по его дентификатору
+     *
+     * @param int $nodeId - id ноды
+     *
+     * @return ActiveQuery
+     */
+    public static function getDocumentByNodeId($nodeId)
+    {
+        return static::find()->where(['id' => $nodeId]);
     }
 }

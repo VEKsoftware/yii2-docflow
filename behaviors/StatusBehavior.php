@@ -191,7 +191,7 @@ class StatusBehavior extends ActivePropertiesBehavior
             throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_IS_EMPTY);
         }
 
-        return Statuses::getStatusById($this->owner->{$this->statusIdField});
+        return Statuses::getDocumentByNodeId($this->owner->{$this->statusIdField});
     }
 
     /**

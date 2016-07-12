@@ -12,17 +12,11 @@ use docflow\models\Document;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
+use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
 
 class FlTreeWithSimpleLinksWidget extends FlTreeWidget
 {
-    /**
-     * Значение идентификатора документа, для которого работаем с простыми связями
-     *
-     * @var string
-     */
-    public $currentDocIdentVal;
-
     /**
      * Получаем основную структуру
      *
@@ -32,46 +26,20 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      * @return array
      * @throws \yii\base\InvalidParamException
      */
-    protected static function getMainStructure(ActiveDataProvider $docADP, array $config)
+    protected static function prepareMainStructure(ActiveDataProvider $docADP, array $config)
     {
         return array_map(
             function (Document $value) use ($config) {
-                /* Проверяем, есть-ли у документа подчиненные документы */
-                $haveChild = static::checkChild($value);
-                /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
-                $countChild = count($value->linksTo);
+                $main = static::getMainPart($value, $config);
+                $self = static::getSelfPart($value, $config);
+                $child = static::getChildPart($value, $config);
+                $simple = static::getSimplePart($value, $config);
 
                 return array_merge(
-                    [
-                        'text' => $value->{$value->docName()},
-                        'href_addSimple' => Url::toRoute(
-                            [
-                                $config['routeAddSLink'],
-                                'docIdentValFrom' => $config['currentDocIdentVal'],
-                                'docIdentValTo' => $value->{$config['docIdentField']}
-                            ]
-                        ),
-                        'href_delSimple' => Url::toRoute(
-                            [
-                                $config['routeDelSLink'],
-                                'docIdentValFrom' => $config['currentDocIdentVal'],
-                                'docIdentValTo' => $value->{$config['docIdentField']}
-                            ]
-                        ),
-                    ],
-                    ($haveChild === true)
-                        ?
-                        [
-                            'href_child' => Url::toRoute(
-                                [
-                                    $config['routeChild'],
-                                    'docIdentVal' => $value->{$config['docIdentField']},
-                                    'currentDocIdentVal' => $config['currentDocIdentVal'],
-                                ]
-                            ),
-                            'tags' => [$countChild],
-                        ]
-                        : []
+                    $main,
+                    $self,
+                    $child,
+                    $simple
                 );
             },
             array_values($docADP->models)
@@ -79,17 +47,168 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     }
 
     /**
-     * Добавляем к структуре кнопку для отображения следующего набора данных(следующая страница)
+     * Формируем и получаем основную часть структуры
      *
-     * @param ActiveDataProvider $documentsADP - провайдер с документами
-     * @param array              $config       - конфигурация
-     * @param array              $structure    - структура для передачи в treeview
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
      *
      * @return array
      *
      * @throws InvalidParamException
      */
-    protected static function getNextPageButton(ActiveDataProvider $documentsADP, array $config, array $structure)
+    protected static function getMainPart(Document $value, array $config)
+    {
+        return [
+            'text' => $value->{$value->docNameField()},
+            'href_addSimple' => Url::toRoute(
+                [
+                    $config['routeAddSLink'],
+                    'fromNodeId' => $config['fromNodeId'],
+                    'toNodeId' => $value->{$config['toNodeIdField']}
+                ]
+            ),
+            'href_delSimple' => Url::toRoute(
+                [
+                    $config['routeDelSLink'],
+                    'fromNodeId' => $config['fromNodeId'],
+                    'toNodeId' => $value->{$config['toNodeIdField']}
+                ]
+            ),
+        ];
+    }
+
+    /**
+     * Формируем и получаем часть структуры, которая красит элемент в цвет, если он равен родительскому
+     *
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
+     *
+     * @return array
+     */
+    protected static function getSelfPart(Document $value, array $config)
+    {
+        $self = [];
+
+        if ((int)$config['fromNodeId'] === (int)$value->{$config['toNodeIdField']}) {
+            $self = ['backColor' => 'gray'];
+        }
+
+        return $self;
+    }
+
+    /**
+     * Формируем и получаем часть структуры, которая описывает наличие детей у документа
+     *
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function getChildPart(Document $value, array $config)
+    {
+        $child = [];
+
+        /* Проверяем, есть-ли у документа подчиненные документы */
+        $haveChild = static::checkChild($value);
+
+        /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
+        $countChild = count($value->linksTo);
+
+        if ($haveChild === true) {
+            $child = [
+                'href_child' => Url::toRoute(
+                    [
+                        $config['routeChild'],
+                        'fromNodeId' => $config['fromNodeId'],
+                        'currentNodeId' => $value->{$config['toNodeIdField']},
+                        'extra' => $config['extra'],
+                    ]
+                ),
+                'tags' => [$countChild],
+            ];
+        }
+
+        return $child;
+    }
+
+    /**
+     * Формируем и получаем часть структуры, которая описывает наличие простых связей у документа
+     *
+     * @param Document $value  - объект докмента
+     * @param array    $config - конфигурация
+     *
+     * @return array
+     */
+    protected static function getSimplePart(Document $value, array $config)
+    {
+        $simple = [];
+
+        $haveSimpleLink = static::checkSimpleLink($value, $config);
+
+        if ($haveSimpleLink === true) {
+            $simple = ['state' => ['checked' => true]];
+        }
+
+        return $simple;
+    }
+
+    /**
+     * Формируем и получаем структуру, описывающую элемент - подгружащий документы, которые не вошли в прошлую выборку
+     *
+     * @param array   $config    - конфигурация
+     * @param integer $countLast - количество оставшихся документов не раскрытыми
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function getNextPagePart(array $config, $countLast)
+    {
+        return [
+            [
+                'text' => '...',
+                'href_next' => Url::toRoute([
+                    $config['routeNext'],
+                    'page' => ++$config['page'],
+                    'fromNodeId' => $config['fromNodeId'],
+                    'currentNodeId' => $config['currentNodeId'],
+                    'extra' => $config['extra'],
+                ]),
+                'tags' => [$countLast]
+            ]
+        ];
+    }
+
+    /**
+     * Проверяем, есть-ли простая связь между родительским и текущим документами
+     *
+     * @param Document $value  - объект документа
+     * @param array    $config - конфигурация
+     *
+     * @return bool
+     */
+    protected static function checkSimpleLink(Document $value, array $config)
+    {
+        $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinksParentDocument'], 'id');
+
+        $key = array_search($value->{$config['toNodeIdField']}, $simpleLinksParentDoc);
+
+        return ($key !== false) ? true : false;
+    }
+
+    /**
+     * Добавляем к структуре кнопку для отображения следующего набора данных(следующая страница)
+     *
+     * @param ActiveDataProvider $documentsADP - провайдер с документами
+     * @param array              $config       - конфигурация
+     *
+     * @return array
+     *
+     * @throws InvalidParamException
+     */
+    protected static function prepareNextPageButtonStructure(ActiveDataProvider $documentsADP, array $config)
     {
         /* Структура следующей страницы */
         $nextPage = [];
@@ -104,21 +223,10 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
         $countLast = ($documentsADP->totalCount - ($currentPage * $pageSize));
 
         if ($currentPage < $pagination->pageCount) {
-            $nextPage = [
-                [
-                    'text' => '...',
-                    'href_next' => Url::toRoute([
-                        $config['routeNext'],
-                        'page' => ++$config['page'],
-                        'docIdentVal' => $config['docIdentVal'],
-                        'currentDocIdentVal' => $config['currentDocIdentVal'],
-                    ]),
-                    'tags' => [$countLast]
-                ]
-            ];
+            $nextPage = static::getNextPagePart($config, $countLast);
         }
 
-        return array_merge($structure, $nextPage);
+        return $nextPage;
     }
 
     /**

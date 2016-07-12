@@ -12,19 +12,19 @@ $("#tree-leaf").bind("domChanged", function () {
      * Назначаем обработчики при клике
      */
     $upTreeButton.on('click', function () {
-        checkAjax($upTreeButton.data("href"), $upTreeButton.data("doc-type"), $upTreeButton.data("status-tag"));
+        checkAjax($upTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
     });
 
     $downTreeButton.on('click', function () {
-        checkAjax($downTreeButton.data("href"), $downTreeButton.data("doc-type"), $downTreeButton.data("status-tag"));
+        checkAjax($downTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
     });
 
     $rightTreeButton.on('click', function () {
-        checkAjax($rightTreeButton.data("href"), $rightTreeButton.data("doc-type"), $rightTreeButton.data("status-tag"));
+        checkAjax($rightTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
     });
 
     $leftTreeButton.on('click', function () {
-        checkAjax($leftTreeButton.data("href"), $leftTreeButton.data("doc-type"), $leftTreeButton.data("status-tag"));
+        checkAjax($leftTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
     });
 });
 
@@ -32,24 +32,24 @@ $("#tree-leaf").bind("domChanged", function () {
  * Проверяем, испольняется ли в данное время Ajax запрос и если исполняется,
  * то не даем возможности запустить слудующий
  * @param url
- * @param docTag
- * @param statusTag
+ * @param flTreeUrl
+ * @param flTreeWithSimpleUrl
  */
-function checkAjax(url, docTag, statusTag) {
+function checkAjax(url, flTreeUrl, flTreeWithSimpleUrl) {
     var $treeActionButtons = $(document).find("#actions-tree-buttons");
 
     if (!$treeActionButtons.hasClass('ajax-disabled')) {
-        getAjax(url, docTag, statusTag);
+        getAjax(url, flTreeUrl, flTreeWithSimpleUrl);
     }
 }
 
 /**
  * Соверашаем Ajax запрос по переданноу Url
  * @param url
- * @param docTag
- * @param statusTag
+ * @param flTreeUrl
+ * @param flTreeWithSimpleUrl
  */
-function getAjax(url, docTag, statusTag) {
+function getAjax(url, flTreeUrl, flTreeWithSimpleUrl) {
     blockButtons();
     clearTreeChangeStatus();
     $.get(url, function (data) {
@@ -57,7 +57,7 @@ function getAjax(url, docTag, statusTag) {
             setTreeChangeStatus('error', data.error);
         } else {
             setTreeChangeStatus('success', data.success);
-            setTree(docTag, statusTag);
+            renderTree(flTreeUrl, flTreeWithSimpleUrl);
         }
     });
 
@@ -65,33 +65,17 @@ function getAjax(url, docTag, statusTag) {
 }
 
 /**
- * Получаем имя перемещаемого статуса
- * @returns {*}
- */
-function getSelectedStatusName() {
-    var selected = $('#tree').treeview('getSelected');
-
-    return selected[0].text;
-}
-
-/**
- * Получаем NodeId статуса, с которым будем меняться местами
- * @param name
- * @returns {*}
- */
-function selectCurrentStatus(name) {
-    var status = $('#tree').find("li:contains('" + name + "')");
-    return status.data('nodeid');
-}
-
-/**
  * Перестраиваем древо статусов
  */
-function setTree(docTag, statusTag) {
-    var url = '/docflow/doc-types/ajax-tree?docTag=' + docTag + '&statusTag=' + statusTag;
-    $.get(url, function (data) {
-        renderTree(data);
-    });
+function renderTree(flTreeUrl, flTreeWithSimpleUrl) {
+    var tree = $('#tree').treeview(true);
+    var flTreeWithSimple = $('#tree-simple-link').treeview(true);
+
+    tree.remove();
+    flTreeWithSimple.remove();
+
+    initFlTree(flTreeUrl);
+    initFlTreeWithSimpleLinks(flTreeWithSimpleUrl);
 }
 
 /**
@@ -137,81 +121,20 @@ function clearTreeChangeStatus() {
 }
 
 /**
- * Устанавливаем дерево
- * @param data
- */
-function renderTree(data) {
-    var $tree = $('#tree');
-    var name = getSelectedStatusName();
-
-    var onSelect = function (undefined, item) {
-        if (item.href !== location.pathname) {
-            $("#tree-leaf").load(item.href, function () {
-                $("#tree-leaf").trigger("domChanged");
-            });
-        }
-    };
-
-    var onUnSelect = function (undefined, item) {
-        $("#tree-leaf").html('');
-    };
-
-    $tree.treeview({
-        data: data,
-        levels: 5,
-        onNodeSelected: onSelect,
-        onNodeUnselected: onUnSelect
-    });
-
-    selectStatusForName(name);
-}
-
-/**
- * После рендера дерева выделяем статус который перемещался
- * @param name
- */
-function selectStatusForName(name) {
-    var $tree = $('#tree');
-    var nodeId = selectCurrentStatus(name);
-
-    $tree.treeview('selectNode', [nodeId, {silent: true}]);
-}
-
-
-/**
- * Получаем get параметер из url
- * @param sParam
- * @returns {boolean}
- */
-function getUrlParameter(sParam) {
-    var sPageURL = decodeURIComponent(window.location.search.substring(1)),
-        sURLVariables = sPageURL.split('&'),
-        sParameterName,
-        i;
-
-    for (i = 0; i < sURLVariables.length; i++) {
-        sParameterName = sURLVariables[i].split('=');
-
-        if (sParameterName[0] === sParam) {
-            return sParameterName[1] === undefined ? true : sParameterName[1];
-        }
-    }
-}
-
-/**
  * Соверашаем Ajax запрос по переданноу Url
  * @param url
+ * @param item
  */
-function getSimpleLinksAjax(url) {
+function getSimpleLinksAjax(url, item) {
     clearChangeStatusSimpleLink();
 
     $.get(url, function (data) {
         if (data.error !== undefined) {
             setChangeStatusSimpleLink('error', data.error);
-            changeSimpleLinkCheckbox(true)
+            changeSimpleLinkCheckbox(true, item)
         } else {
             setChangeStatusSimpleLink('success', data.success);
-            changeSimpleLinkCheckbox(false)
+            changeSimpleLinkCheckbox(false, item)
         }
     });
 }
@@ -219,17 +142,16 @@ function getSimpleLinksAjax(url) {
 /**
  * Меняем статусы если ответ ajax ['false' => .....] false
  * @param invert
+ * @param item
  */
-function changeSimpleLinkCheckbox(invert) {
-    var $tree = $('#tree-simple-link');
-    var nodes = $tree.treeview('getSelected');
-    var node = nodes[0];
+function changeSimpleLinkCheckbox(invert, item) {
+    var $tree = $('#tree-simple-link').treeview(true);
 
     if (invert === true) {
-        if (node.state.checked === true) {
-            $tree.treeview('uncheckNode', [node.nodeId, {silent: true}]);
+        if (item.state.checked === true) {
+            $tree.uncheckNode(item, {silent: true});
         } else {
-            $tree.treeview('checkNode', [node.nodeId, {silent: true}]);
+            $tree.checkNode(item, {silent: true});
         }
     }
 }
@@ -254,4 +176,155 @@ function clearChangeStatusSimpleLink() {
     var $changeStatusSimpleLink = $(document).find("span#simple-link-change-status");
 
     $changeStatusSimpleLink.text('');
+}
+
+function initFlTree(dataUrl) {
+    var onSelect = function (event, item) {
+        var tree = $('#tree').treeview(true);
+
+        if (item.href_child && item.nodes === undefined) {
+            $.get(item.href_child, function (vars) {
+                var parent = tree.findNodes(item.text, 'text')[0];
+                tree.addNode(vars, parent, 0, {silent: true});
+            });
+        }
+
+        if (item.href_next) {
+            $.get(item.href_next, function (vars) {
+                var parrent = false;
+
+                if (item.parentId !== undefined) {
+                    parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+                }
+
+                tree.removeNode(item, {silent: true});
+                tree.addNode(vars, parrent, false, {silent: true});
+            });
+        }
+
+        if (item.href !== location.pathname) {
+            $("#tree-leaf").load(item.href, function () {
+                $("#tree-leaf").trigger("domChanged");
+            });
+        }
+    };
+
+    var onUnselect = function (event, item) {
+        $("#tree-leaf").html('');
+    };
+
+    var onCollapsed = function (event, item) {
+        var tree = $('#tree').treeview(true);
+        var currentNode = {
+            'text': item.text,
+            'href': item.href,
+            'href_child': item.href_child,
+            'tags': item.tags
+        };
+        var currentIndex = item.index;
+        var parrent = false;
+
+        if (item.parentId !== undefined) {
+            parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+        }
+
+        tree.removeNode(item, {silent: true});
+        tree.addNode(currentNode, parrent, currentIndex, {silent: true});
+    };
+
+    $('#tree').treeview({
+        dataUrl: {
+            url: dataUrl
+        },
+        levels: 5,
+        showTags: true,
+        onNodeSelected: onSelect,
+        onNodeUnselected: onUnselect,
+        onNodeCollapsed: onCollapsed
+    });
+}
+
+function initFlTreeWithSimpleLinks(dataUrl) {
+    var onSelected = function (event, item) {
+        var tree = $('#tree-simple-link').treeview(true);
+
+        if (item.href_child && item.nodes === undefined) {
+            $.get(item.href_child, function (vars) {
+                var parent = tree.findNodes(item.text, 'text')[0];
+                tree.addNode(vars, parent, 0, {silent: true});
+            });
+        }
+
+        if (item.href_next) {
+            $.get(item.href_next, function (vars) {
+                var parrent = false;
+
+                if (item.parentId !== undefined) {
+                    parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+                }
+
+                tree.removeNode(item, {silent: true});
+                tree.addNode(vars, parrent, false, {silent: true});
+            });
+        }
+    };
+
+    var onCollapsed = function (event, item) {
+        var tree = $('#tree-simple-link').treeview(true);
+
+        item.state.selected = false;
+
+        var currentNode = {
+            'text': item.text,
+            'href': item.href,
+            'href_child': item.href_child,
+            'href_addSimple': item.href_addSimple,
+            'href_delSimple': item.href_delSimple,
+            'backColor': item.backColor,
+            'tags': item.tags,
+            'state': item.state
+        };
+        var currentIndex = item.index;
+        var parrent = false;
+
+        if (item.parentId !== undefined) {
+            parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+        }
+
+        tree.removeNode(item, {silent: true});
+        tree.addNode(currentNode, parrent, currentIndex, {silent: true});
+    };
+
+    var onChecked = function (event, item) {
+        var tree = $('#tree-simple-link').treeview(true);
+
+        if (item.href_addSimple) {
+            getSimpleLinksAjax(item.href_addSimple, item);
+        } else {
+            tree.uncheckNode(item, {silent: true});
+        }
+    };
+
+    var onUnchecked = function (event, item) {
+        var tree = $('#tree-simple-link').treeview(true);
+
+        if (item.href_delSimple) {
+            getSimpleLinksAjax(item.href_delSimple, item);
+        } else {
+            tree.checkNode(item, {silent: true});
+        }
+    };
+
+    $('#tree-simple-link').treeview({
+        dataUrl: {
+            'url': dataUrl
+        },
+        showCheckbox: true,
+        levels: 5,
+        showTags: true,
+        onNodeChecked: onChecked,
+        onNodeUnchecked: onUnchecked,
+        onNodeSelected: onSelected,
+        onNodeCollapsed: onCollapsed
+    });
 }

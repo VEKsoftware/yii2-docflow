@@ -17,10 +17,8 @@ $this->params['breadcrumbs'][] = Yii::t('docflow', 'Update');
 ?>
 <div class="statuses-doctypes-update">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?php echo Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form-status', [
-        'model' => $model,
-    ]) ?>
+    <?php echo $this->render('_form-status', ['model' => $model]) ?>
 
 </div>

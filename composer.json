@@ -12,8 +12,22 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "bower-asset/bootstrap-treeview": "dev-develop"
+        "VEKsoftware/bootstrap-treeview": "dev-develop"
     },
+    "repositories": [
+        {
+            "type": "package",
+            "package": {
+                "name": "VEKsoftware/bootstrap-treeview",
+                "version": "dev-develop",
+                "source": {
+                    "url": "https://github.com/VEKsoftware/bootstrap-treeview.git",
+                    "type": "git",
+                    "reference": "origin/develop"
+                }
+            }
+        }
+    ],
     "autoload": {
         "psr-4": {
             "docflow\\": ""

@@ -8,17 +8,17 @@ use yii\web\AssetBundle;
  *
  */
 class TreeViewAsset extends AssetBundle {
-    public $sourcePath = '@bower/bootstrap-treeview/src';
+    public $sourcePath = '@vendor/VEKsoftware/bootstrap-treeview/dist';
     public $publishOptions = [
         'forceCopy' => true,
         'linkAssets' => true,
     ];
     public $js = [
-        'js/bootstrap-treeview.js',
+        'bootstrap-treeview.min.js',
     ];
 
     public $css = [
-        'css/bootstrap-treeview.css',
+        'bootstrap-treeview.min.css',
     ];
 
     public $depends = [

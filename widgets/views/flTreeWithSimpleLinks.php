@@ -10,15 +10,15 @@
  * @var string $title
  * @var string $titleLink
  * @var array  $dataViewConfig
- * @var string $urlFlTreeWithSimple
- * @var string $urlFlTree
+ * @var string $flTreeWithSimpleUrl
+ * @var string $flTreeUrl
+ * @var string $nodeName
  */
 use yii\helpers\Html;
 use yii\widgets\DetailView;
 
 ?>
     <div class="statuses-view">
-
         <h1><?php echo Html::encode($title) ?></h1>
         <p>
         <div class="row">
@@ -36,8 +36,8 @@ use yii\widgets\DetailView;
                     [
                         'name' => 'left-in-tree',
                         'data-href' => $buttons['treeLeft']['url'],
-                        'data-fl-tree-url' => $urlFlTree,
-                        'data-fl-tree-with-simple-url' => $urlFlTreeWithSimple,
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
                     ]
                 ) ?>
@@ -47,8 +47,8 @@ use yii\widgets\DetailView;
                     [
                         'name' => 'up-in-tree',
                         'data-href' => $buttons['treeUp']['url'],
-                        'data-fl-tree-url' => $urlFlTree,
-                        'data-fl-tree-with-simple-url' => $urlFlTreeWithSimple,
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
                     ]
                 ) ?>
@@ -58,8 +58,8 @@ use yii\widgets\DetailView;
                     [
                         'name' => 'down-in-tree',
                         'data-href' => $buttons['treeDown']['url'],
-                        'data-fl-tree-url' => $urlFlTree,
-                        'data-fl-tree-with-simple-url' => $urlFlTreeWithSimple,
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
                     ]
                 ) ?>
@@ -69,8 +69,8 @@ use yii\widgets\DetailView;
                     [
                         'name' => 'right-in-tree',
                         'data-href' => $buttons['treeRight']['url'],
-                        'data-fl-tree-url' => $urlFlTree,
-                        'data-fl-tree-with-simple-url' => $urlFlTreeWithSimple,
+                        'data-fl-tree-url' => $flTreeUrl,
+                        'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
                     ]
                 ) ?>
@@ -101,7 +101,7 @@ use yii\widgets\DetailView;
     </div>
 <?php
 
-$this->registerJs("var dataUrl = '$urlFlTreeWithSimple'");
+$this->registerJs("var dataUrl = '$flTreeWithSimpleUrl'");
 $this->registerJs(<<<'JS'
     initFlTreeWithSimpleLinks(dataUrl);
 JS

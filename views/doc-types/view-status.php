@@ -3,7 +3,7 @@
  * Представление Статуса
  *
  * @var View     $this
- * @var Statuses $model
+ * @var Document $model
  * @var array    $documents
  * @var string   $doc
  * @var string   $dataUrl
@@ -12,7 +12,7 @@
  * @var string   $flTreeWithSimpleUrl
  */
 
-use docflow\models\Statuses;
+use docflow\models\Document;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
 use yii\helpers\Url;
 use yii\web\View;
@@ -87,14 +87,14 @@ echo FlTreeWithSimpleLinksWidget::widget([
             'description'
         ]
     ],
-    'urlFlTree' => Url::toRoute(
+    'nodeName' => $model->{$model->docNameField()},
+    'flTreeUrl' => Url::toRoute(
         [
             'doc-types/ajax-get-child',
             'extra' => $extra,
-            'docType' => $doc
         ]
     ),
-    'urlFlTreeWithSimple' => Url::toRoute(
+    'flTreeWithSimpleUrl' => Url::toRoute(
         [
             'doc-types/ajax-get-child-with-simple',
             'extra' => $extra,

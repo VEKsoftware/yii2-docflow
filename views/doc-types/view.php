@@ -25,8 +25,8 @@ $this->params['breadcrumbs'][] = $this->title;
             Yii::t('docflow', 'Update'),
             ['update', 'doc' => $model->tag],
             ['class' => 'btn btn-primary']
-        );
-        echo Html::a(
+        ); ?>
+        <?php echo Html::a(
             Yii::t('docflow', 'Delete'),
             ['delete', 'doc' => $model->tag],
             [
@@ -36,7 +36,7 @@ $this->params['breadcrumbs'][] = $this->title;
                     'method' => 'post',
                 ],
             ]
-        ) ?>
+        ); ?>
     </p>
 
     <?php echo DetailView::widget([

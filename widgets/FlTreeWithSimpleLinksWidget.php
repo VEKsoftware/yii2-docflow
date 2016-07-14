@@ -45,18 +45,25 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     public $dataViewConfig;
 
     /**
-     * Url на начальные данные простого дерева
+     * Имя - идентификатор ноды, записываемый в text
      *
      * @var string
      */
-    public $urlFlTree;
+    public $nodeName;
 
     /**
-     * Url на начльные данные плоского дерева с простыми связями
+     * Url на начальные данные плоского дерева
      *
      * @var string
      */
-    public $urlFlTreeWithSimple;
+    public $flTreeUrl;
+
+    /**
+     * Url на начальные данные плоского дерева с простыми связями
+     *
+     * @var string
+     */
+    public $flTreeWithSimpleUrl;
 
     /**
      * Инициализируем виджет
@@ -85,8 +92,9 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
                 'titleLink' => $this->titleLink,
                 'buttons' => $this->buttons,
                 'dataViewConfig' => $this->dataViewConfig,
-                'urlFlTree' => $this->urlFlTree,
-                'urlFlTreeWithSimple' => $this->urlFlTreeWithSimple
+                'nodeName' => $this->nodeName,
+                'flTreeUrl' => $this->flTreeUrl,
+                'flTreeWithSimpleUrl' => $this->flTreeWithSimpleUrl
             ]
         );
     }

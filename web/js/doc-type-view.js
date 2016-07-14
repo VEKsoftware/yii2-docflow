@@ -12,19 +12,19 @@ $("#tree-leaf").bind("domChanged", function () {
      * Назначаем обработчики при клике
      */
     $upTreeButton.on('click', function () {
-        checkAjax($upTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
+        checkAjax($upTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Up');
     });
 
     $downTreeButton.on('click', function () {
-        checkAjax($downTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
+        checkAjax($downTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Down');
     });
 
     $rightTreeButton.on('click', function () {
-        checkAjax($rightTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
+        checkAjax($rightTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Right');
     });
 
     $leftTreeButton.on('click', function () {
-        checkAjax($leftTreeButton.data("href"), $upTreeButton.data("fl-tree-url"), $upTreeButton.data("fl-tree-with-simple-url"));
+        checkAjax($leftTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Left');
     });
 });
 
@@ -32,50 +32,243 @@ $("#tree-leaf").bind("domChanged", function () {
  * Проверяем, испольняется ли в данное время Ajax запрос и если исполняется,
  * то не даем возможности запустить слудующий
  * @param url
+ * @param name
  * @param flTreeUrl
- * @param flTreeWithSimpleUrl
+ * @param action
  */
-function checkAjax(url, flTreeUrl, flTreeWithSimpleUrl) {
+function checkAjax(url, name, flTreeUrl, action) {
     var $treeActionButtons = $(document).find("#actions-tree-buttons");
 
     if (!$treeActionButtons.hasClass('ajax-disabled')) {
-        getAjax(url, flTreeUrl, flTreeWithSimpleUrl);
+        getAjax(url, name, flTreeUrl, action);
     }
 }
 
 /**
  * Соверашаем Ajax запрос по переданноу Url
  * @param url
+ * @param name
  * @param flTreeUrl
- * @param flTreeWithSimpleUrl
+ * @param action
  */
-function getAjax(url, flTreeUrl, flTreeWithSimpleUrl) {
+function getAjax(url, name, flTreeUrl, action) {
     blockButtons();
     clearTreeChangeStatus();
+    prepareTree(url, name, flTreeUrl, action);
+    unblockButtons();
+}
+
+/**
+ *
+ * @param url
+ * @param name
+ * @param flTreeUrl
+ * @param action
+ */
+function prepareTree(url, name, flTreeUrl, action) {
+    var tree = $('#tree').treeview(true);
+    var currentNode = tree.findNodes('^' + name + '$', 'text')[0];
+    var nodesOnLevel = tree.findNodes('^' + currentNode.level + '$', 'level');
+    var next = nodesOnLevel[(nodesOnLevel.length - 1)];
+
+    /* Если нам нужно переместить вниз, а ниже только элемент для подгрузки следующих документов,
+     то подгружаем сначала документы, а потом производим запрос на изменение */
+    if ((action === 'Down') && ((next.index - currentNode.index) === 1) && (next.href_next)) {
+        $.get(next.href_next, function (vars) {
+            var parent = false;
+
+            if (next.parentId !== undefined) {
+                parent = tree.findNodes('^' + next.parentId + '$', 'nodeId')[0];
+            }
+
+            tree.removeNode(next, {silent: true});
+            tree.addNode(vars, parent, false, {silent: true});
+
+
+            ajaxActionRequest(url, name, flTreeUrl, action)
+        });
+    } else {
+        ajaxActionRequest(url, name, flTreeUrl, action);
+    }
+}
+
+/**
+ * Выполняем ajax запрос на действие
+ * @param url
+ * @param name
+ * @param flTreeUrl
+ * @param action
+ */
+function ajaxActionRequest(url, name, flTreeUrl, action) {
     $.get(url, function (data) {
         if (data.error !== undefined) {
             setTreeChangeStatus('error', data.error);
         } else {
             setTreeChangeStatus('success', data.success);
-            renderTree(flTreeUrl, flTreeWithSimpleUrl);
+            renderTree(name, flTreeUrl, action);
         }
     });
-
-    unblockButtons();
 }
 
 /**
  * Перестраиваем древо статусов
+ * @param currentName
+ * @param flTreeUrl
+ * @param action
  */
-function renderTree(flTreeUrl, flTreeWithSimpleUrl) {
+function renderTree(currentName, flTreeUrl, action) {
+
+    if (action === 'Up') {
+        nodeUp(currentName);
+    }
+
+    if (action === 'Down') {
+        nodeDown(currentName);
+    }
+
+    if (action === 'Right') {
+        nodeIn(flTreeUrl, currentName);
+    }
+
+    if (action === 'Left') {
+        nodeOut(flTreeUrl, currentName);
+    }
+}
+
+/**
+ * Перемещаем ноду на одно положение выше
+ * @param currentName
+ */
+function nodeUp(currentName) {
     var tree = $('#tree').treeview(true);
-    var flTreeWithSimple = $('#tree-simple-link').treeview(true);
+    var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
 
-    tree.remove();
-    flTreeWithSimple.remove();
+    /* Удаляем текущую ноду */
+    tree.removeNode(currentNode, {silent: true});
 
-    initFlTree(flTreeUrl);
-    initFlTreeWithSimpleLinks(flTreeWithSimpleUrl);
+    /* Определяем родителя */
+    var parent = false;
+
+    if (currentNode.parentId !== undefined) {
+        parent = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
+    }
+
+    /* Формируем структуру для добавления текущей ноды */
+    var newCurrentNode = {
+        text: currentNode.text,
+        href: currentNode.href,
+        href_child: currentNode.href_child,
+        tags: currentNode.tags
+        //nodes: cNode.nodes
+    };
+
+    /* Добавляем текущюю ноду в необходимом месте */
+    tree.addNode(newCurrentNode, parent, (currentNode.index - 1), {silent: true});
+
+    tree.selectNode(newCurrentNode);
+}
+
+/**
+ * Перемещаем ноду на 1 положение ниже
+ * @param currentName
+ */
+function nodeDown(currentName) {
+    var tree = $('#tree').treeview(true);
+    var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
+
+    console.log(currentNode);
+
+    /* Удаляем текущюю ноду */
+    tree.removeNode(currentNode, {silent: true});
+
+    /* Определяем родителя */
+    var parent = false;
+
+    if (currentNode.parentId !== undefined) {
+        parent = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
+    }
+
+    /* Формируем структуру для добавления из текущей ноды */
+    var newCurrentNode = {
+        text: currentNode.text,
+        href: currentNode.href,
+        href_child: currentNode.href_child,
+        tags: currentNode.tags
+        //nodes: cNode.nodes
+    };
+
+    /* Добавляем текущюю ноду в необходимое место */
+    tree.addNode(newCurrentNode, parent, (currentNode.index + 1), {silent: true});
+
+    tree.selectNode(newCurrentNode);
+}
+
+
+function nodeIn(flTreeUrl, currentName) {
+    var tree = $('#tree').treeview(true);
+    var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
+
+    /* Cмотрим на родителя перемещаемой ноды */
+    if (currentNode.parentId !== undefined) {
+        var parentCurrentNode = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
+
+        tree.removeNode(parentCurrentNode, {silent: true});
+
+        /* Определяем родителя */
+        var parent = false;
+
+        if (parentCurrentNode.parentId !== undefined) {
+            parent = tree.findNodes('^' + parentCurrentNode.parentId + '$', 'nodeId')[0];
+        }
+
+        var newParentCurrentNode = {
+            text: parentCurrentNode.text,
+            href: parentCurrentNode.href,
+            href_child: parentCurrentNode.href_child,
+            tags: parentCurrentNode.tags - 1
+        };
+
+        tree.addNode(newParentCurrentNode, parent, parentCurrentNode.index, {silent: true});
+
+        tree.selectNode(newParentCurrentNode);
+    } else {
+        tree.remove();
+        initFlTree(flTreeUrl);
+    }
+}
+
+function nodeOut(flTreeUrl, currentName) {
+    var tree = $('#tree').treeview(true);
+    var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
+    var parentNode = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
+
+    /* Cмотрим на родителя перемещаемой ноды */
+    if (parentNode.parentId !== undefined) {
+        var parentParentNode = tree.findNodes('^' + parentNode.parentId + '$', 'nodeId')[0];
+
+        tree.removeNode(parentParentNode, {silent: true});
+
+        /* Определяем родителя */
+        var parent = false;
+
+        if (parentParentNode.parentId !== undefined) {
+            parent = tree.findNodes('^' + parentParentNode.parentId + '$', 'nodeId')[0];
+        }
+
+        var newParentParentNode = {
+            text: parentParentNode.text,
+            href: parentParentNode.href,
+            href_child: parentParentNode.href_child,
+            tags: parentParentNode.tags - 1
+        };
+
+        tree.addNode(newParentParentNode, parent, parentParentNode.index, {silent: true});
+
+        tree.selectNode(newParentParentNode);
+    } else {
+        tree.remove();
+        initFlTree(flTreeUrl);
+    }
 }
 
 /**
@@ -180,7 +373,9 @@ function clearChangeStatusSimpleLink() {
 
 function getLeaf(item) {
     if (item.href !== location.pathname) {
-        $("#tree-leaf").load(item.href, function () {
+        var leaf = $("#tree-leaf");
+
+        leaf.load(item.href, function () {
             $("#tree-leaf").trigger("domChanged");
         });
     }
@@ -218,7 +413,7 @@ function initFlTree(dataUrl) {
         }
     };
 
-    var onUnselect = function (event, item) {
+    var onUnSelect = function (event, item) {
         $("#tree-leaf").html('');
     };
 
@@ -248,7 +443,7 @@ function initFlTree(dataUrl) {
         levels: 5,
         showTags: true,
         onNodeSelected: onSelect,
-        onNodeUnselected: onUnselect,
+        onNodeUnselected: onUnSelect,
         onNodeCollapsed: onCollapsed
     });
 }
@@ -326,7 +521,7 @@ function initFlTreeWithSimpleLinks(dataUrl) {
 
     var onRendered = function (event, item) {
         /* Удаляем чекбоксы там где они не нужны */
-        hideCheckedIconWithParrentNode(item);
+        hideCheckedIconWithParentNode(item);
         hideCheckedIconWithNext(item);
     };
 
@@ -345,23 +540,35 @@ function initFlTreeWithSimpleLinks(dataUrl) {
     });
 }
 
-function hideCheckedIconWithParrentNode(item) {
+/**
+ * Убираем "чекбокс" у элемента, который равен документу "от"
+ * @param item
+ */
+function hideCheckedIconWithParentNode(item) {
     var tree = $('#tree');
-    var parentNode = tree.treeview('getSelected')[0];
+    var parentNode = (tree.treeview('getSelected'))
+        ? tree.treeview('getSelected')[0]
+        : undefined;
 
-    if ((parentNode !== undefined) && (parentNode.text === item.text))
-    {
+    if ((parentNode !== undefined) && (parentNode.text === item.text)) {
         hideCheckedIcon(item);
     }
 }
 
-function hideCheckedIconWithNext(item)
-{
-    if (item.text === '...') {
+/**
+ * Убираем "чекбокс" у элемента, который подгружает оставшиеся элементы
+ * @param item
+ */
+function hideCheckedIconWithNext(item) {
+    if (item.href_next) {
         hideCheckedIcon(item);
     }
 }
 
+/**
+ * Прячем "чекбокс"
+ * @param item
+ */
 function hideCheckedIcon(item) {
     var treeSL = $('#tree-simple-link');
     var nodeSLHtml = treeSL.find("li[data-nodeid = '" + item.nodeId + "']");

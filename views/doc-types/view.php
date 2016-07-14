@@ -1,15 +1,16 @@
 <?php
+/**
+ * @var View     $this
+ * @var DocTypes $model
+ * @var array    $flTreeWidgetParam
+ */
 
+use docflow\models\DocTypes;
 use docflow\widgets\FlTreeWidget;
 use yii\helpers\Html;
 
+use yii\web\View;
 use yii\widgets\DetailView;
-
-/**
- * @var $this yii\web\View
- * @var $model docflow\models\DocTypes
- * @var $dataUrl string
- */
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses Doctypes'), 'url' => ['index']];
@@ -17,20 +18,28 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-doctypes-view">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?php echo Html::encode($this->title) ?></h1>
 
     <p>
-        <?= Html::a(Yii::t('docflow', 'Update'), ['update', 'doc' => $model->tag], ['class' => 'btn btn-primary']) ?>
-        <?= Html::a(Yii::t('docflow', 'Delete'), ['delete', 'doc' => $model->tag], [
-            'class' => 'btn btn-danger',
-            'data' => [
-                'confirm' => Yii::t('docflow', 'Are you sure you want to delete this item?'),
-                'method' => 'post',
-            ],
-        ]) ?>
+        <?php echo Html::a(
+            Yii::t('docflow', 'Update'),
+            ['update', 'doc' => $model->tag],
+            ['class' => 'btn btn-primary']
+        );
+        echo Html::a(
+            Yii::t('docflow', 'Delete'),
+            ['delete', 'doc' => $model->tag],
+            [
+                'class' => 'btn btn-danger',
+                'data' => [
+                    'confirm' => Yii::t('docflow', 'Are you sure you want to delete this item?'),
+                    'method' => 'post',
+                ],
+            ]
+        ) ?>
     </p>
 
-    <?= DetailView::widget([
+    <?php echo DetailView::widget([
         'model' => $model,
         'attributes' => [
             'id',
@@ -40,8 +49,16 @@ $this->params['breadcrumbs'][] = $this->title;
     ]) ?>
 
     <p>
-        <?= Html::a(Yii::t('docflow', 'Create Statuses'), ['create-status', 'doc' => $model->tag], ['class' => 'btn btn-success']) ?>
+        <?php echo Html::a(
+            Yii::t('docflow', 'Create Statuses'),
+            ['create-status', 'doc' => $model->tag],
+            ['class' => 'btn btn-success']
+        ) ?>
     </p>
 
-    <?php echo FlTreeWidget::widget(['renderView' => 'flTree', 'dataUrl' => $dataUrl]) ?>
+    <?php echo FlTreeWidget::widget([
+        'renderView' => 'flTree',
+        'dataUrl' => $flTreeWidgetParam['dataUrl'],
+        'titleList' => $flTreeWidgetParam['titleList']
+    ]) ?>
 </div>

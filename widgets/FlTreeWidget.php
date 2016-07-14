@@ -32,6 +32,13 @@ class FlTreeWidget extends Widget
     public $renderView;
 
     /**
+     * Тайтл списка плоского дерева
+     *
+     * @var string
+     */
+    public $titleList;
+
+    /**
      * Выполняем виджет
      *
      * @return string
@@ -41,7 +48,7 @@ class FlTreeWidget extends Widget
      */
     public function run()
     {
-        return $this->render($this->renderView, ['dataUrl' => '\'' . $this->dataUrl . '\'']);
+        return $this->render($this->renderView, ['dataUrl' => $this->dataUrl, 'titleList' => $this->titleList]);
     }
 
     /**
@@ -74,18 +81,16 @@ class FlTreeWidget extends Widget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function prepareMainStructure(ActiveDataProvider $docADP, array $config)
     {
         return array_map(
             function (Document $value) use ($config) {
-                $main = static::getMainPart($value, $config);
-                $child = static::getChildPart($value, $config);
-
                 return array_merge(
-                    $main,
-                    $child
+                    static::getMainPart($value, $config),
+                    static::getChildPart($value, $config)
                 );
             },
             array_values($docADP->models)
@@ -100,13 +105,14 @@ class FlTreeWidget extends Widget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function getMainPart(Document $value, array $config)
     {
         return [
             'text' => $value->{$value->docNameField()},
-            'href' => static::getDocumentViewLink($config, $value),
+            'href' => static::getLink($config['documentView'], $value),
         ];
     }
 
@@ -118,6 +124,7 @@ class FlTreeWidget extends Widget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function getChildPart(Document $value, array $config)
@@ -132,14 +139,8 @@ class FlTreeWidget extends Widget
 
         if ($haveChild === true) {
             $child = [
-                'href_child' => Url::toRoute(
-                    [
-                        $config['routeChild'],
-                        'nodeIdValue' => $value->{$config['nodeIdField']},
-                        'extra' => $config['extra']
-                    ]
-                ),
-                'tags' => [$countChild],
+                'href_child' => static::getLink($config['child'], $value),
+                'tags' => ['Вложенно: ' . $countChild],
             ];
         }
 
@@ -149,19 +150,28 @@ class FlTreeWidget extends Widget
     /**
      * Формируем ссылку на просмотр документа
      *
-     * @param array    $config - конфигурация
-     * @param Document $value  - Документ
+     * @param array         $data  - содержит маршрут и параметры к маршруту
+     * @param Document|null $value - объект документа
      *
      * @return string
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getDocumentViewLink(array $config, $value)
+    protected static function getLink(array $data, $value = null)
     {
-        $routeArray = [$config['routeDocumentView']];
+        $routeArray = [$data['route']];
 
-        foreach ($config['documentViewParam'] as $param) {
+        foreach ($data['params'] as $param) {
+            if (($value === null) && (($param['type'] === 'property') || ($param['type'] === 'function'))) {
+                throw new ErrorException('Ошибка формирования URL: Если отсутствует объект, то невозможно использовать типы property и function');
+            }
+
             $paramValue = '';
+
+            if ($param['type'] === 'value') {
+                $paramValue = $param['value'];
+            }
 
             if ($param['type'] === 'property') {
                 $paramValue = $value->{$param['value']};
@@ -185,6 +195,7 @@ class FlTreeWidget extends Widget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function prepareNextPageButtonStructure(ActiveDataProvider $documentsADP, array $config)
@@ -216,6 +227,7 @@ class FlTreeWidget extends Widget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function getNextPagePart(array $config, $countLast)
@@ -223,13 +235,8 @@ class FlTreeWidget extends Widget
         return [
             [
                 'text' => '...',
-                'href_next' => Url::toRoute([
-                    $config['routeNext'],
-                    'page' => ++$config['page'],
-                    'nodeIdValue' => $config['nodeIdValue'],
-                    'extra' => $config['extra']
-                ]),
-                'tags' => [$countLast]
+                'href_next' => static::getLink($config['next']),
+                'tags' => ['Осталось: '.$countLast]
             ]
         ];
     }

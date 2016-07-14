@@ -225,6 +225,8 @@ class Statuses extends Document
      */
     public static function getDocumentByNodeId($nodeId)
     {
-        return static::find()->where(['id' => $nodeId]);
+        return static::find()
+            ->where(['id' => $nodeId])
+            ->with('docType');
     }
 }

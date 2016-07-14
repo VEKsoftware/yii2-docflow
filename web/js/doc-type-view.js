@@ -178,6 +178,14 @@ function clearChangeStatusSimpleLink() {
     $changeStatusSimpleLink.text('');
 }
 
+function getLeaf(item) {
+    if (item.href !== location.pathname) {
+        $("#tree-leaf").load(item.href, function () {
+            $("#tree-leaf").trigger("domChanged");
+        });
+    }
+}
+
 function initFlTree(dataUrl) {
     var onSelect = function (event, item) {
         var tree = $('#tree').treeview(true);
@@ -186,25 +194,26 @@ function initFlTree(dataUrl) {
             $.get(item.href_child, function (vars) {
                 var parent = tree.findNodes(item.text, 'text')[0];
                 tree.addNode(vars, parent, 0, {silent: true});
+
+                getLeaf(item);
             });
         }
+
+        if ((item.href_child === undefined) || (item.href_next === undefined)) {
+            getLeaf(item);
+        }
+
 
         if (item.href_next) {
             $.get(item.href_next, function (vars) {
                 var parrent = false;
 
                 if (item.parentId !== undefined) {
-                    parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+                    parrent = tree.findNodes('^' + item.parentId + '$', 'nodeId')[0];
                 }
 
                 tree.removeNode(item, {silent: true});
                 tree.addNode(vars, parrent, false, {silent: true});
-            });
-        }
-
-        if (item.href !== location.pathname) {
-            $("#tree-leaf").load(item.href, function () {
-                $("#tree-leaf").trigger("domChanged");
             });
         }
     };
@@ -257,14 +266,14 @@ function initFlTreeWithSimpleLinks(dataUrl) {
 
         if (item.href_next) {
             $.get(item.href_next, function (vars) {
-                var parrent = false;
+                var parent = false;
 
                 if (item.parentId !== undefined) {
-                    parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+                    parent = tree.findNodes('^' + item.parentId + '$', 'nodeId')[0];
                 }
 
                 tree.removeNode(item, {silent: true});
-                tree.addNode(vars, parrent, false, {silent: true});
+                tree.addNode(vars, parent, false, {silent: true});
             });
         }
     };
@@ -285,14 +294,14 @@ function initFlTreeWithSimpleLinks(dataUrl) {
             'state': item.state
         };
         var currentIndex = item.index;
-        var parrent = false;
+        var parent = false;
 
         if (item.parentId !== undefined) {
-            parrent = tree.findNodes(item.parentId, 'nodeId')[0];
+            parent = tree.findNodes(item.parentId, 'nodeId')[0];
         }
 
         tree.removeNode(item, {silent: true});
-        tree.addNode(currentNode, parrent, currentIndex, {silent: true});
+        tree.addNode(currentNode, parent, currentIndex, {silent: true});
     };
 
     var onChecked = function (event, item) {
@@ -311,8 +320,14 @@ function initFlTreeWithSimpleLinks(dataUrl) {
         if (item.href_delSimple) {
             getSimpleLinksAjax(item.href_delSimple, item);
         } else {
-            tree.checkNode(item, {silent: true});
+            tree.uncheckNode(item, {silent: true});
         }
+    };
+
+    var onRendered = function (event, item) {
+        /* Удаляем чекбоксы там где они не нужны */
+        hideCheckedIconWithParrentNode(item);
+        hideCheckedIconWithNext(item);
     };
 
     $('#tree-simple-link').treeview({
@@ -325,6 +340,32 @@ function initFlTreeWithSimpleLinks(dataUrl) {
         onNodeChecked: onChecked,
         onNodeUnchecked: onUnchecked,
         onNodeSelected: onSelected,
-        onNodeCollapsed: onCollapsed
+        onNodeCollapsed: onCollapsed,
+        onNodeRendered: onRendered
     });
+}
+
+function hideCheckedIconWithParrentNode(item) {
+    var tree = $('#tree');
+    var parentNode = tree.treeview('getSelected')[0];
+
+    if ((parentNode !== undefined) && (parentNode.text === item.text))
+    {
+        hideCheckedIcon(item);
+    }
+}
+
+function hideCheckedIconWithNext(item)
+{
+    if (item.text === '...') {
+        hideCheckedIcon(item);
+    }
+}
+
+function hideCheckedIcon(item) {
+    var treeSL = $('#tree-simple-link');
+    var nodeSLHtml = treeSL.find("li[data-nodeid = '" + item.nodeId + "']");
+    var nodeSLCheckboxHtml = nodeSLHtml.find("span[class *= check-icon]");
+
+    nodeSLCheckboxHtml.hide();
 }

@@ -13,10 +13,84 @@ use yii\base\ErrorException;
 use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
-use yii\helpers\Url;
 
 class FlTreeWithSimpleLinksWidget extends FlTreeWidget
 {
+    /**
+     * Тайтл документа
+     *
+     * @var string
+     */
+    public $title;
+
+    /**
+     * Тайтл плоского дерева с простыми связями
+     *
+     * @var string
+     */
+    public $titleLink;
+
+    /**
+     * Содержащит наименования и ссылки на действия для кнопок
+     *
+     * @var array
+     */
+    public $buttons;
+
+    /**
+     * Содержит кофигурацию для DataViewWidget
+     *
+     * @var array
+     */
+    public $dataViewConfig;
+
+    /**
+     * Url на начальные данные простого дерева
+     *
+     * @var string
+     */
+    public $urlFlTree;
+
+    /**
+     * Url на начльные данные плоского дерева с простыми связями
+     *
+     * @var string
+     */
+    public $urlFlTreeWithSimple;
+
+    /**
+     * Инициализируем виджет
+     *
+     * @return void
+     */
+    public function init()
+    {
+        //TODO в init необходимо проводит проверку на наличии требуемых данных
+    }
+
+    /**
+     * Выполняем виджет
+     *
+     * @return string
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
+     */
+    public function run()
+    {
+        return $this->render(
+            $this->renderView,
+            [
+                'title' => $this->title,
+                'titleLink' => $this->titleLink,
+                'buttons' => $this->buttons,
+                'dataViewConfig' => $this->dataViewConfig,
+                'urlFlTree' => $this->urlFlTree,
+                'urlFlTreeWithSimple' => $this->urlFlTreeWithSimple
+            ]
+        );
+    }
+
     /**
      * Получаем основную структуру
      *
@@ -24,22 +98,18 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      * @param array              $config - конфигурация
      *
      * @return array
-     * @throws \yii\base\InvalidParamException
+     *
+     * @throws ErrorException
+     * @throws InvalidParamException
      */
     protected static function prepareMainStructure(ActiveDataProvider $docADP, array $config)
     {
         return array_map(
             function (Document $value) use ($config) {
-                $main = static::getMainPart($value, $config);
-                $self = static::getSelfPart($value, $config);
-                $child = static::getChildPart($value, $config);
-                $simple = static::getSimplePart($value, $config);
-
                 return array_merge(
-                    $main,
-                    $self,
-                    $child,
-                    $simple
+                    static::getMainPart($value, $config),
+                    static::getChildPart($value, $config),
+                    static::getSimplePart($value, $config)
                 );
             },
             array_values($docADP->models)
@@ -54,83 +124,16 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      *
      * @return array
      *
+     * @throws ErrorException
      * @throws InvalidParamException
      */
     protected static function getMainPart(Document $value, array $config)
     {
         return [
             'text' => $value->{$value->docNameField()},
-            'href_addSimple' => Url::toRoute(
-                [
-                    $config['routeAddSLink'],
-                    'fromNodeId' => $config['fromNodeId'],
-                    'toNodeId' => $value->{$config['toNodeIdField']}
-                ]
-            ),
-            'href_delSimple' => Url::toRoute(
-                [
-                    $config['routeDelSLink'],
-                    'fromNodeId' => $config['fromNodeId'],
-                    'toNodeId' => $value->{$config['toNodeIdField']}
-                ]
-            ),
+            'href_addSimple' => static::getLink($config['addSimple'], $value),
+            'href_delSimple' => static::getLink($config['delSimple'], $value),
         ];
-    }
-
-    /**
-     * Формируем и получаем часть структуры, которая красит элемент в цвет, если он равен родительскому
-     *
-     * @param Document $value  - объект докмента
-     * @param array    $config - конфигурация
-     *
-     * @return array
-     */
-    protected static function getSelfPart(Document $value, array $config)
-    {
-        $self = [];
-
-        if ((int)$config['fromNodeId'] === (int)$value->{$config['toNodeIdField']}) {
-            $self = ['backColor' => 'gray'];
-        }
-
-        return $self;
-    }
-
-    /**
-     * Формируем и получаем часть структуры, которая описывает наличие детей у документа
-     *
-     * @param Document $value  - объект докмента
-     * @param array    $config - конфигурация
-     *
-     * @return array
-     *
-     * @throws InvalidParamException
-     */
-    protected static function getChildPart(Document $value, array $config)
-    {
-        $child = [];
-
-        /* Проверяем, есть-ли у документа подчиненные документы */
-        $haveChild = static::checkChild($value);
-
-        /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
-        $countChild = count($value->linksTo);
-
-        if ($haveChild === true) {
-            $child = [
-                'href_child' => Url::toRoute(
-                    [
-                        $config['routeChild'],
-                        'fromNodeId' => $config['fromNodeId'],
-                        'currentNodeId' => $value->{$config['toNodeIdField']},
-                        'extra' => $config['extra'],
-                    ]
-                ),
-                'tags' => [$countChild],
-            ];
-        }
-
-        return $child;
     }
 
     /**
@@ -155,33 +158,6 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     }
 
     /**
-     * Формируем и получаем структуру, описывающую элемент - подгружащий документы, которые не вошли в прошлую выборку
-     *
-     * @param array   $config    - конфигурация
-     * @param integer $countLast - количество оставшихся документов не раскрытыми
-     *
-     * @return array
-     *
-     * @throws InvalidParamException
-     */
-    protected static function getNextPagePart(array $config, $countLast)
-    {
-        return [
-            [
-                'text' => '...',
-                'href_next' => Url::toRoute([
-                    $config['routeNext'],
-                    'page' => ++$config['page'],
-                    'fromNodeId' => $config['fromNodeId'],
-                    'currentNodeId' => $config['currentNodeId'],
-                    'extra' => $config['extra'],
-                ]),
-                'tags' => [$countLast]
-            ]
-        ];
-    }
-
-    /**
      * Проверяем, есть-ли простая связь между родительским и текущим документами
      *
      * @param Document $value  - объект документа
@@ -191,42 +167,11 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      */
     protected static function checkSimpleLink(Document $value, array $config)
     {
-        $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinksParentDocument'], 'id');
+        $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinksParentDocument'], $config['nodeIdField']);
 
-        $key = array_search($value->{$config['toNodeIdField']}, $simpleLinksParentDoc);
+        $key = array_search($value->{$config['nodeIdField']}, $simpleLinksParentDoc);
 
         return ($key !== false) ? true : false;
-    }
-
-    /**
-     * Добавляем к структуре кнопку для отображения следующего набора данных(следующая страница)
-     *
-     * @param ActiveDataProvider $documentsADP - провайдер с документами
-     * @param array              $config       - конфигурация
-     *
-     * @return array
-     *
-     * @throws InvalidParamException
-     */
-    protected static function prepareNextPageButtonStructure(ActiveDataProvider $documentsADP, array $config)
-    {
-        /* Структура следующей страницы */
-        $nextPage = [];
-
-        $pagination = $documentsADP->pagination;
-        /* К номеру страницы добавляем 1 т.к нумерация в пагинации начинается с 0 */
-        $currentPage = ($pagination->page + 1);
-        /* Количество документов на странице */
-        $pageSize = $pagination->pageSize;
-
-        /* Получаем общее количество оставшихся документов для подгрузки */
-        $countLast = ($documentsADP->totalCount - ($currentPage * $pageSize));
-
-        if ($currentPage < $pagination->pageCount) {
-            $nextPage = static::getNextPagePart($config, $countLast);
-        }
-
-        return $nextPage;
     }
 
     /**

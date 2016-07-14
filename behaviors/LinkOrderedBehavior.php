@@ -210,14 +210,13 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
         /**
          * @var array $parentLink
          */
-        $parentLink = $documents[$this->owner->{$this->orderedField}]->linksFrom;
+        $parentLink = $documents[$this->owner->{$this->indexBy}]->linksFrom;
 
         $currentDocumentParent = null;
 
         if (count($parentLink) > 0) {
             $currentDocumentParent = $parentLink[0][$this->linkFieldsArray['status_from']];
         }
-
         /**
          * Выбираем статусы из массива:
          * 1)Если родительской связи нет, то все документы без родительской связи

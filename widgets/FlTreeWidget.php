@@ -140,7 +140,7 @@ class FlTreeWidget extends Widget
         if ($haveChild === true) {
             $child = [
                 'href_child' => static::getLink($config['child'], $value),
-                'tags' => ['Вложений: ' . $countChild],
+                'tags' => [$countChild, 'Вложений: '],
             ];
         }
 
@@ -236,7 +236,7 @@ class FlTreeWidget extends Widget
             [
                 'text' => '...',
                 'href_next' => static::getLink($config['next']),
-                'tags' => ['Осталось: '.$countLast]
+                'tags' => [$countLast, 'Осталось: ']
             ]
         ];
     }

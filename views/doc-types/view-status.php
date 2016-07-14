@@ -91,6 +91,7 @@ echo FlTreeWithSimpleLinksWidget::widget([
     'flTreeUrl' => Url::toRoute(
         [
             'doc-types/ajax-get-child',
+            'docType' => $doc,
             'extra' => $extra,
         ]
     ),

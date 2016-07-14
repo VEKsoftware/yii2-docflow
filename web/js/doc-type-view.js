@@ -75,15 +75,10 @@ function prepareTree(url, name, flTreeUrl, action) {
      то подгружаем сначала документы, а потом производим запрос на изменение */
     if ((action === 'Down') && ((next.index - currentNode.index) === 1) && (next.href_next)) {
         $.get(next.href_next, function (vars) {
-            var parent = false;
-
-            if (next.parentId !== undefined) {
-                parent = tree.findNodes('^' + next.parentId + '$', 'nodeId')[0];
-            }
+            var parent = getParentByParentId(tree, next);
 
             tree.removeNode(next, {silent: true});
             tree.addNode(vars, parent, false, {silent: true});
-
 
             ajaxActionRequest(url, name, flTreeUrl, action)
         });
@@ -118,12 +113,8 @@ function ajaxActionRequest(url, name, flTreeUrl, action) {
  */
 function renderTree(currentName, flTreeUrl, action) {
 
-    if (action === 'Up') {
-        nodeUp(currentName);
-    }
-
-    if (action === 'Down') {
-        nodeDown(currentName);
+    if ((action === 'Up') || (action === 'Down')) {
+        nodeVertical(currentName, action);
     }
 
     if (action === 'Right') {
@@ -136,57 +127,25 @@ function renderTree(currentName, flTreeUrl, action) {
 }
 
 /**
- * Перемещаем ноду на одно положение выше
+ * Перемещаем ноду на 1 положение:
+ * 1)Если action - Up - то выше
+ * 2)Если action - Down - то ниже
  * @param currentName
+ * @param action
  */
-function nodeUp(currentName) {
+function nodeVertical(currentName, action)
+{
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
-
-    /* Удаляем текущую ноду */
-    tree.removeNode(currentNode, {silent: true});
-
-    /* Определяем родителя */
-    var parent = false;
-
-    if (currentNode.parentId !== undefined) {
-        parent = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
-    }
-
-    /* Формируем структуру для добавления текущей ноды */
-    var newCurrentNode = {
-        text: currentNode.text,
-        href: currentNode.href,
-        href_child: currentNode.href_child,
-        tags: currentNode.tags
-        //nodes: cNode.nodes
-    };
-
-    /* Добавляем текущюю ноду в необходимом месте */
-    tree.addNode(newCurrentNode, parent, (currentNode.index - 1), {silent: true});
-
-    tree.selectNode(newCurrentNode);
-}
-
-/**
- * Перемещаем ноду на 1 положение ниже
- * @param currentName
- */
-function nodeDown(currentName) {
-    var tree = $('#tree').treeview(true);
-    var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
-
-    console.log(currentNode);
+    var needIndex = (action === 'Up')
+        ? currentNode.index - 1
+        : currentNode.index + 1;
 
     /* Удаляем текущюю ноду */
     tree.removeNode(currentNode, {silent: true});
 
     /* Определяем родителя */
-    var parent = false;
-
-    if (currentNode.parentId !== undefined) {
-        parent = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
-    }
+    var parent = getParentByParentId(tree, currentNode);
 
     /* Формируем структуру для добавления из текущей ноды */
     var newCurrentNode = {
@@ -194,77 +153,66 @@ function nodeDown(currentName) {
         href: currentNode.href,
         href_child: currentNode.href_child,
         tags: currentNode.tags
-        //nodes: cNode.nodes
     };
 
     /* Добавляем текущюю ноду в необходимое место */
-    tree.addNode(newCurrentNode, parent, (currentNode.index + 1), {silent: true});
+    tree.addNode(newCurrentNode, parent, needIndex, {silent: true});
 
     tree.selectNode(newCurrentNode);
 }
 
-
+/**
+ * Перемещаем ноду во внутренний уровень вверхстоящей ноды
+ * @param flTreeUrl
+ * @param currentName
+ */
 function nodeIn(flTreeUrl, currentName) {
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
 
-    /* Cмотрим на родителя перемещаемой ноды */
-    if (currentNode.parentId !== undefined) {
-        var parentCurrentNode = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
-
-        tree.removeNode(parentCurrentNode, {silent: true});
-
-        /* Определяем родителя */
-        var parent = false;
-
-        if (parentCurrentNode.parentId !== undefined) {
-            parent = tree.findNodes('^' + parentCurrentNode.parentId + '$', 'nodeId')[0];
-        }
-
-        var newParentCurrentNode = {
-            text: parentCurrentNode.text,
-            href: parentCurrentNode.href,
-            href_child: parentCurrentNode.href_child,
-            tags: parentCurrentNode.tags - 1
-        };
-
-        tree.addNode(newParentCurrentNode, parent, parentCurrentNode.index, {silent: true});
-
-        tree.selectNode(newParentCurrentNode);
-    } else {
-        tree.remove();
-        initFlTree(flTreeUrl);
-    }
+    nodeHorizontal(currentNode, flTreeUrl);
 }
 
+/**
+ * Перемещаем ноду во внешний уровень к родительской ноде
+ * @param flTreeUrl
+ * @param currentName
+ */
 function nodeOut(flTreeUrl, currentName) {
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
     var parentNode = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
 
-    /* Cмотрим на родителя перемещаемой ноды */
-    if (parentNode.parentId !== undefined) {
-        var parentParentNode = tree.findNodes('^' + parentNode.parentId + '$', 'nodeId')[0];
+    nodeHorizontal(parentNode, flTreeUrl);
+}
 
-        tree.removeNode(parentParentNode, {silent: true});
+/**
+ * Если внешний уровень корневой, то перезагружаем дерево, если не уорневой то перезагружаем родительскую ноду
+ * @param node
+ * @param flTreeUrl
+ */
+function nodeHorizontal(node, flTreeUrl) {
+    var tree = $('#tree').treeview(true);
+
+    /* Cмотрим на родителя перемещаемой ноды */
+    if (node.parentId !== undefined) {
+        var reloadNode = tree.findNodes('^' + node.parentId + '$', 'nodeId')[0];
+
+        tree.removeNode(reloadNode, {silent: true});
 
         /* Определяем родителя */
-        var parent = false;
+        var parent = getParentByParentId(tree, reloadNode);
 
-        if (parentParentNode.parentId !== undefined) {
-            parent = tree.findNodes('^' + parentParentNode.parentId + '$', 'nodeId')[0];
-        }
-
-        var newParentParentNode = {
-            text: parentParentNode.text,
-            href: parentParentNode.href,
-            href_child: parentParentNode.href_child,
-            tags: parentParentNode.tags - 1
+        var newReloadNode = {
+            text: reloadNode.text,
+            href: reloadNode.href,
+            href_child: reloadNode.href_child,
+            tags: [parseInt(reloadNode.tags[0]) + 1, reloadNode.tags[1]]
         };
 
-        tree.addNode(newParentParentNode, parent, parentParentNode.index, {silent: true});
+        tree.addNode(newReloadNode, parent, reloadNode.index, {silent: true});
 
-        tree.selectNode(newParentParentNode);
+        tree.selectNode(newReloadNode);
     } else {
         tree.remove();
         initFlTree(flTreeUrl);
@@ -385,6 +333,11 @@ function initFlTree(dataUrl) {
     var onSelect = function (event, item) {
         var tree = $('#tree').treeview(true);
 
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+
+        /* Еcли есть ссылка для загрузки вложенных документов и если документы еще не загружены,
+        то загружаем и устанавливаем документы в дерево и загружаем дерево с простыми связями для текущего документа */
         if (item.href_child && item.nodes === undefined) {
             $.get(item.href_child, function (vars) {
                 var parent = tree.findNodes(item.text, 'text')[0];
@@ -394,46 +347,46 @@ function initFlTree(dataUrl) {
             });
         }
 
+        /* Если нет адреса для загрузки подчиненных и оставшихся  документов, то загружаем дерево с простыми связями для текущего документа */
         if ((item.href_child === undefined) || (item.href_next === undefined)) {
             getLeaf(item);
         }
 
-
+        /* Если есть адрес для загрузки оставшихся документов на уровне, то загружаем их и устанавливаем в дерево */
         if (item.href_next) {
             $.get(item.href_next, function (vars) {
-                var parrent = false;
-
-                if (item.parentId !== undefined) {
-                    parrent = tree.findNodes('^' + item.parentId + '$', 'nodeId')[0];
-                }
+                var parent = getParentByParentId(tree, item);
 
                 tree.removeNode(item, {silent: true});
-                tree.addNode(vars, parrent, false, {silent: true});
+                tree.addNode(vars, parent, false, {silent: true});
             });
         }
     };
 
     var onUnSelect = function (event, item) {
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+
         $("#tree-leaf").html('');
     };
 
     var onCollapsed = function (event, item) {
         var tree = $('#tree').treeview(true);
+
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+
         var currentNode = {
             'text': item.text,
             'href': item.href,
             'href_child': item.href_child,
             'tags': item.tags
         };
-        var currentIndex = item.index;
-        var parrent = false;
 
-        if (item.parentId !== undefined) {
-            parrent = tree.findNodes(item.parentId, 'nodeId')[0];
-        }
+        var parent = getParentByParentId(tree, item);
 
         tree.removeNode(item, {silent: true});
-        tree.addNode(currentNode, parrent, currentIndex, {silent: true});
+        tree.addNode(currentNode, parent, item.index, {silent: true});
     };
 
     $('#tree').treeview({
@@ -461,11 +414,7 @@ function initFlTreeWithSimpleLinks(dataUrl) {
 
         if (item.href_next) {
             $.get(item.href_next, function (vars) {
-                var parent = false;
-
-                if (item.parentId !== undefined) {
-                    parent = tree.findNodes('^' + item.parentId + '$', 'nodeId')[0];
-                }
+                var parent = getParentByParentId(tree, item);
 
                 tree.removeNode(item, {silent: true});
                 tree.addNode(vars, parent, false, {silent: true});
@@ -484,19 +433,14 @@ function initFlTreeWithSimpleLinks(dataUrl) {
             'href_child': item.href_child,
             'href_addSimple': item.href_addSimple,
             'href_delSimple': item.href_delSimple,
-            'backColor': item.backColor,
             'tags': item.tags,
             'state': item.state
         };
-        var currentIndex = item.index;
-        var parent = false;
 
-        if (item.parentId !== undefined) {
-            parent = tree.findNodes(item.parentId, 'nodeId')[0];
-        }
+        var parent = getParentByParentId(tree, item);
 
         tree.removeNode(item, {silent: true});
-        tree.addNode(currentNode, parent, currentIndex, {silent: true});
+        tree.addNode(currentNode, parent, item.index, {silent: true});
     };
 
     var onChecked = function (event, item) {
@@ -575,4 +519,21 @@ function hideCheckedIcon(item) {
     var nodeSLCheckboxHtml = nodeSLHtml.find("span[class *= check-icon]");
 
     nodeSLCheckboxHtml.hide();
+}
+
+/**
+ * Получаем родительскую ноду, по её nodeId, используя значения из parentId передаваемой ноды
+ * @param tree
+ * @param currentNode
+ * @returns {boolean}
+ */
+function getParentByParentId(tree, currentNode) {
+    /* Определяем родителя */
+    var parent = false;
+
+    if (currentNode.parentId !== undefined) {
+        parent = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
+    }
+
+    return parent;
 }

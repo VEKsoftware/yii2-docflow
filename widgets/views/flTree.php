@@ -13,14 +13,14 @@ use docflow\assets\TreeViewAsset;
 
 ?>
     <div class="row">
-        <div class="col-sm-3">
+        <div class="col-sm-4">
             <h3>
                 <?php echo $titleList ?>
             </h3>
             <span id="tree-change-status"></span>
             <div id="tree"></div>
         </div>
-        <div class="col-sm-9">
+        <div class="col-sm-8">
             <div id="tree-leaf"></div>
         </div>
     </div>

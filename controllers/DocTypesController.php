@@ -5,7 +5,6 @@ namespace docflow\controllers;
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
-use docflow\testing\Users;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
 use yii;
@@ -124,7 +123,7 @@ class DocTypesController extends Controller
                 'dataProvider' => $dataProvider,
                 'flTreeWidgetParam' => [
                     'titleList' => Yii::t('docflow', 'List of statuses'),
-                    'dataUrl' => Url::toRoute([
+                    'flTreeUrl' => Url::toRoute([
                         'doc-types/ajax-get-child',
                         'docType' => $doc,
                         'extra' => json_encode(['doc_type_id' => $model->id])
@@ -185,64 +184,40 @@ class DocTypesController extends Controller
         ]);
 
         $config = [
-            'documentView' => [
-                'route' => 'status-view',
-                'params' => [
-                    [
-                        'key' => 'doc',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'tag',
-                        'value' => 'tag',
-                        'type' => 'property',
+            'links' => [
+                'documentView' => [
+                    'route' => 'status-view',
+                    'params' => [
+                        ['doc' => $docType],
+                        [
+                            'tag' => [
+                                'value' => 'tag',
+                                'type' => 'property'
+                            ]
+                        ]
                     ]
-                ]
-            ],
-            'next' => [
-                'route' => 'doc-types/ajax-get-next',
-                'params' => [
-                    [
-                        'key' => 'docType',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'page',
-                        'value' => ++$page,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'nodeIdValue',
-                        'value' => $nodeIdValue,
-                        'type' => 'value',
-                    ],
-                ]
-            ],
-            'child' => [
-                'route' => 'doc-types/ajax-get-child',
-                'params' => [
-                    [
-                        'key' => 'docType',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'nodeIdValue',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
+                ],
+                'next' => [
+                    'route' => 'doc-types/ajax-get-next',
+                    'params' => [
+                        ['docType' => $docType],
+                        ['page' => ++$page],
+                        ['extra' => $extra],
+                        ['nodeIdValue' => $nodeIdValue],
+                    ]
+                ],
+                'child' => [
+                    'route' => 'doc-types/ajax-get-child',
+                    'params' => [
+                        ['docType' => $docType],
+                        [
+                            'nodeIdValue' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                        ['extra' => $extra],
+                    ]
                 ]
             ]
         ];
@@ -300,64 +275,40 @@ class DocTypesController extends Controller
         ]);
 
         $config = [
-            'documentView' => [
-                'route' => 'status-view',
-                'params' => [
-                    [
-                        'key' => 'doc',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'tag',
-                        'value' => 'tag',
-                        'type' => 'property',
+            'links' => [
+                'documentView' => [
+                    'route' => 'status-view',
+                    'params' => [
+                        ['doc' => $docType],
+                        [
+                            'tag' => [
+                                'value' => 'tag',
+                                'type' => 'property'
+                            ],
+                        ]
                     ]
-                ]
-            ],
-            'next' => [
-                'route' => 'doc-types/ajax-get-next',
-                'params' => [
-                    [
-                        'key' => 'docType',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'page',
-                        'value' => 2,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'nodeIdValue',
-                        'value' => $nodeIdValue,
-                        'type' => 'value',
-                    ],
-                ]
-            ],
-            'child' => [
-                'route' => 'doc-types/ajax-get-child',
-                'params' => [
-                    [
-                        'key' => 'docType',
-                        'value' => $docType,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'nodeIdValue',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
+                ],
+                'next' => [
+                    'route' => 'doc-types/ajax-get-next',
+                    'params' => [
+                        ['docType' => $docType],
+                        ['page' => 2],
+                        ['extra' => $extra],
+                        ['nodeIdValue' => $nodeIdValue],
+                    ]
+                ],
+                'child' => [
+                    'route' => 'doc-types/ajax-get-child',
+                    'params' => [
+                        ['docType' => $docType],
+                        [
+                            'nodeIdValue' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ],
+                        ],
+                        ['extra' => $extra],
+                    ]
                 ]
             ]
         ];
@@ -423,79 +374,52 @@ class DocTypesController extends Controller
         $config = [
             'simpleLinksParentDocument' => $simpleLinksParentDocument,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
-            'addSimple' => [
-                'route' => 'doc-types/ajax-add-simple-link',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'toNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                ]
-            ],
-            'delSimple' => [
-                'route' => 'doc-types/ajax-remove-simple-link',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'toNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                ]
-            ],
-            'next' => [
-                'route' => 'doc-types/ajax-get-next-with-simple',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'page',
-                        'value' => ++$page,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'currentNodeId',
-                        'value' => $currentNodeId,
-                        'type' => 'value',
-                    ],
-                ]
-            ],
-            'child' => [
-                'route' => 'doc-types/ajax-get-child-with-simple',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'currentNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
+            'links' => [
+                'addSimple' => [
+                    'route' => 'doc-types/ajax-add-simple-link',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'toNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                    ]
+                ],
+                'delSimple' => [
+                    'route' => 'doc-types/ajax-remove-simple-link',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'toNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                    ]
+                ],
+                'next' => [
+                    'route' => 'doc-types/ajax-get-next-with-simple',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        ['page' => ++$page],
+                        ['extra' => $extra],
+                        ['currentNodeId' => $currentNodeId],
+                    ]
+                ],
+                'child' => [
+                    'route' => 'doc-types/ajax-get-child-with-simple',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'currentNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                        ['extra' => $extra],
+                    ]
                 ]
             ]
         ];
@@ -560,79 +484,52 @@ class DocTypesController extends Controller
         $config = [
             'simpleLinksParentDocument' => $simpleLinksParentDocument,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
-            'addSimple' => [
-                'route' => 'doc-types/ajax-add-simple-link',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'toNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                ]
-            ],
-            'delSimple' => [
-                'route' => 'doc-types/ajax-remove-simple-link',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'toNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                ]
-            ],
-            'next' => [
-                'route' => 'doc-types/ajax-get-next-with-simple',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'page',
-                        'value' => 2,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'currentNodeId',
-                        'value' => $currentNodeId,
-                        'type' => 'value',
-                    ],
-                ]
-            ],
-            'child' => [
-                'route' => 'doc-types/ajax-get-child-with-simple',
-                'params' => [
-                    [
-                        'key' => 'fromNodeId',
-                        'value' => $fromNodeId,
-                        'type' => 'value',
-                    ],
-                    [
-                        'key' => 'currentNodeId',
-                        'value' => $statuses->linkFieldsArray['node_id'],
-                        'type' => 'property',
-                    ],
-                    [
-                        'key' => 'extra',
-                        'value' => $extra,
-                        'type' => 'value',
-                    ],
+            'links' => [
+                'addSimple' => [
+                    'route' => 'doc-types/ajax-add-simple-link',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'toNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                    ]
+                ],
+                'delSimple' => [
+                    'route' => 'doc-types/ajax-remove-simple-link',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'toNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                    ]
+                ],
+                'next' => [
+                    'route' => 'doc-types/ajax-get-next-with-simple',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        ['page' => 2],
+                        ['extra' => $extra],
+                        ['currentNodeId' => $currentNodeId],
+                    ]
+                ],
+                'child' => [
+                    'route' => 'doc-types/ajax-get-child-with-simple',
+                    'params' => [
+                        ['fromNodeId' => $fromNodeId],
+                        [
+                            'currentNodeId' => [
+                                'value' => $statuses->linkFieldsArray['node_id'],
+                                'type' => 'property'
+                            ]
+                        ],
+                        ['extra' => $extra],
+                    ]
                 ]
             ]
         ];

@@ -18,14 +18,14 @@ use yii\helpers\Url;
 class FlTreeWidget extends Widget
 {
     /**
-     * Роут до метода с первоначальными данными
+     * Url на начальные данные плоского дерева
      *
      * @var string
      */
-    public $dataUrl;
+    public $flTreeUrl;
 
     /**
-     * Имя представлени я для отображения данных
+     * Имя представления для отображения данных
      *
      * @var string
      */
@@ -39,6 +39,20 @@ class FlTreeWidget extends Widget
     public $titleList;
 
     /**
+     * Инициализируем виджет
+     *
+     * @return void
+     */
+    public function init()
+    {
+        if ($this->renderView === null) {
+            $this->renderView = 'flTree';
+        }
+        
+        //TODO в init необходимо проводит проверку на наличии требуемых данных
+    }
+    
+    /**
      * Выполняем виджет
      *
      * @return string
@@ -48,7 +62,7 @@ class FlTreeWidget extends Widget
      */
     public function run()
     {
-        return $this->render($this->renderView, ['dataUrl' => $this->dataUrl, 'titleList' => $this->titleList]);
+        return $this->render($this->renderView, ['flTreeUrl' => $this->flTreeUrl, 'titleList' => $this->titleList]);
     }
 
     /**
@@ -112,7 +126,7 @@ class FlTreeWidget extends Widget
     {
         return [
             'text' => $value->{$value->docNameField()},
-            'href' => static::getLink($config['documentView'], $value),
+            'href' => static::getLink($config['links']['documentView'], $value),
         ];
     }
 
@@ -139,7 +153,7 @@ class FlTreeWidget extends Widget
 
         if ($haveChild === true) {
             $child = [
-                'href_child' => static::getLink($config['child'], $value),
+                'href_child' => static::getLink($config['links']['child'], $value),
                 'tags' => [$countChild, 'Вложений: '],
             ];
         }
@@ -150,38 +164,47 @@ class FlTreeWidget extends Widget
     /**
      * Формируем ссылку на просмотр документа
      *
-     * @param array         $data  - содержит маршрут и параметры к маршруту
-     * @param Document|null $value - объект документа
+     * @param array         $linkParam - содержит маршрут и параметры к маршруту
+     * @param Document|null $document  - объект документа
      *
      * @return string
      *
      * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getLink(array $data, $value = null)
+    protected static function getLink(array $linkParam, $document = null)
     {
-        $routeArray = [$data['route']];
+        $routeArray = [$linkParam['route']];
 
-        foreach ($data['params'] as $param) {
-            if (($value === null) && (($param['type'] === 'property') || ($param['type'] === 'function'))) {
-                throw new ErrorException('Ошибка формирования URL: Если отсутствует объект, то невозможно использовать типы property и function');
+        foreach ($linkParam['params'] as $param) {
+            foreach ($param as $key => $value) {
+                $paramValue = '';
+
+                if (!is_array($value)) {
+                    $paramValue = $value;
+                } else {
+                    if (($document === null) && (($value['type'] === 'property') || ($value['type'] === 'function'))) {
+                        throw new ErrorException('Ошибка формирования URL: Если отсутствует объект, то невозможно использовать типы property и function');
+                    }
+
+                    /* Если тип value, то значение берем из  $value['value'] */
+                    if ($value['type'] === 'value') {
+                        $paramValue = $value['value'];
+                    }
+
+                    /* Если тип property, то значение берем из свойства, указанном в $value['value'], объекта $document */
+                    if ($value['type'] === 'property') {
+                        $paramValue = $document->{$value['value']};
+                    }
+
+                    /* Если тип function, то значение берем из метода, указанном в $value['value'], объекта $document */
+                    if ($value['type'] === 'function') {
+                        $paramValue = call_user_func([$document::className(), $value['value']]);
+                    }
+                }
+
+                $routeArray = array_merge($routeArray, [$key => $paramValue]);
             }
-
-            $paramValue = '';
-
-            if ($param['type'] === 'value') {
-                $paramValue = $param['value'];
-            }
-
-            if ($param['type'] === 'property') {
-                $paramValue = $value->{$param['value']};
-            }
-
-            if ($param['type'] === 'function') {
-                $paramValue = call_user_func([$value::className(), $param['value']]);
-            }
-
-            $routeArray = array_merge($routeArray, [$param['key'] => $paramValue]);
         }
 
         return Url::to($routeArray);
@@ -235,7 +258,7 @@ class FlTreeWidget extends Widget
         return [
             [
                 'text' => '...',
-                'href_next' => static::getLink($config['next']),
+                'href_next' => static::getLink($config['links']['next']),
                 'tags' => [$countLast, 'Осталось: ']
             ]
         ];
@@ -270,33 +293,6 @@ class FlTreeWidget extends Widget
      */
     protected static function checkConfiguration(array $config)
     {
-        if (!array_key_exists('docIdentField', $config)
-            || (empty($config['docIdentField']))
-            || (!is_string($config['docIdentField']))
-        ) {
-            throw new ErrorException('Ключ docIdentField не найден в конфигурации или пустое значение или не строковый тип');
-        }
 
-        if (!array_key_exists('docIdentVal', $config)) {
-            throw new ErrorException('Ключ docIdentVal не найден в конфигурации');
-        }
-
-        if (!array_key_exists('routeNext', $config)
-            || (empty($config['routeNext']))
-            || (!is_string($config['routeNext']))
-        ) {
-            throw new ErrorException('Ключ routeNext не найден в конфигурации или пустое значение или не строковый тип');
-        }
-
-        if (!array_key_exists('routeChild', $config)
-            || (empty($config['routeChild']))
-            || (!is_string($config['routeChild']))
-        ) {
-            throw new ErrorException('Ключ routeChild не найден в конфигурации или пустое значение или не строковый тип');
-        }
-
-        if (!array_key_exists('page', $config) || (empty($config['page']))) {
-            throw new ErrorException('Ключ page не найден в конфигурации или пустое значение');
-        }
     }
 }

@@ -15,6 +15,7 @@
  * @var string $nodeName
  */
 use yii\helpers\Html;
+use yii\helpers\Url;
 use yii\widgets\DetailView;
 
 ?>
@@ -35,7 +36,7 @@ use yii\widgets\DetailView;
                     $buttons['treeLeft']['name'],
                     [
                         'name' => 'left-in-tree',
-                        'data-href' => $buttons['treeLeft']['url'],
+                        'data-href' => Url::toRoute($buttons['treeLeft']['url']),
                         'data-fl-tree-url' => $flTreeUrl,
                         'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
@@ -46,7 +47,7 @@ use yii\widgets\DetailView;
                     $buttons['treeUp']['name'],
                     [
                         'name' => 'up-in-tree',
-                        'data-href' => $buttons['treeUp']['url'],
+                        'data-href' => Url::toRoute($buttons['treeUp']['url']),
                         'data-fl-tree-url' => $flTreeUrl,
                         'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
@@ -57,7 +58,7 @@ use yii\widgets\DetailView;
                     $buttons['treeDown']['name'],
                     [
                         'name' => 'down-in-tree',
-                        'data-href' => $buttons['treeDown']['url'],
+                        'data-href' => Url::toRoute($buttons['treeDown']['url']),
                         'data-fl-tree-url' => $flTreeUrl,
                         'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
@@ -68,7 +69,7 @@ use yii\widgets\DetailView;
                     $buttons['treeRight']['name'],
                     [
                         'name' => 'right-in-tree',
-                        'data-href' => $buttons['treeRight']['url'],
+                        'data-href' => Url::toRoute($buttons['treeRight']['url']),
                         'data-fl-tree-url' => $flTreeUrl,
                         'data-name' => $nodeName,
                         'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'

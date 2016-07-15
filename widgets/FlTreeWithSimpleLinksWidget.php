@@ -52,13 +52,6 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     public $nodeName;
 
     /**
-     * Url на начальные данные плоского дерева
-     *
-     * @var string
-     */
-    public $flTreeUrl;
-
-    /**
      * Url на начальные данные плоского дерева с простыми связями
      *
      * @var string
@@ -72,6 +65,10 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      */
     public function init()
     {
+        if ($this->renderView === null) {
+            $this->renderView = 'flTreeWithSimpleLinks';
+        }
+        
         //TODO в init необходимо проводит проверку на наличии требуемых данных
     }
 
@@ -139,8 +136,8 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     {
         return [
             'text' => $value->{$value->docNameField()},
-            'href_addSimple' => static::getLink($config['addSimple'], $value),
-            'href_delSimple' => static::getLink($config['delSimple'], $value),
+            'href_addSimple' => static::getLink($config['links']['addSimple'], $value),
+            'href_delSimple' => static::getLink($config['links']['delSimple'], $value),
         ];
     }
 
@@ -179,7 +176,7 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
 
         $key = array_search($value->{$config['nodeIdField']}, $simpleLinksParentDoc);
 
-        return ($key !== false) ? true : false;
+        return ($key !== false);
     }
 
     /**
@@ -195,22 +192,5 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     {
         parent::checkConfiguration($config);
 
-        if (!array_key_exists('currentDocIdentVal', $config)) {
-            throw new ErrorException('Ключ currentDocIdentVal не найден в конфигурации');
-        }
-
-        if (!array_key_exists('routeAddSLink', $config)
-            || (empty($config['routeAddSLink']))
-            || (!is_string($config['routeAddSLink']))
-        ) {
-            throw new ErrorException('Ключ routeAddSLink не найден в конфигурации или пустое значение или не строковый тип');
-        }
-
-        if (!array_key_exists('routeDelSLink', $config)
-            || (empty($config['routeDelSLink']))
-            || (!is_string($config['routeDelSLink']))
-        ) {
-            throw new ErrorException('Ключ routeDelSLink не найден в конфигурации или пустое значение или не строковый тип');
-        }
     }
 }

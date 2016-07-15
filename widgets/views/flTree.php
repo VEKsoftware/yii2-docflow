@@ -6,7 +6,7 @@
  * Time: 15:00
  *
  * @var array  $items
- * @var string $dataUrl
+ * @var string $flTreeUrl
  * @var string $titleList
  */
 use docflow\assets\TreeViewAsset;
@@ -26,7 +26,7 @@ use docflow\assets\TreeViewAsset;
     </div>
 <?php
 
-$this->registerJs("var dataUrl = '$dataUrl'");
+$this->registerJs("var dataUrl = '$flTreeUrl'");
 
 TreeViewAsset::register($this);
 

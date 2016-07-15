@@ -11,7 +11,6 @@
 use docflow\widgets\FlTreeWidget;
 
 echo FlTreeWidget::widget([
-    'renderView' => 'flTree',
-    'dataUrl' => $flTreeWidgetParam['dataUrl'],
+    'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
     'titleList' => $flTreeWidgetParam['titleList']
 ]);

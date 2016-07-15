@@ -30,6 +30,9 @@ class Docflow extends Module
         $this->registerTranslations();
 
         $this->defaultRoute = 'doc-types/index';
+        $this->controllerMap = [
+            'test-users' => 'docflow\examples\users\controllers\TestUsersController'
+        ];
     }
 
     /**

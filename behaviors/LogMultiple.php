@@ -52,6 +52,7 @@ class LogMultiple extends Log
         if (!self::$_eventSwitched) {
             Event::on($owner->className(), VekActiveRecord::EVENT_TO_SAVE_MULTIPLE, [self::className(), 'logToSaveMultiple']);
             Event::on($owner->className(), VekActiveRecord::EVENT_SAVED_MULTIPLE, [self::className(), 'logSavedMultiple']);
+            self::$_eventSwitched = true;
         }
         parent::attach($owner);
     }

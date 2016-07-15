@@ -349,8 +349,8 @@ class FlTreeWidget extends Widget
      */
     protected static function checkStructureParamDocumentView(array $links)
     {
-        static::checkParamIsExistInArray($links['links'], 'documentView');
-        static::checkStructureParamLink($links['links']['documentView']);
+        static::checkParamIsExistInArray($links, 'documentView');
+        static::checkStructureParamLink($links['documentView']);
     }
 
     /**
@@ -364,8 +364,8 @@ class FlTreeWidget extends Widget
      */
     protected static function checkStructureParamNext(array $links)
     {
-        static::checkParamIsExistInArray($links['links'], 'next');
-        static::checkStructureParamLink($links['links']['next']);
+        static::checkParamIsExistInArray($links, 'next');
+        static::checkStructureParamLink($links['next']);
     }
 
     /**
@@ -379,8 +379,8 @@ class FlTreeWidget extends Widget
      */
     protected static function checkStructureParamChild(array $links)
     {
-        static::checkParamIsExistInArray($links['links'], 'child');
-        static::checkStructureParamLink($links['links']['child']);
+        static::checkParamIsExistInArray($links, 'child');
+        static::checkStructureParamLink($links['child']);
     }
 
     /**
@@ -417,8 +417,6 @@ class FlTreeWidget extends Widget
     protected static function checkStructureParamValue($params)
     {
         foreach ($params as $paramValue) {
-            static::checkParamIsNotEmpty($paramValue);
-
             if (is_array($paramValue)) {
                 static::checkParamIsExistInArray($paramValue, 'value');
                 static::checkParamIsNotEmpty($paramValue['value']);

@@ -61,7 +61,7 @@ class TestUsersController extends Controller
     {
         $param = [
             'flTreeWidgetParam' => [
-                'flTreeUrl' => Url::toRoute(['test-users/ajax-child']),
+                'flTreeUrl' => ['test-users/ajax-child'],
                 'titleList' => 'Тест: список пользователей'
             ],
         ];

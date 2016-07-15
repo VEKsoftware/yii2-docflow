@@ -1,9 +1,6 @@
 <?php
 /**
- * Created by PhpStorm.
- * User: dolgikh
- * Date: 04.07.16
- * Time: 13:03
+ * Виджет для отображения плоского дерева с простыми связями
  */
 
 namespace docflow\widgets;
@@ -17,46 +14,25 @@ use yii\helpers\ArrayHelper;
 class FlTreeWithSimpleLinksWidget extends FlTreeWidget
 {
     /**
-     * Тайтл документа
-     *
-     * @var string
-     */
-    public $title;
-
-    /**
-     * Тайтл плоского дерева с простыми связями
-     *
-     * @var string
-     */
-    public $titleLink;
-
-    /**
-     * Содержащит наименования и ссылки на действия для кнопок
+     * Содержащит наименования и ссылки на действия для кнопок:
+     * 1)Удаление документа - delete
+     * 2)Обновление документа - update
+     * 3)Перемещение документа на 1 позицию выше в вертикальной плоскости - treeUp
+     * 4)Перемещение документа на 1 позицию ниже в вертикальной плоскости - treeDown
+     * 5)Перемещение докумеента во вложенный уровень документа, стоящего выше перемещаемого - treeRight
+     * 6)Перемещение докумеента из вложенного уровня документа, на один уровень с ним - treeLeft
      *
      * @var array
      */
     public $buttons;
 
     /**
-     * Содержит кофигурацию для DataViewWidget
+     * Содержит кофигурацию для DetailView
      *
      * @var array
+     * @see DetailView
      */
-    public $dataViewConfig;
-
-    /**
-     * Имя - идентификатор ноды, записываемый в text
-     *
-     * @var string
-     */
-    public $nodeName;
-
-    /**
-     * Url на начальные данные плоского дерева с простыми связями
-     *
-     * @var string
-     */
-    public $flTreeWithSimpleUrl;
+    public $detailViewConfig;
 
     /**
      * Инициализируем виджет
@@ -68,7 +44,7 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
         if ($this->renderView === null) {
             $this->renderView = 'flTreeWithSimpleLinks';
         }
-        
+
         //TODO в init необходимо проводит проверку на наличии требуемых данных
     }
 
@@ -85,13 +61,10 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
         return $this->render(
             $this->renderView,
             [
-                'title' => $this->title,
-                'titleLink' => $this->titleLink,
+                'base' => $this->base,
+                'sources' => $this->sources,
                 'buttons' => $this->buttons,
-                'dataViewConfig' => $this->dataViewConfig,
-                'nodeName' => $this->nodeName,
-                'flTreeUrl' => $this->flTreeUrl,
-                'flTreeWithSimpleUrl' => $this->flTreeWithSimpleUrl
+                'detailViewConfig' => $this->detailViewConfig,
             ]
         );
     }

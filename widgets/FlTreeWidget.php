@@ -18,13 +18,6 @@ use yii\helpers\Url;
 class FlTreeWidget extends Widget
 {
     /**
-     * Url на начальные данные плоского дерева
-     *
-     * @var string
-     */
-    public $flTreeUrl;
-
-    /**
      * Имя представления для отображения данных
      *
      * @var string
@@ -32,11 +25,33 @@ class FlTreeWidget extends Widget
     public $renderView;
 
     /**
-     * Тайтл списка плоского дерева
+     * Содержит инфорацию о:
      *
-     * @var string
+     * FlTreeWidget:
+     * 1)Название списка плоского дерева - titleList
+     *
+     * FlTreeWithSimpleLinksWidget:
+     * 1)Названии документа - title
+     * 2)Названии плоского дерева с простыми связями - titleLink
+     * 3)Имя текущего документа, которое отображается в виджете - nodeName
+     *
+     * @var array
      */
-    public $titleList;
+    public $base;
+
+    /**
+     * Содержит Url до действий, возвращающих первичную структуру деревьев:
+     *
+     * FlTreeWidget:
+     * 1)Плоское дерево - flTreeUrl
+     *
+     * FlTreeWithSimpleLinksWidget:
+     * 1)Плоское дерево - flTreeUrl
+     * 2)Плоское дерево с простыми связями - flTreeWithSimpleUrl
+     *
+     * @var array
+     */
+    public $sources;
 
     /**
      * Инициализируем виджет
@@ -48,10 +63,10 @@ class FlTreeWidget extends Widget
         if ($this->renderView === null) {
             $this->renderView = 'flTree';
         }
-        
+
         //TODO в init необходимо проводит проверку на наличии требуемых данных
     }
-    
+
     /**
      * Выполняем виджет
      *
@@ -62,7 +77,7 @@ class FlTreeWidget extends Widget
      */
     public function run()
     {
-        return $this->render($this->renderView, ['flTreeUrl' => $this->flTreeUrl, 'titleList' => $this->titleList]);
+        return $this->render($this->renderView, ['base' => $this->base, 'sources' => $this->sources]);
     }
 
     /**

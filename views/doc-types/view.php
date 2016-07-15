@@ -57,7 +57,11 @@ $this->params['breadcrumbs'][] = $this->title;
     </p>
 
     <?php echo FlTreeWidget::widget([
-        'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
-        'titleList' => $flTreeWidgetParam['titleList']
+        'base' => [
+            'titleList' => $flTreeWidgetParam['titleList']
+        ],
+        'sources' => [
+            'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
+        ]
     ]) ?>
 </div>

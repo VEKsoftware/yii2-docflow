@@ -14,7 +14,6 @@
 
 use docflow\models\Document;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
-use yii\helpers\Url;
 use yii\web\View;
 
 $this->title = $model->name;
@@ -22,8 +21,32 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses'), 'url
 $this->params['breadcrumbs'][] = $this->title;
 
 echo FlTreeWithSimpleLinksWidget::widget([
-    'title' => $this->title,
-    'titleLink' => Yii::t('docflow', 'Statuses Links'),
+    'base' => [
+        'title' => $this->title,
+        'titleLink' => Yii::t('docflow', 'Statuses Links'),
+        'nodeName' => $model->{$model->docNameField()}
+    ],
+    'detailViewConfig' => [
+        'model' => $model,
+        'attributes' => [
+            'tag',
+            'name',
+            'description'
+        ]
+    ],
+    'sources' => [
+        'flTreeUrl' => [
+            'doc-types/ajax-get-child',
+            'docType' => $doc,
+            'extra' => $extra,
+        ],
+        'flTreeWithSimpleUrl' => [
+            'doc-types/ajax-get-child-with-simple',
+            'extra' => $extra,
+            'fromNodeId' => $model->id
+        ]
+
+    ],
     'buttons' => [
         'update' => [
             'name' => Yii::t('docflow', 'Update Statuses'),
@@ -74,27 +97,4 @@ echo FlTreeWithSimpleLinksWidget::widget([
             ]
         ],
     ],
-    'dataViewConfig' => [
-        'model' => $model,
-        'attributes' => [
-            'tag',
-            'name',
-            'description'
-        ]
-    ],
-    'nodeName' => $model->{$model->docNameField()},
-    'flTreeUrl' => Url::toRoute(
-        [
-            'doc-types/ajax-get-child',
-            'docType' => $doc,
-            'extra' => $extra,
-        ]
-    ),
-    'flTreeWithSimpleUrl' => Url::toRoute(
-        [
-            'doc-types/ajax-get-child-with-simple',
-            'extra' => $extra,
-            'fromNodeId' => $model->id
-        ]
-    )
 ]);

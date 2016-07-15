@@ -10,11 +10,28 @@
 
 use docflow\examples\users\models\Users;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
-use yii\helpers\Url;
 
 echo FlTreeWithSimpleLinksWidget::widget([
-    'title' => $this->title,
-    'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),
+    'base' => [
+        'title' => $this->title,
+        'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),
+        'nodeName' => $document->{$document::docNameField()},
+    ],
+    'sources' => [
+        'flTreeUrl' => ['test-users/ajax-child'],
+        'flTreeWithSimpleUrl' => [
+            'test-users/ajax-child-simple',
+            'fromNodeId' => $document->idx
+        ]
+    ],
+    'detailViewConfig' => [
+        'model' => $document,
+        'attributes' => [
+            'short_name',
+            'full_name',
+            'tag'
+        ]
+    ],
     'buttons' => [
         'update' => [
             'name' => Yii::t('docflow', 'Update Statuses'),
@@ -59,20 +76,4 @@ echo FlTreeWithSimpleLinksWidget::widget([
             ]
         ],
     ],
-    'dataViewConfig' => [
-        'model' => $document,
-        'attributes' => [
-            'short_name',
-            'full_name',
-            'tag'
-        ]
-    ],
-    'nodeName' => $document->{$document::docNameField()},
-    'flTreeUrl' => Url::toRoute(['test-users/ajax-child']),
-    'flTreeWithSimpleUrl' => Url::toRoute(
-        [
-            'test-users/ajax-child-simple',
-            'fromNodeId' => $document->idx
-        ]
-    )
 ]);

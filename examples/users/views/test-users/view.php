@@ -11,6 +11,10 @@
 use docflow\widgets\FlTreeWidget;
 
 echo FlTreeWidget::widget([
-    'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
-    'titleList' => $flTreeWidgetParam['titleList']
+    'base' => [
+        'titleList' => $flTreeWidgetParam['titleList']
+    ],
+    'sources' => [
+        'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
+    ]
 ]);

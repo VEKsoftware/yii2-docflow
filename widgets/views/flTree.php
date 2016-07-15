@@ -5,17 +5,17 @@
  * Date: 04.07.16
  * Time: 15:00
  *
- * @var array  $items
- * @var string $flTreeUrl
- * @var string $titleList
+ * @var array $sources
+ * @var array $base
  */
 use docflow\assets\TreeViewAsset;
+use yii\helpers\Url;
 
 ?>
     <div class="row">
         <div class="col-sm-4">
             <h3>
-                <?php echo $titleList ?>
+                <?php echo $base['titleList'] ?>
             </h3>
             <span id="tree-change-status"></span>
             <div id="tree"></div>
@@ -26,7 +26,7 @@ use docflow\assets\TreeViewAsset;
     </div>
 <?php
 
-$this->registerJs("var dataUrl = '$flTreeUrl'");
+$this->registerJs("var dataUrl = '" . Url::toRoute($sources['flTreeUrl']) . "'");
 
 TreeViewAsset::register($this);
 

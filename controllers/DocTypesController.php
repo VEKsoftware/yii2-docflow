@@ -123,11 +123,11 @@ class DocTypesController extends Controller
                 'dataProvider' => $dataProvider,
                 'flTreeWidgetParam' => [
                     'titleList' => Yii::t('docflow', 'List of statuses'),
-                    'flTreeUrl' => Url::toRoute([
+                    'flTreeUrl' => [
                         'doc-types/ajax-get-child',
                         'docType' => $doc,
                         'extra' => json_encode(['doc_type_id' => $model->id])
-                    ])
+                    ]
                 ]
             ]
         );

@@ -66,7 +66,13 @@ class FlTreeWidget extends Widget
             $this->renderView = 'flTree';
         }
 
-        $this->checkRunConfiguration($this->renderView, $this->base, $this->sources);
+        $this->checkRunConfiguration(
+            [
+                'renderView' => $this->renderView,
+                'base' => $this->base,
+                'sources' => $this->sources
+            ]
+        );
     }
 
     /**
@@ -429,19 +435,17 @@ class FlTreeWidget extends Widget
     /**
      * Проверяем на наличие и соответствие всех необходимых параметов в конфигурации
      *
-     * @param string $renderView - имя представления для рендеринга
-     * @param array  $base       - конфигурация содержащая базовые параметры
-     * @param array  $sources    - конфигурация содержащая ссылки на действия с первоначальными структурами деревьев
+     * @param array $config - конфигурация
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected function checkRunConfiguration($renderView, array $base, array $sources)
+    protected function checkRunConfiguration(array $config)
     {
-        static::checkParamIsEmptyAndString($renderView);
-        static::checkParamInArrayExistAndNotEmptyAndString($base, 'titleList');
-        static::checkParamInArrayExistAndNotEmptyAndArray($sources, 'flTreeUrl');
+        static::checkParamIsEmptyAndString($config['renderView']);
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl');
     }
 
     /**

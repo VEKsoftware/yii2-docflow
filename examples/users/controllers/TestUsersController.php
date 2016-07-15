@@ -21,7 +21,6 @@ use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 use yii\db\StaleObjectException;
-use yii\helpers\Url;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\Response;
@@ -137,29 +136,25 @@ class TestUsersController extends Controller
                 'documentView' => [
                     'route' => 'test-users/view-document',
                     'params' => [
-                        [
-                            'nodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ]
+                        'nodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ]
                     ]
                 ],
                 'next' => [
                     'route' => 'test-users/ajax-next',
                     'params' => [
-                        ['page' => ++$page],
-                        ['nodeIdValue' => $nodeIdValue],
+                        'page' => ++$page,
+                        'nodeIdValue' => $nodeIdValue,
                     ]
                 ],
                 'child' => [
                     'route' => 'test-users/ajax-child',
                     'params' => [
-                        [
-                            'nodeIdValue' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'nodeIdValue' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ]
@@ -216,29 +211,25 @@ class TestUsersController extends Controller
                 'documentView' => [
                     'route' => 'test-users/view-document',
                     'params' => [
-                        [
-                            'nodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
-                        ]
+                        'nodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
+                        ],
                     ]
                 ],
                 'next' => [
                     'route' => 'test-users/ajax-next',
                     'params' => [
-                        ['page' => 2],
-                        ['nodeIdValue' => $nodeIdValue],
+                        'page' => 2,
+                        'nodeIdValue' => $nodeIdValue,
                     ]
                 ],
                 'child' => [
                     'route' => 'test-users/ajax-child',
                     'params' => [
-                        [
-                            'nodeIdValue' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'nodeIdValue' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ]
@@ -304,44 +295,38 @@ class TestUsersController extends Controller
                 'addSimple' => [
                     'route' => 'test-users/ajax-add-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'toNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ]
+                        'fromNodeId' => $fromNodeId,
+                        'toNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ],
                 'delSimple' => [
                     'route' => 'test-users/ajax-del-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'toNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'fromNodeId' => $fromNodeId,
+                        'toNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ],
                 'next' => [
                     'route' => 'test-users/ajax-next-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        ['page' => ++$page],
-                        ['currentNodeId' => $currentNodeId],
+                        'fromNodeId' => $fromNodeId,
+                        'page' => ++$page,
+                        'currentNodeId' => $currentNodeId,
                     ]
                 ],
                 'child' => [
                     'route' => 'test-users/ajax-child-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'currentNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'fromNodeId' => $fromNodeId,
+                        'currentNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ]
@@ -406,44 +391,38 @@ class TestUsersController extends Controller
                 'addSimple' => [
                     'route' => 'test-users/ajax-add-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'toNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'fromNodeId' => $fromNodeId,
+                        'toNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ],
                 'delSimple' => [
                     'route' => 'test-users/ajax-del-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'toNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ],
+                        'fromNodeId' => $fromNodeId,
+                        'toNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ],
                     ]
                 ],
                 'next' => [
                     'route' => 'test-users/ajax-next-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        ['page' => 2],
-                        ['currentNodeId' => $currentNodeId],
+                        'fromNodeId' => $fromNodeId,
+                        'page' => 2,
+                        'currentNodeId' => $currentNodeId,
                     ]
                 ],
                 'child' => [
                     'route' => 'test-users/ajax-child-simple',
                     'params' => [
-                        ['fromNodeId' => $fromNodeId],
-                        [
-                            'currentNodeId' => [
-                                'value' => $statuses->linkFieldsArray['node_id'],
-                                'type' => 'property'
-                            ]
+                        'fromNodeId' => $fromNodeId,
+                        'currentNodeId' => [
+                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'type' => 'property'
                         ]
                     ]
                 ]

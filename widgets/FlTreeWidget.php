@@ -171,10 +171,10 @@ class FlTreeWidget extends Widget
         /* Проверяем, есть-ли у документа подчиненные документы */
         $haveChild = static::checkChild($value);
 
-        /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
-        $countChild = count($value->linksTo);
-
         if ($haveChild === true) {
+            /* Получаем количество подчиненных документов у текущего, для отображения в тэге дерева */
+            $countChild = count($value->linksTo);
+
             $child = [
                 'href_child' => static::getLink($config['links']['child'], $value),
                 'tags' => [$countChild, 'Вложений: '],

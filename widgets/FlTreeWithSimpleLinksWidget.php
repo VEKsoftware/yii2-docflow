@@ -38,6 +38,8 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      * Инициализируем виджет
      *
      * @return void
+     *
+     * @throws ErrorException
      */
     public function init()
     {
@@ -45,7 +47,15 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
             $this->renderView = 'flTreeWithSimpleLinks';
         }
 
-        //TODO в init необходимо проводит проверку на наличии требуемых данных
+        $this->checkRunConfiguration(
+            [
+                'renderView' => $this->renderView,
+                'base' => $this->base,
+                'sources' => $this->sources,
+                'buttons' => $this->buttons,
+                'detailViewConfig' => $this->detailViewConfig,
+            ]
+        );
     }
 
     /**
@@ -153,17 +163,84 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     }
 
     /**
-     * Проверяем на наличие всех необходимых параметов в конфигурации
+     * Проверяем на наличие и соответствие всех необходимых параметов в конфигурации
      *
-     * @param array $config - конфигурация
+     * @param array $config - конфиграция для проверки
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkConfiguration(array $config)
+    protected function checkRunConfiguration(array $config)
     {
-        parent::checkConfiguration($config);
+        static::checkParamIsNotEmptyAndString($config['renderView']);
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'title');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleLink');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeWithSimpleUrl');
+        static::checkParamIsNotEmptyAndArray($config['detailViewConfig']);
+        static::checkRunParamButtons($config['buttons']);
+    }
 
+    /**
+     * Проверяем конфигурацию кнопок
+     *
+     * @param array $buttons - массив с конфигурацией для кнопок
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkRunParamButtons(array $buttons)
+    {
+        static::checkRunParamButton($buttons, 'update');
+        static::checkRunParamButton($buttons, 'delete');
+        static::checkRunParamButton($buttons, 'treeUp');
+        static::checkRunParamButton($buttons, 'treeDown');
+        static::checkRunParamButton($buttons, 'treeRight');
+        static::checkRunParamButton($buttons, 'treeLeft');
+    }
+
+    /**
+     * Проверяем конфигурацию кнопки
+     *
+     * @param array  $buttons - массив с конфигурацией кнопок
+     * @param string $button  - наименование кнопки в конфигурации
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkRunParamButton(array $buttons, $button)
+    {
+        static::checkParamIsExistInArray($buttons, $button);
+        static::checkParamIsNotEmptyAndArray($buttons[$button]);
+
+        static::checkParamIsExistInArray($buttons[$button], 'name');
+        static::checkParamIsNotEmptyAndString($buttons[$button]['name']);
+
+        static::checkParamIsExistInArray($buttons[$button], 'url');
+        static::checkParamIsNotEmptyAndArray($buttons[$button]['url']);
+    }
+
+
+    /**
+     * Проверяем на наличие всех необходимых параметов в конфигурации
+     *
+     * @param array $config - конфиграция для проверки
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkStructureConfiguration(array $config)
+    {
+        static::checkParamIsExistInArray($config, 'links');
+
+        static::checkStructureParamLinks($config['links'], 'next');
+        static::checkStructureParamLinks($config['links'], 'child');
+        static::checkStructureParamLinks($config['links'], 'addSimple');
+        static::checkStructureParamLinks($config['links'], 'delSimple');
     }
 }

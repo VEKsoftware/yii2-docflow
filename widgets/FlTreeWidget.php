@@ -339,54 +339,25 @@ class FlTreeWidget extends Widget
     {
         static::checkParamIsExistInArray($config, 'links');
 
-        static::checkStructureParamDocumentView($config['links']);
-        static::checkStructureParamChild($config['links']);
-        static::checkStructureParamNext($config['links']);
+        static::checkStructureParamLinks($config['links'], 'documentView');
+        static::checkStructureParamLinks($config['links'], 'next');
+        static::checkStructureParamLinks($config['links'], 'child');
     }
 
     /**
-     * Проверяем конфигурацию ссылки documentView
+     * Проверяем конфигурацию ссылки
      *
-     * @param array $links - массив с ссылками
+     * @param array  $links    - массив с ссылками
+     * @param string $linkName - имя ссылки
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkStructureParamDocumentView(array $links)
+    protected static function checkStructureParamLinks(array $links, $linkName)
     {
-        static::checkParamIsExistInArray($links, 'documentView');
-        static::checkStructureParamLink($links['documentView']);
-    }
-
-    /**
-     * Проверяем конфигурацию ссылки next
-     *
-     * @param array $links - массив с ссылками
-     *
-     * @return void
-     *
-     * @throws ErrorException
-     */
-    protected static function checkStructureParamNext(array $links)
-    {
-        static::checkParamIsExistInArray($links, 'next');
-        static::checkStructureParamLink($links['next']);
-    }
-
-    /**
-     * Проверяем конфигурацию ссылки child
-     *
-     * @param array $links - массив с ссылками
-     *
-     * @return void
-     *
-     * @throws ErrorException
-     */
-    protected static function checkStructureParamChild(array $links)
-    {
-        static::checkParamIsExistInArray($links, 'child');
-        static::checkStructureParamLink($links['child']);
+        static::checkParamIsExistInArray($links, $linkName);
+        static::checkStructureParamLink($links[$linkName]);
     }
 
     /**
@@ -443,7 +414,7 @@ class FlTreeWidget extends Widget
      */
     protected function checkRunConfiguration(array $config)
     {
-        static::checkParamIsEmptyAndString($config['renderView']);
+        static::checkParamIsNotEmptyAndString($config['renderView']);
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList');
         static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl');
     }
@@ -457,10 +428,25 @@ class FlTreeWidget extends Widget
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsEmptyAndString($param)
+    protected static function checkParamIsNotEmptyAndString($param)
     {
         static::checkParamIsNotEmpty($param);
         static::checkParamIsString($param);
+    }
+
+    /**
+     * Проверяем параметр на пустоту и соответствие массиву
+     *
+     * @param string $param - параметр конфигурации
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkParamIsNotEmptyAndArray($param)
+    {
+        static::checkParamIsNotEmpty($param);
+        static::checkParamIsArray($param);
     }
 
     /**

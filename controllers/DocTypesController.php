@@ -361,10 +361,9 @@ class DocTypesController extends Controller
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
         $simpleBehavior = $parentDocument->getBehavior('transitions');
-        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
 
         $config = [
-            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'simpleLinks' => $simpleBehavior->statusesTransitionTo,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
@@ -465,10 +464,9 @@ class DocTypesController extends Controller
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
         $simpleBehavior = $parentDocument->getBehavior('transitions');
-        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
 
         $config = [
-            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'simpleLinks' => $simpleBehavior->statusesTransitionTo,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [

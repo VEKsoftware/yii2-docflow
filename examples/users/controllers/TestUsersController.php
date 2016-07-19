@@ -286,10 +286,9 @@ class TestUsersController extends Controller
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
         $simpleBehavior = $parentDocument->getBehavior('firmTreeAllS');
-        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
 
         $config = [
-            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'simpleLinks' => $simpleBehavior->statusesTransitionTo,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
@@ -382,10 +381,9 @@ class TestUsersController extends Controller
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
         $simpleBehavior = $parentDocument->getBehavior('firmTreeAllS');
-        $simpleLinksParentDocument = $simpleBehavior->statusesTransitionTo;
 
         $config = [
-            'simpleLinksParentDocument' => $simpleLinksParentDocument,
+            'simpleLinks' => $simpleBehavior->statusesTransitionTo,
             'nodeIdField' => $statuses->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [

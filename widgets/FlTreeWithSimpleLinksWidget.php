@@ -155,7 +155,7 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      */
     protected static function checkSimpleLink(Document $value, array $config)
     {
-        $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinksParentDocument'], $config['nodeIdField']);
+        $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinks'], $config['nodeIdField']);
 
         $key = array_search($value->{$config['nodeIdField']}, $simpleLinksParentDoc);
 

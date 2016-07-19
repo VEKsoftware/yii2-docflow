@@ -236,6 +236,12 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
      */
     protected static function checkStructureConfiguration(array $config)
     {
+        static::checkParamIsExistInArray($config, 'simpleLinks');
+        static::checkParamIsNotEmptyAndString($config['simpleLinks']);
+
+        static::checkParamIsExistInArray($config, 'nodeIdField');
+        static::checkParamIsNotEmptyAndString($config['nodeIdField']);
+
         static::checkParamIsExistInArray($config, 'links');
 
         static::checkStructureParamLinks($config['links'], 'next');

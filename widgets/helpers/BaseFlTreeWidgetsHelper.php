@@ -15,143 +15,152 @@ class BaseFlTreeWidgetsHelper
     /**
      * Проверяем параметр на пустоту и соответствие строке
      *
-     * @param string $param - параметр конфигурации
+     * @param string $param      - параметр конфигурации
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsNotEmptyAndString($param)
+    protected static function checkParamIsNotEmptyAndString($param, $paramRoute)
     {
-        static::checkParamIsNotEmpty($param);
-        static::checkParamIsString($param);
+        static::checkParamIsNotEmpty($param, $paramRoute);
+        static::checkParamIsString($param, $paramRoute);
     }
 
     /**
      * Проверяем параметр на пустоту и соответствие массиву
      *
-     * @param string $param - параметр конфигурации
+     * @param string $param      - параметр конфигурации
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsNotEmptyAndArray($param)
+    protected static function checkParamIsNotEmptyAndArray($param, $paramRoute)
     {
-        static::checkParamIsNotEmpty($param);
-        static::checkParamIsArray($param);
+        static::checkParamIsNotEmpty($param, $paramRoute);
+        static::checkParamIsArray($param, $paramRoute);
     }
 
     /**
      * Проверяем параметр на присутствие в массиве и является ли параметр строкой
      *
-     * @param array  $array - массив конфигурации
-     * @param string $param - параметр в массиве
+     * @param array  $array      - массив конфигурации
+     * @param string $param      - параметр в массиве
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamInArrayExistAndNotEmptyAndString(array $array, $param)
+    protected static function checkParamInArrayExistAndNotEmptyAndString(array $array, $param, $paramRoute)
     {
-        static::checkParamInArrayExistAndNotEmpty($array, $param);
-        static::checkParamIsString($array[$param]);
+        static::checkParamInArrayExistAndNotEmpty($array, $param, $paramRoute);
+        static::checkParamIsString($array[$param], $paramRoute);
     }
 
     /**
      * Проверяем параметр на присутствие в массиве и является ли параметр массивом
      *
-     * @param array  $array - массив конфигурации
-     * @param string $param - параметр в массиве
+     * @param array  $array      - массив конфигурации
+     * @param string $param      - параметр в массиве
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamInArrayExistAndNotEmptyAndArray(array $array, $param)
+    protected static function checkParamInArrayExistAndNotEmptyAndArray(array $array, $param, $paramRoute)
     {
-        static::checkParamInArrayExistAndNotEmpty($array, $param);
-        static::checkParamIsArray($array[$param]);
+        static::checkParamInArrayExistAndNotEmpty($array, $param, $paramRoute);
+        static::checkParamIsArray($array[$param], $paramRoute);
     }
 
     /**
      * Проверяем параметр на присутствие в массиве
      *
-     * @param array  $array - массив конфигурации
-     * @param string $param - параметр в массиве
+     * @param array  $array      - массив конфигурации
+     * @param string $param      - параметр в массиве
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamInArrayExistAndNotEmpty(array $array, $param)
+    protected static function checkParamInArrayExistAndNotEmpty(array $array, $param, $paramRoute)
     {
-        static::checkParamIsExistInArray($array, $param);
-        static::checkParamIsNotEmpty($array[$param]);
+        static::checkParamIsExistInArray($array, $param, $paramRoute);
+        static::checkParamIsNotEmpty($array[$param], $paramRoute);
     }
 
     /**
      * Проверяем, является ли передаваемый параметр массивом
      *
-     * @param mixed $param - параметр
+     * @param mixed  $param      - параметр
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsArray($param)
+    protected static function checkParamIsArray($param, $paramRoute)
     {
         if (!is_array($param)) {
-            throw new ErrorException('параметр ' . $param . ' не массив');
+            throw new ErrorException('параметр ' . $paramRoute . ' не массив');
         }
     }
 
     /**
      * Проверяем, является ли передаваемый параметр строкой
      *
-     * @param mixed $param - параметр
+     * @param mixed  $param      - параметр
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsString($param)
+    protected static function checkParamIsString($param, $paramRoute)
     {
         if (!is_string($param)) {
-            throw new ErrorException('параметр ' . $param . ' не строка');
+            throw new ErrorException('параметр ' . $paramRoute . ' не строка');
         }
     }
 
     /**
      * Проверяем параметр на присутствие в массиве
      *
-     * @param array $array - массив
-     * @param mixed $param - параметр
+     * @param array  $array      - массив
+     * @param mixed  $param      - параметр
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsExistInArray(array $array, $param)
+    protected static function checkParamIsExistInArray(array $array, $param, $paramRoute)
     {
         if (!array_key_exists($param, $array)) {
-            throw new ErrorException('параметр ' . $param . ' не найден в конфигурации');
+            throw new ErrorException('параметр ' . $paramRoute . ' не найден в конфигурации');
         }
     }
 
     /**
      * Проверяем параметр на пустоту
      *
-     * @param mixed $param - параметр
+     * @param mixed  $param      - параметр
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkParamIsNotEmpty($param)
+    protected static function checkParamIsNotEmpty($param, $paramRoute)
     {
         if (empty($param)) {
-            throw new ErrorException('параметр пуст');
+            throw new ErrorException('параметр ' . $paramRoute . ' пуст');
         }
     }
 }

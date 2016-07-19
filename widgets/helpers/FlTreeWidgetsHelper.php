@@ -23,11 +23,11 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     public static function checkFlTreeWidgetRunConfig(array $config)
     {
-        static::checkParamIsNotEmptyAndString($config['renderView']);
+        static::checkParamIsNotEmptyAndString($config['renderView'], 'renderView');
 
-        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList', 'base');
 
-        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl', 'sources');
     }
 
     /**
@@ -41,11 +41,11 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     public static function checkFlTreeWidgetStructureConfig(array $config)
     {
-        static::checkParamIsExistInArray($config, 'links');
+        static::checkParamIsExistInArray($config, 'links', 'links');
 
-        static::checkStructureParamLinks($config['links'], 'documentView');
-        static::checkStructureParamLinks($config['links'], 'next');
-        static::checkStructureParamLinks($config['links'], 'child');
+        static::checkStructureParamLinks($config['links'], 'documentView', 'links');
+        static::checkStructureParamLinks($config['links'], 'next', 'links');
+        static::checkStructureParamLinks($config['links'], 'child', 'links');
     }
 
     /**
@@ -59,16 +59,20 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     public static function checkFlTreeWithSimpleLinksWidgetRunConfig(array $config)
     {
-        static::checkParamIsNotEmptyAndString($config['renderView']);
+        static::checkParamIsNotEmptyAndString($config['renderView'], 'renderView');
 
-        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'title');
-        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleLink');
-        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'title', 'base=>title');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleLink', 'base=>titleLink');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName', 'base=>nodeName');
 
-        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl');
-        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeWithSimpleUrl');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl', 'sources=>flTreeUrl');
+        static::checkParamInArrayExistAndNotEmptyAndArray(
+            $config['sources'],
+            'flTreeWithSimpleUrl',
+            'sources=>flTreeWithSimpleUrl'
+        );
 
-        static::checkParamIsNotEmptyAndArray($config['detailViewConfig']);
+        static::checkParamIsNotEmptyAndArray($config['detailViewConfig'], 'detailViewConfig');
 
         static::checkRunParamButtons($config['buttons']);
     }
@@ -84,18 +88,18 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     public static function checkFlTreeWithSimpleLinksWidgetStructureConfig(array $config)
     {
-        static::checkParamIsExistInArray($config, 'simpleLinks');
-        static::checkParamIsArray($config['simpleLinks']);
+        static::checkParamIsExistInArray($config, 'simpleLinks', 'simpleLinks');
+        static::checkParamIsArray($config['simpleLinks'], 'simpleLinks');
 
-        static::checkParamIsExistInArray($config, 'nodeIdField');
-        static::checkParamIsNotEmptyAndString($config['nodeIdField']);
+        static::checkParamIsExistInArray($config, 'nodeIdField', 'nodeIdField');
+        static::checkParamIsNotEmptyAndString($config['nodeIdField'], 'nodeIdField');
 
-        static::checkParamIsExistInArray($config, 'links');
+        static::checkParamIsExistInArray($config, 'links', 'links');
 
-        static::checkStructureParamLinks($config['links'], 'next');
-        static::checkStructureParamLinks($config['links'], 'child');
-        static::checkStructureParamLinks($config['links'], 'addSimple');
-        static::checkStructureParamLinks($config['links'], 'delSimple');
+        static::checkStructureParamLinks($config['links'], 'next', 'links');
+        static::checkStructureParamLinks($config['links'], 'child', 'links');
+        static::checkStructureParamLinks($config['links'], 'addSimple', 'links');
+        static::checkStructureParamLinks($config['links'], 'delSimple', 'links');
     }
 
     /**
@@ -129,71 +133,89 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     protected static function checkRunParamButton(array $buttons, $button)
     {
-        static::checkParamIsExistInArray($buttons, $button);
-        static::checkParamIsNotEmptyAndArray($buttons[$button]);
+        /* Формируем карту-путь, для определения места где в конфиге ошибка */
+        $paramRouteButton = '=>' . $button;
+        $paramRouteButtonName = $paramRouteButton . '=>name';
+        $paramRouteButtonUrl = $paramRouteButton . '=>url';
 
-        static::checkParamIsExistInArray($buttons[$button], 'name');
-        static::checkParamIsNotEmptyAndString($buttons[$button]['name']);
+        static::checkParamIsExistInArray($buttons, $button, $paramRouteButton);
+        static::checkParamIsNotEmptyAndArray($buttons[$button], $paramRouteButton);
 
-        static::checkParamIsExistInArray($buttons[$button], 'url');
-        static::checkParamIsNotEmptyAndArray($buttons[$button]['url']);
+        static::checkParamIsExistInArray($buttons[$button], 'name', $paramRouteButtonName);
+        static::checkParamIsNotEmptyAndString($buttons[$button]['name'], $paramRouteButtonName);
+
+        static::checkParamIsExistInArray($buttons[$button], 'url', $paramRouteButtonUrl);
+        static::checkParamIsNotEmptyAndArray($buttons[$button]['url'], $paramRouteButtonUrl);
     }
 
     /**
      * Проверяем конфигурацию ссылки
      *
-     * @param array  $links    - массив с ссылками
-     * @param string $linkName - имя ссылки
+     * @param array  $links      - массив с ссылками
+     * @param string $linkName   - имя ссылки
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkStructureParamLinks(array $links, $linkName)
+    protected static function checkStructureParamLinks(array $links, $linkName, $paramRoute)
     {
-        static::checkParamIsExistInArray($links, $linkName);
-        static::checkStructureParamLink($links[$linkName]);
+        $paramRoute .= '=>' . $linkName;
+
+        static::checkParamIsExistInArray($links, $linkName, $paramRoute);
+        static::checkStructureParamLink($links[$linkName], $paramRoute);
     }
 
     /**
      * Проверяем ссылку на верность конфигурации
      *
-     * @param mixed $link - конфигурация ссылки
+     * @param mixed  $link       - конфигурация ссылки
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkStructureParamLink($link)
+    protected static function checkStructureParamLink($link, $paramRoute)
     {
-        static::checkParamIsArray($link);
-        static::checkParamInArrayExistAndNotEmptyAndString($link, 'route');
+        /* Формируем карту-путь, для определения места где в конфиге ошибка */
+        $paramRouteRoute = $paramRoute . '=>route';
+        $paramRouteParams = $paramRoute . '=>params';
 
-        static::checkParamIsExistInArray($link, 'params');
+        static::checkParamIsArray($link, $paramRoute);
+        static::checkParamInArrayExistAndNotEmptyAndString($link, 'route', $paramRouteRoute);
+
+        static::checkParamIsExistInArray($link, 'params', $paramRouteParams);
 
         if (!empty($link['params'])) {
-            static::checkParamIsArray($link['params']);
-            static::checkStructureParamValue($link['params']);
+            static::checkParamIsArray($link['params'], $paramRouteParams);
+            static::checkStructureParamValue($link['params'], $paramRouteParams);
         }
     }
 
     /**
      * Проверяем параметры ссылки
      *
-     * @param array $params - парасетры ссылки
+     * @param array  $params     - парасетры ссылки
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
      *
      * @return void
      *
      * @throws ErrorException
      */
-    protected static function checkStructureParamValue($params)
+    protected static function checkStructureParamValue($params, $paramRoute)
     {
-        foreach ($params as $paramValue) {
+        foreach ($params as $key => $paramValue) {
             if (is_array($paramValue)) {
-                static::checkParamIsExistInArray($paramValue, 'value');
-                static::checkParamIsNotEmpty($paramValue['value']);
+                /* Формируем карту-путь, для определения места где в конфиге ошибка */
+                $paramRouteValue = $paramRoute . '=>' . $key . '=>value';
+                $paramRouteType = $paramRoute . '=>' . $key . '=>type';
 
-                static::checkParamInArrayExistAndNotEmptyAndString($paramValue, 'type');
+                static::checkParamIsExistInArray($paramValue, 'value', $paramRouteValue);
+                static::checkParamIsNotEmpty($paramValue['value'], $paramRouteValue);
+
+                static::checkParamInArrayExistAndNotEmptyAndString($paramValue, 'type', $paramRouteType);
             }
         }
     }

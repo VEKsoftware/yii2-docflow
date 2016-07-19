@@ -13,7 +13,7 @@ use docflow\widgets\FlTreeWithSimpleLinksWidget;
 
 echo FlTreeWithSimpleLinksWidget::widget([
     'base' => [
-        'title' => $this->title,
+        'title' => $document->{$document::docNameField()},
         'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),
         'nodeName' => $document->{$document::docNameField()},
     ],

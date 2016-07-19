@@ -38,16 +38,16 @@ class m160401_000000_init extends Migration
             'table' => $this->string(128), // Name of the table containging the documents
         ], null);
 
-        $this->createIndex ( 'doc_types_tags', 'doc_types', 'tag', true );
+        $this->createIndex ('doc_types_tags', 'doc_types', 'tag', true);
 
-        $this->insert('doc_types', [
-            'tag' => 'status',
-            'name' => Yii::t('docflow', 'Status'),
-            'description' => Yii::t('docflow', 'Status of the document'),
-            //'status_id' => 1,
-            'class' => Statuses::className(),
-            'table' => 'doc_statuses',
-        ]);
+        $this->batchInsert(
+            'doc_types',
+            ['tag', 'name', 'description', 'class', 'table'],
+            [
+                ['status', Yii::t('docflow', 'Status'), Yii::t('docflow', 'Status of the document'), Statuses::className(), 'doc_statuses'],
+                ['vid', 'Very Important Document', '', '', '']
+            ]
+        );
 
         $this->createTable('doc_statuses', [
             'id' => $this->primaryKey(),
@@ -58,12 +58,24 @@ class m160401_000000_init extends Migration
             'order_idx' => 'serial NOT NULL',
         ], null);
 
-        $this->insert('doc_statuses', [
-            'doc_type_id' => 1,
-            'tag' => 'active',
-            'name' => Yii::t('docflow', 'Active'),
-            'description' => Yii::t('docflow', 'Active document'),
-        ]);
+
+        $this->batchInsert(
+            'doc_statuses',
+            ['doc_type_id', 'tag', 'name', 'description'],
+            [
+                [1, 'active', Yii::t('docflow', 'Active'), Yii::t('docflow', 'Active document')],
+                [2, 1, 1, 1],
+                [2, 2, 2, 2],
+                [2, 3, 3, 3],
+                [2, 4, 4, 4],
+                [2, 5, 5, 5],
+                [2, 6, 6, 6],
+                [2, 7, 7, 7],
+                [2, 8, 8, 8],
+                [2, 9, 9, 9],
+                [2, 10, 10, 10],
+            ]
+        );
 
         $this->createIndex ( 'doc_statuses_tags_key', 'doc_statuses', ['doc_type_id', 'tag'], true );
 
@@ -83,6 +95,8 @@ class m160401_000000_init extends Migration
         $this->createIndex ( 'doc_statuses_links_to',   'doc_statuses_links', 'status_to',   false );
         $this->addForeignKey('doc_statuses_links_statuses_id_fk1', 'doc_statuses_links', 'status_from', 'doc_statuses', 'id', 'CASCADE', 'CASCADE');
         $this->addForeignKey('doc_statuses_links_statuses_id_fk2', 'doc_statuses_links', 'status_to', 'doc_statuses', 'id', 'CASCADE', 'CASCADE');
+
+
 
 /*
         // ????????

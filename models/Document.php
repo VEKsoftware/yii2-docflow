@@ -2,18 +2,14 @@
 
 namespace docflow\models;
 
-use Yii;
-use yii\helpers\ArrayHelper;
-
-use docflow\Docflow;
-use docflow\base\CommonRecord;
-use docflow\models\DocTypes;
+use docflow\base\UnstructuredRecord;
+use yii;
 
 /**
  * This is the base model class for all documents.
  *
  */
-abstract class Document extends CommonRecord
+abstract class Document extends UnstructuredRecord
 {
     protected static $statusIdField = 'status_id';
     protected static $newStatusTag = 'active';

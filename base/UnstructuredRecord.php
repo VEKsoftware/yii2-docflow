@@ -75,7 +75,9 @@ class UnstructuredRecord extends MultipleActiveRecord
 
             $fields = $this->jsonBDecode($this->{$jsonBColumn});
 
-            $this->_hiddenAttributes[$jsonBColumn] = new JsonB($this->preparePopulateJsonB($fields));
+            if (is_array($fields)) {
+                $this->_hiddenAttributes[$jsonBColumn] = new JsonB($this->preparePopulateJsonB($fields));
+            }
         }
     }
 
@@ -282,7 +284,7 @@ class UnstructuredRecord extends MultipleActiveRecord
     }
 
     /**
-     * Проверяем, присутствует-ли аттрибут в скрытых атрибутах
+     * Проверяем, присутствует-ли аттрибут в скрытых атрибутах или он должен быть там
      *
      * @param string $name - имя свойства
      *

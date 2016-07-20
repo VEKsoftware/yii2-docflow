@@ -14,6 +14,8 @@ use yii\web\Controller;
 
 class JsonBController extends Controller
 {
+    public $defaultAction = 'get-one';
+
     /**
      * Смотрим _hiddenAttributes у всёх записей
      *

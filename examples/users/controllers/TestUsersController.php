@@ -27,6 +27,8 @@ use yii\web\Response;
 
 class TestUsersController extends Controller
 {
+    public $defaultAction = 'view';
+
     /**
      * Перед действием
      *
@@ -568,5 +570,10 @@ class TestUsersController extends Controller
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->levelDown();
+    }
+
+    public function actionTest()
+    {
+
     }
 }

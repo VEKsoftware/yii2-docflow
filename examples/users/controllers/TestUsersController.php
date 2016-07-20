@@ -571,9 +571,4 @@ class TestUsersController extends Controller
 
         return $behavior->levelDown();
     }
-
-    public function actionTest()
-    {
-
-    }
 }

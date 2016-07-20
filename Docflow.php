@@ -31,7 +31,8 @@ class Docflow extends Module
 
         $this->defaultRoute = 'doc-types/index';
         $this->controllerMap = [
-            'test-users' => 'docflow\examples\users\controllers\TestUsersController'
+            'test-users' => 'docflow\examples\users\controllers\TestUsersController',
+            'test-jsonb' => 'docflow\examples\jsonb\controllers\JsonBController'
         ];
     }
 

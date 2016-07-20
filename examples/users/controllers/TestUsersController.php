@@ -27,6 +27,8 @@ use yii\web\Response;
 
 class TestUsersController extends Controller
 {
+    public $defaultAction = 'view';
+
     /**
      * Перед действием
      *

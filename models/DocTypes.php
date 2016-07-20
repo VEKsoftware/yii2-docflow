@@ -2,13 +2,9 @@
 
 namespace docflow\models;
 
-use Yii;
-use yii\helpers\ArrayHelper;
-
+use docflow\base\UnstructuredRecord;
+use yii;
 use docflow\Docflow;
-use docflow\base\CommonRecord;
-use docflow\models\Statuses;
-use docflow\behaviors\StatusBehavior;
 
 /**
  * This is the model class for table "statuses_doctypes".
@@ -18,7 +14,7 @@ use docflow\behaviors\StatusBehavior;
  * @property string     $tag
  * @property Statuses[] $statuses
  */
-class DocTypes extends CommonRecord
+class DocTypes extends UnstructuredRecord
 {
     protected static $_doctypes;
 

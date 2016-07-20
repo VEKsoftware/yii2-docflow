@@ -2,11 +2,11 @@
 
 namespace docflow\models;
 
+use docflow\base\UnstructuredRecord;
 use docflow\Docflow;
 use yii;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
-use docflow\base\CommonRecord;
 
 /**
  * This is an abstract class for handling relations between documents.
@@ -14,7 +14,7 @@ use docflow\base\CommonRecord;
  * @property int    $id
  * @property string fullName
  */
-abstract class Link extends CommonRecord
+abstract class Link extends UnstructuredRecord
 {
     const LINK_TYPE_SIMPLE = 'simple'; // Simple link one-to-one
     const LINK_TYPE_FLTREE = 'fltree'; // Extended tree link where each model contains likns with each upper level model

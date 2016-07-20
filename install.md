@@ -64,3 +64,4 @@ class Acess extends Behavior
 php yii migrate/up
 php yii migrate/up --migrationPath=@docflow/migrations
 php yii migrate/up --migrationPath=@docflow/examples/users/migrations
+php yii migrate/up --migrationPath=@docflow/examples/jsonb/migrations

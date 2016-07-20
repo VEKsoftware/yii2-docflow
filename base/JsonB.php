@@ -28,7 +28,9 @@ class JsonB extends Object
      */
     public function __construct(array $config)
     {
-        foreach ($config as $name => $value) {
+        $prepareConfig = $this->preparePopulateJsonB($config);
+
+        foreach ($prepareConfig as $name => $value) {
             $this->_attributes[$name] = $value;
         }
 
@@ -101,7 +103,7 @@ class JsonB extends Object
     protected function prepareSet($name, $value)
     {
         if (is_array($value)) {
-            $this->_attributes[$name] = new JsonB($this->preparePopulateJsonB($value));
+            $this->_attributes[$name] = new JsonB($value);
         } elseif (is_scalar($value)) {
             $this->_attributes[$name] = $value;
         }
@@ -129,13 +131,43 @@ class JsonB extends Object
         $return = [];
 
         foreach ($fields as $key => $field) {
-            if (is_array($field)) {
-                $return[$key] = new JsonB($this->preparePopulateJsonB($field));
-            } else {
+            if (is_array($field) && (count($field) > 0)) {
+                $return[$key] = new JsonB($field);
+            } elseif (is_scalar($field)) {
                 $return[$key] = $field;
             }
         }
 
         return $return;
+    }
+
+    /**
+     * Добавляем значения в аттрибуты, если есть, то переписывается
+     *
+     * @param array $attributes - аттрибуты
+     *
+     * @return void
+     */
+    public function addAttributes(array $attributes)
+    {
+        foreach ($attributes as $key => $attribute) {
+            $this->prepareSet($key, $attribute);
+        }
+    }
+
+    /**
+     * Удалем аттрибуты
+     *
+     * @param array $attributes - аттрибуты для удаления
+     *
+     * @return void
+     */
+    public function delAttributes(array $attributes)
+    {
+        foreach ($attributes as $attribute) {
+            if (array_key_exists($attribute, $this->_attributes)) {
+                unset($this->_attributes[$attribute]);
+            }
+        }
     }
 }

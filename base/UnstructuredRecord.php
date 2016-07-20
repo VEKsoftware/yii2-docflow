@@ -76,32 +76,9 @@ class UnstructuredRecord extends MultipleActiveRecord
             $fields = $this->jsonBDecode($this->{$jsonBColumn});
 
             if (is_array($fields)) {
-                $this->_hiddenAttributes[$jsonBColumn] = new JsonB($this->preparePopulateJsonB($fields));
+                $this->_hiddenAttributes[$jsonBColumn] = new JsonB($fields);
             }
         }
-    }
-
-
-    /**
-     * Обрабатываем поступающие параметры
-     *
-     * @param array $fields - массив параметров ключ->значение
-     *
-     * @return array
-     */
-    protected function preparePopulateJsonB(array $fields)
-    {
-        $return = [];
-
-        foreach ($fields as $key => $field) {
-            if (is_array($field)) {
-                $return[$key] = new JsonB($this->preparePopulateJsonB($field));
-            } else {
-                $return[$key] = $field;
-            }
-        }
-
-        return $return;
     }
 
     /**
@@ -276,7 +253,7 @@ class UnstructuredRecord extends MultipleActiveRecord
     {
         if ($this->hasHiddenAttribute($name)) {
             if (is_array($value)) {
-                $this->_hiddenAttributes[$name] = new JsonB($this->preparePopulateJsonB($value));
+                $this->_hiddenAttributes[$name] = new JsonB($value);
             }
         } else {
             parent::__set($name, $value);
@@ -290,7 +267,7 @@ class UnstructuredRecord extends MultipleActiveRecord
      *
      * @return bool
      */
-    public function hasHiddenAttribute($name)
+    protected function hasHiddenAttribute($name)
     {
         return isset($this->_hiddenAttributes[$name]) || in_array($name, static::jsonBFields(), true);
     }
@@ -316,7 +293,7 @@ class UnstructuredRecord extends MultipleActiveRecord
     {
         foreach ($array as $key => $value) {
             if ($this->hasHiddenAttribute($key) && is_array($value)) {
-                $this->_hiddenAttributes[$key] = new JsonB($this->preparePopulateJsonB($value));
+                $this->_hiddenAttributes[$key] = new JsonB($value);
             }
         }
     }

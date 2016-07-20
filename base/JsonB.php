@@ -68,7 +68,7 @@ class JsonB extends Object
     public function __set($name, $value)
     {
         if (array_key_exists($name, $this->_attributes)) {
-            $this->_attributes[$name] = $value;
+            $this->prepareSet($name, $value);
         } else {
             parent::__set($name, $value);
         }
@@ -84,6 +84,25 @@ class JsonB extends Object
     public function setAttributes(array $attributes)
     {
         foreach ($attributes as $name => $value) {
+            if (array_key_exists($name, $this->_attributes)) {
+                $this->prepareSet($name, $value);
+            }
+        }
+    }
+
+    /**
+     * Подготавливаем присвоение значений
+     *
+     * @param string|integer             $name  - ключ
+     * @param array|string|integer|float $value - значение
+     *
+     * @return void
+     */
+    protected function prepareSet($name, $value)
+    {
+        if (is_array($value)) {
+            $this->_attributes[$name] = new JsonB($this->preparePopulateJsonB($value));
+        } elseif (is_scalar($value)) {
             $this->_attributes[$name] = $value;
         }
     }
@@ -96,5 +115,27 @@ class JsonB extends Object
     public function getAttributes()
     {
         return $this->_attributes;
+    }
+
+    /**
+     * Обрабатываем поступающие параметры
+     *
+     * @param array $fields - массив параметров ключ->значение
+     *
+     * @return array
+     */
+    protected function preparePopulateJsonB(array $fields)
+    {
+        $return = [];
+
+        foreach ($fields as $key => $field) {
+            if (is_array($field)) {
+                $return[$key] = new JsonB($this->preparePopulateJsonB($field));
+            } else {
+                $return[$key] = $field;
+            }
+        }
+
+        return $return;
     }
 }

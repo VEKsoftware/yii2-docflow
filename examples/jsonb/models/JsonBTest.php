@@ -10,7 +10,6 @@ namespace docflow\examples\jsonb\models;
 
 use docflow\base\UnstructuredRecord;
 use yii;
-use yii\db\ActiveRecord;
 
 class JsonBTest extends UnstructuredRecord
 {
@@ -50,7 +49,7 @@ class JsonBTest extends UnstructuredRecord
     /**
      * Получаем все данные
      *
-     * @return array|ActiveRecord[]
+     * @return array|UnstructuredRecord[]
      */
     public static function getAll()
     {

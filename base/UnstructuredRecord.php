@@ -49,7 +49,7 @@ class UnstructuredRecord extends MultipleActiveRecord
         }
 
         foreach ($jsonBColumns as $jsonBColumn) {
-            $this->setHiddenAttributes($jsonBColumn);
+            $this->setHiddenAttributesInEvents($jsonBColumn);
         }
 
         parent::afterFind();
@@ -64,7 +64,7 @@ class UnstructuredRecord extends MultipleActiveRecord
      *
      * @throws ErrorException
      */
-    protected function setHiddenAttributes($jsonBColumn)
+    protected function setHiddenAttributesInEvents($jsonBColumn)
     {
         $property = $this->{$jsonBColumn};
 
@@ -239,7 +239,7 @@ class UnstructuredRecord extends MultipleActiveRecord
 
         foreach ($jsonBColumns as $jsonBColumn) {
             if (!array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
-                $this->setHiddenAttributes($jsonBColumn);
+                $this->setHiddenAttributesInEvents($jsonBColumn);
             }
         }
 
@@ -293,5 +293,31 @@ class UnstructuredRecord extends MultipleActiveRecord
     public function hasHiddenAttribute($name)
     {
         return isset($this->_hiddenAttributes[$name]) || in_array($name, static::jsonBFields(), true);
+    }
+
+    /**
+     * Получаем все скрытые аттрибуты
+     *
+     * @return array
+     */
+    public function getHiddenAttributes()
+    {
+        return $this->_hiddenAttributes;
+    }
+
+    /**
+     * Массовая установка
+     *
+     * @param array $array - массив содержащий новые данные
+     *
+     * @return void
+     */
+    public function setHiddenAttributes(array $array)
+    {
+        foreach ($array as $key => $value) {
+            if ($this->hasHiddenAttribute($key) && is_array($value)) {
+                $this->_hiddenAttributes[$key] = new JsonB($this->preparePopulateJsonB($value));
+            }
+        }
     }
 }

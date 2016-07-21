@@ -11,6 +11,7 @@ namespace docflow\base;
 use yii\base\InvalidCallException;
 use yii\base\Object;
 use yii\base\UnknownPropertyException;
+use yii\helpers\ArrayHelper;
 
 class JsonB extends Object
 {
@@ -102,8 +103,14 @@ class JsonB extends Object
      */
     protected function prepareSet($name, $value)
     {
-        if (is_array($value)) {
-            $this->_attributes[$name] = new JsonB($value);
+        if (is_array($value) && (count($value) > 0)) {
+            $isAssociative = ArrayHelper::isAssociative($value);
+
+            if ($isAssociative) {
+                $this->_attributes[$name] = new JsonB($value);
+            } else {
+                $this->_attributes[$name] = $value;
+            }
         } elseif (is_scalar($value)) {
             $this->_attributes[$name] = $value;
         }
@@ -132,7 +139,13 @@ class JsonB extends Object
 
         foreach ($fields as $key => $field) {
             if (is_array($field) && (count($field) > 0)) {
-                $return[$key] = new JsonB($field);
+                $isAssociative = ArrayHelper::isAssociative($field);
+
+                if ($isAssociative) {
+                    $return[$key] = new JsonB($field);
+                } else {
+                    $return[$key] = $field;
+                }
             } elseif (is_scalar($field)) {
                 $return[$key] = $field;
             }

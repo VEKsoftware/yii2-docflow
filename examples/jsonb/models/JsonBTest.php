@@ -53,6 +53,6 @@ class JsonBTest extends UnstructuredRecord
      */
     public static function getAll()
     {
-        return static::find()->all();
+        return static::find()->orderBy(['id' => SORT_ASC])->all();
     }
 }

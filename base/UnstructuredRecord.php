@@ -84,19 +84,19 @@ class UnstructuredRecord extends MultipleActiveRecord
     /**
      * Подготавливаем скрытые аттрибуты для сохранения
      *
-     * @param JsonB $hiddenAttributes - Объект JsonB
+     * @param JsonB $jsonB - Объект JsonB
      *
      * @return array
      */
-    protected function prepareSaveJsonB(JsonB $hiddenAttributes)
+    protected function prepareSaveJsonB(JsonB $jsonB)
     {
         $return = [];
 
-        foreach ($hiddenAttributes->attributes as $key => $hiddenAttribute) {
-            if ($hiddenAttribute instanceof JsonB) {
-                $return[$key] = call_user_func([$this, 'prepareSaveJsonB'], $hiddenAttribute);
+        foreach ($jsonB->attributes as $key => $value) {
+            if ($value instanceof JsonB) {
+                $return[$key] = call_user_func([$this, 'prepareSaveJsonB'], $value);
             } else {
-                $return[$key] = $hiddenAttribute;
+                $return[$key] = $value;
             }
         }
 

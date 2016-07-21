@@ -112,6 +112,7 @@ class JsonBController extends Controller
             'кафтан' => 123,
             'поло' => 233,
             'мигрень' => null,
+            'числовой' => [1, 2, 3, 4],
             'работа' => [
                 'пн' => '9:00-13:00, 14:00-18:00',
                 'вт' => '9:00-13:00, 14:00-18:00',
@@ -162,6 +163,11 @@ class JsonBController extends Controller
         var_dump($jsonB->кафтан);
     }
 
+    /**
+     * Удалем аттрибуты из JsonB
+     *
+     * @return void
+     */
     public function actionDelAttributesInJsonB()
     {
         $addAttributes = [
@@ -186,5 +192,32 @@ class JsonBController extends Controller
         $jsonB->delAttributes($delAttributes);
         var_dump($jsonB);
         var_dump($jsonB->работа);
+    }
+
+    /**
+     * Получаем, изменяем и сохраняем измененные данные в
+     *
+     * @return void
+     */
+    public function actionSaveUnstructured()
+    {
+        $all = JsonBTest::getAll();
+        $one = $all[0];
+        echo '----------------------------------Начальное значение------------------------------------------';
+        var_dump($one->hiddenAttributes);
+        echo '-------------------------------Устанавливаемое значение---------------------------------------';
+        $array = [
+            'referees' => [1 => 'Вася', 2 => 'Петя', 3 => 'Мирослав', 4 => [11, 22, 33, 44]],
+            'contacts' => 'asdasd',
+            'payment_cards' => [1 => 'asd', 2 => 'zxc', 3 => 'qwe', 4 => [111, 222, 333, 444]]
+        ];
+        var_dump($array);
+        echo '--------------------------------Установленное значение----------------------------------------';
+        $one->hiddenAttributes = $array;
+        var_dump($one->hiddenAttributes);
+        echo '---------------------------------Сохраненное значение-----------------------------------------';
+        $one->save();
+        var_dump($one->hiddenAttributes);
+        exit;
     }
 }

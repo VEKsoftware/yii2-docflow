@@ -2,6 +2,7 @@
 
 namespace docflow;
 
+use yii\base\Application;
 use yii\base\ErrorException;
 use yii\base\Module;
 
@@ -10,11 +11,6 @@ use yii\base\Module;
  */
 class Docflow extends Module
 {
-    /**
-     * @inheritdoc
-     */
-    public $controllerNamespace = 'docflow\controllers';
-
     /** @var string $db Database component to use in the module */
     public $db;
 
@@ -29,11 +25,40 @@ class Docflow extends Module
 //        $this->checkAccessClassConfig();
         $this->registerTranslations();
 
-        $this->defaultRoute = 'doc-types/index';
-        $this->controllerMap = [
-            'test-users' => 'docflow\examples\users\controllers\TestUsersController',
-            'test-jsonb' => 'docflow\examples\jsonb\controllers\JsonBController'
-        ];
+        $this->setControllers(\Yii::$app);
+    }
+
+    /**
+     * Метод выполняется при загрузке приложения
+     *
+     * @param Application $app - приложение
+     *
+     * @return void
+     */
+    public function bootstrap($app)
+    {
+        $this->setControllers($app);
+    }
+
+    /**
+     * Устанавливаем контроллеры в зависимости от типа приложения
+     *
+     * @param Application $app - приложение
+     *
+     * @return void
+     */
+    protected function setControllers($app)
+    {
+        if ($app instanceof \yii\console\Application) {
+            $this->controllerNamespace = 'docflow\console\controllers';
+        } elseif ($app instanceof \yii\web\Application) {
+            $this->controllerNamespace = 'docflow\controllers';
+            $this->defaultRoute = 'doc-types/index';
+            $this->controllerMap = [
+                'test-users' => 'docflow\examples\users\controllers\TestUsersController',
+                'test-jsonb' => 'docflow\examples\jsonb\controllers\JsonBController'
+            ];
+        }
     }
 
     /**

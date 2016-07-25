@@ -216,9 +216,9 @@ class Users extends Document
      *
      * @return string Document name
      */
-    public static function docNameField()
+    public function getDocName()
     {
-        return 'short_name';
+        return $this->{'short_name'};
     }
 
     /**

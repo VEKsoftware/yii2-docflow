@@ -24,7 +24,7 @@ echo FlTreeWithSimpleLinksWidget::widget([
     'base' => [
         'title' => $this->title,
         'titleLink' => Yii::t('docflow', 'Statuses Links'),
-        'nodeName' => $model->{$model->docNameField()}
+        'nodeName' => $model->docName
     ],
     'detailViewConfig' => [
         'model' => $model,

@@ -13,9 +13,9 @@ use docflow\widgets\FlTreeWithSimpleLinksWidget;
 
 echo FlTreeWithSimpleLinksWidget::widget([
     'base' => [
-        'title' => $document->{$document::docNameField()},
+        'title' => $document->docName,
         'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),
-        'nodeName' => $document->{$document::docNameField()},
+        'nodeName' => $document->docName,
     ],
     'sources' => [
         'flTreeUrl' => ['test-users/ajax-child'],

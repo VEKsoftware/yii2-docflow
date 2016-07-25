@@ -148,7 +148,7 @@ class FlTreeWidget extends Widget
     protected static function getMainPart(Document $value, array $config)
     {
         return [
-            'text' => $value->{$value->docNameField()},
+            'text' => $value->docName,
             'href' => static::getLink($config['links']['documentView'], $value),
         ];
     }

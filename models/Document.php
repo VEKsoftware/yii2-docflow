@@ -16,7 +16,7 @@ abstract class Document extends UnstructuredRecord
 
     /**
      * This function returns the document tag. This tag is used to get
-     * all information about the doument type from the database.
+     * all information about the document type from the database.
      *
      * @return string Document tag
      */
@@ -27,7 +27,7 @@ abstract class Document extends UnstructuredRecord
      *
      * @return string Document name
      */
-    abstract public static function docNameField();
+    abstract public function getDocName();
 
     /**
      * Получаем документ по его идентификатору

@@ -140,7 +140,7 @@ class FlTreeWithSimpleLinksWidget extends FlTreeWidget
     protected static function getMainPart(Document $value, array $config)
     {
         return [
-            'text' => $value->{$value->docNameField()},
+            'text' => $value->docName,
             'href_addSimple' => static::getLink($config['links']['addSimple'], $value),
             'href_delSimple' => static::getLink($config['links']['delSimple'], $value),
         ];

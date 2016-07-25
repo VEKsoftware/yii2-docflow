@@ -211,9 +211,9 @@ class Statuses extends Document
      *
      * @return string Document name
      */
-    public static function docNameField()
+    public function getDocName()
     {
-        return 'name';
+        return $this->{'name'};
     }
 
     /**

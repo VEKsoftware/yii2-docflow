@@ -152,9 +152,14 @@ class UnstructuredRecord extends MultipleActiveRecord
         }
 
         foreach ($jsonBColumns as $jsonBColumn) {
-            $json = json_encode($this->prepareSaveJsonB($this->_hiddenAttributes[$jsonBColumn]));
-            $this->setAttribute($jsonBColumn, $json);
-            unset($this->_hiddenAttributes[$jsonBColumn]);
+            if (array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
+                $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
+                $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
+
+                $json = json_encode($prepareJsonB);
+                $this->setAttribute($jsonBColumn, $json);
+                unset($this->_hiddenAttributes[$jsonBColumn]);
+            }
         }
 
         return true;

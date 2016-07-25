@@ -22,9 +22,7 @@ class Docflow extends Module
     public function init()
     {
         parent::init();
-//        $this->checkAccessClassConfig();
         $this->registerTranslations();
-
         $this->setControllers(\Yii::$app);
     }
 
@@ -51,7 +49,9 @@ class Docflow extends Module
     {
         if ($app instanceof \yii\console\Application) {
             $this->controllerNamespace = 'docflow\console\controllers';
-        } elseif ($app instanceof \yii\web\Application) {
+        }
+
+        if ($app instanceof \yii\web\Application) {
             $this->controllerNamespace = 'docflow\controllers';
             $this->defaultRoute = 'doc-types/index';
             $this->controllerMap = [
@@ -83,6 +83,8 @@ class Docflow extends Module
 
     /**
      * Initialization of the i18n translation module.
+     *
+     * @return void
      */
     public function registerTranslations()
     {
@@ -90,9 +92,7 @@ class Docflow extends Module
             'class' => 'yii\i18n\PhpMessageSource',
             'sourceLanguage' => 'en',
             'basePath' => '@docflow/messages',
-            'fileMap' => [
-                'docflow' => 'docflow.php',
-            ],
+            'fileMap' => ['docflow' => 'docflow.php'],
         ];
     }
 }

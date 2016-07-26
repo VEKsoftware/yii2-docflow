@@ -17,7 +17,7 @@ abstract class Document extends UnstructuredRecord
     /**
      * This function returns the document tag. This tag is used to get
      * all information about the document type from the database.
-     *
+     * //TODO надо думать, ведь тэг вышестоящего документа не может быть статичным
      * @return string Document tag
      */
     abstract public static function docTag();

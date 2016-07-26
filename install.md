@@ -60,7 +60,7 @@ class Acess extends Behavior
 }
 
 
-Миграции:
+####Миграции:
 php yii migrate/up
 php yii migrate/up --migrationPath=@docflow/migrations
 php yii migrate/up --migrationPath=@docflow/examples/users/migrations

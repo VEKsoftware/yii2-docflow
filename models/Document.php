@@ -20,7 +20,7 @@ abstract class Document extends UnstructuredRecord
      * //TODO надо думать, ведь тэг вышестоящего документа не может быть статичным
      * @return string Document tag
      */
-    abstract public static function docTag();
+    abstract public function docTag();
 
     /**
      * Return field name which use how Document `name`
@@ -42,9 +42,9 @@ abstract class Document extends UnstructuredRecord
      * Return description of the type of current document
      * @return \docflow\models\DocTypes the object specifying the document type
      */
-    public static function getDoc()
+    public function getDoc()
     {
-        return DocTypes::getDocType(static::docTag());
+        return DocTypes::getDocType($this->docTag());
     }
 
     /**

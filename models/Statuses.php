@@ -40,9 +40,9 @@ class Statuses extends Document
     /**
      * {@inheritdoc}
      */
-    public static function docTag()
+    public function docTag()
     {
-        return 'vid';
+        return $this->docType->tag;
     }
 
     /**

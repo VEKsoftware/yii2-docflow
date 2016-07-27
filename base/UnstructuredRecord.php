@@ -69,11 +69,11 @@ class UnstructuredRecord extends MultipleActiveRecord
         $property = $this->{$jsonBColumn};
 
         if (!empty($property)) {
-            if (!is_string($this->{$jsonBColumn})) {
+            if (!is_string($property)) {
                 throw new ErrorException('Не Json строка');
             }
 
-            $fields = $this->jsonBDecode($this->{$jsonBColumn});
+            $fields = $this->jsonBDecode($property);
 
             if (is_array($fields)) {
                 $this->_hiddenAttributes[$jsonBColumn] = new JsonB($fields);
@@ -130,45 +130,7 @@ class UnstructuredRecord extends MultipleActiveRecord
     }
 
     /**
-     * Перед валидацией, записываем в _attributes новые значения и удаляем из _hiddenAttributes,
-     * т.к валидация будет смотреть на _hiddenAttributes и выдавать ошибку,
-     * после сохранения если была валидация восстанавливаем _hiddenAttributes
-     *
-     * @return bool
-     *
-     * @throws ErrorException
-     * @throws InvalidParamException
-     */
-    public function beforeValidate()
-    {
-        if (!parent::beforeValidate()) {
-            return false;
-        }
-
-        $jsonBColumns = static::jsonBFields();
-
-        if (!is_array($jsonBColumns)) {
-            throw new ErrorException('Не массив');
-        }
-
-        foreach ($jsonBColumns as $jsonBColumn) {
-            if (array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
-                $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
-                $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
-
-                $json = json_encode($prepareJsonB);
-                $this->setAttribute($jsonBColumn, $json);
-                unset($this->_hiddenAttributes[$jsonBColumn]);
-            }
-        }
-
-        return true;
-    }
-
-    /**
      * Перед сохранением:
-     * 1)Если была валидация(отсутствуют значения в _hiddenAttributes), то ничего не делаем
-     * 2)Если валидации не было(присутствуют значения в _hiddenAttributes), то производим обновление _attributes
      *
      * @param bool $insert - true - данные добавляются, false - данные обновляются
      *
@@ -191,8 +153,13 @@ class UnstructuredRecord extends MultipleActiveRecord
 
         foreach ($jsonBColumns as $jsonBColumn) {
             if (array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
-                $json = json_encode($this->prepareSaveJsonB($this->_hiddenAttributes[$jsonBColumn]));
+                $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
+                $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
+                $json = json_encode($prepareJsonB);
+
                 $this->setAttribute($jsonBColumn, $json);
+
+                unset($this->_hiddenAttributes[$jsonBColumn]);
             }
         }
 
@@ -201,10 +168,9 @@ class UnstructuredRecord extends MultipleActiveRecord
 
     /**
      * После сохраенения:
-     * 1)Если была валидация(отсутствуют значения в _hiddenAttributes), то восстанавливаем
-     * 2)Если валидации не было(присутствуют значения в _hiddenAttributes), то ничего не делаем
      *
-     * @param bool  $insert            - true - новая запись, false - обновление существующей
+     * @param bool  $insert            - true - новая запись,
+     *                                 false - обновление существующей
      * @param array $changedAttributes - измененные аттрибуты
      *
      * @return void
@@ -220,9 +186,7 @@ class UnstructuredRecord extends MultipleActiveRecord
         }
 
         foreach ($jsonBColumns as $jsonBColumn) {
-            if (!array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
-                $this->setHiddenAttributesInEvents($jsonBColumn);
-            }
+            $this->setHiddenAttributesInEvents($jsonBColumn);
         }
 
         parent::afterSave($insert, $changedAttributes);

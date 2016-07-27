@@ -8,6 +8,7 @@
 
 namespace docflow\examples\jsonb\models;
 
+use docflow\base\JsonB;
 use docflow\base\UnstructuredRecord;
 use yii;
 
@@ -22,7 +23,17 @@ class JsonBTest extends UnstructuredRecord
     {
         return [
             [['contacts'], 'required'],
-            [['contacts'], 'string'],
+            [
+                ['contacts', 'payment_cards'],
+                'safe',
+                'when' => function ($model, $attribute) {
+                    if ($model->{$attribute} instanceof JsonB) {
+                        return true;
+                    } else {
+                        return false;
+                    }
+                }
+            ],
         ];
     }
 

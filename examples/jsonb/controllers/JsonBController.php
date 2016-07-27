@@ -215,8 +215,9 @@ class JsonBController extends Controller
         echo '--------------------------------Установленное значение----------------------------------------';
         $one->hiddenAttributes = $array;
         var_dump($one->hiddenAttributes);
+        echo '---------------------------------Успешность сохранения----------------------------------------';
+        var_dump($one->save());
         echo '---------------------------------Сохраненное значение-----------------------------------------';
-        $one->save();
         var_dump($one->hiddenAttributes);
         exit;
     }

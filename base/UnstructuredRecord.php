@@ -42,6 +42,8 @@ class UnstructuredRecord extends MultipleActiveRecord
      */
     public function afterFind()
     {
+        $this->_hiddenAttributes = [];
+
         $jsonBColumns = static::jsonBFields();
 
         if (!is_array($jsonBColumns)) {
@@ -264,6 +266,40 @@ class UnstructuredRecord extends MultipleActiveRecord
             if ($this->hasHiddenAttribute($key) && is_array($value)) {
                 $this->_hiddenAttributes[$key] = new JsonB($value);
             }
+        }
+    }
+
+    /**
+     * Инит
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    public function init()
+    {
+        $this->initHiddenAttributes();
+
+        parent::init();
+    }
+
+    /**
+     * Инициализруем скытые аттрибуты
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected function initHiddenAttributes()
+    {
+        $jsonBColumns = static::jsonBFields();
+
+        if (!is_array($jsonBColumns)) {
+            throw new ErrorException('Не массив');
+        }
+
+        foreach ($jsonBColumns as $jsonBColumn) {
+            $this->_hiddenAttributes[$jsonBColumn] = new JsonB([]);
         }
     }
 }

@@ -40,25 +40,35 @@ class JsonB extends Object
 
     /**
      * Получаем значение свойства по имени
+     * 1)Если свойства нет, то обдаем null
+     * 2)Если есть, то его значение
      *
      * @param string $name - имя свойства
      *
-     * @return mixed
+     * @return mixed|null
      *
      * @throws UnknownPropertyException
      * @throws InvalidCallException
      */
     public function __get($name)
     {
-        if (array_key_exists($name, $this->_attributes)) {
+        if (is_array($this->_attributes) && array_key_exists($name, $this->_attributes)) {
             return $this->_attributes[$name];
         } else {
-            return parent::__get($name);
+            try {
+                return parent::__get($name);
+            } catch (InvalidCallException $e) {
+                return null;
+            } catch (UnknownPropertyException $e) {
+                return null;
+            }
         }
     }
 
     /**
-     * Устанавливаем значение свойству
+     * Устанавливаем значение свойству:
+     * 1)Если свойства нет, то создается
+     * 2)Если есть, то обновляется
      *
      * @param string $name  - имя свойства
      * @param mixed  $value - значение свойства
@@ -70,10 +80,16 @@ class JsonB extends Object
      */
     public function __set($name, $value)
     {
-        if (array_key_exists($name, $this->_attributes)) {
+        if (is_array($this->_attributes) && array_key_exists($name, $this->_attributes)) {
             $this->prepareSet($name, $value);
         } else {
-            parent::__set($name, $value);
+            try {
+                parent::__set($name, $value);
+            } catch (InvalidCallException $e) {
+                $this->prepareSet($name, $value);
+            } catch (UnknownPropertyException $e) {
+                $this->prepareSet($name, $value);
+            }
         }
     }
 

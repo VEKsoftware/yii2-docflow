@@ -12,19 +12,39 @@ $("#tree-leaf").bind("domChanged", function () {
      * Назначаем обработчики при клике
      */
     $upTreeButton.on('click', function () {
-        checkAjax($upTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Up');
+        checkAjax(
+            $upTreeButton.data("href"),
+            $upTreeButton.data("name"),
+            $upTreeButton.data("fl-tree-url"),
+            'Up'
+        );
     });
 
     $downTreeButton.on('click', function () {
-        checkAjax($downTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Down');
+        checkAjax(
+            $downTreeButton.data("href"),
+            $downTreeButton.data("name"),
+            $downTreeButton.data("fl-tree-url"),
+            'Down'
+        );
     });
 
     $rightTreeButton.on('click', function () {
-        checkAjax($rightTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Right');
+        checkAjax(
+            $rightTreeButton.data("href"),
+            $rightTreeButton.data("name"),
+            $rightTreeButton.data("fl-tree-url"),
+            'Right'
+        );
     });
 
     $leftTreeButton.on('click', function () {
-        checkAjax($leftTreeButton.data("href"), $upTreeButton.data("name"), $upTreeButton.data("fl-tree-url"), 'Left');
+        checkAjax(
+            $leftTreeButton.data("href"),
+            $leftTreeButton.data("name"),
+            $leftTreeButton.data("fl-tree-url"),
+            'Left'
+        );
     });
 });
 
@@ -118,11 +138,11 @@ function renderTree(currentName, flTreeUrl, action) {
     }
 
     if (action === 'Right') {
-        nodeIn(flTreeUrl, currentName);
+        nodeIn(flTreeUrl, currentName, action);
     }
 
     if (action === 'Left') {
-        nodeOut(flTreeUrl, currentName);
+        nodeOut(flTreeUrl, currentName, action);
     }
 }
 
@@ -133,8 +153,7 @@ function renderTree(currentName, flTreeUrl, action) {
  * @param currentName
  * @param action
  */
-function nodeVertical(currentName, action)
-{
+function nodeVertical(currentName, action) {
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
     var needIndex = (action === 'Up')
@@ -165,33 +184,36 @@ function nodeVertical(currentName, action)
  * Перемещаем ноду во внутренний уровень вверхстоящей ноды
  * @param flTreeUrl
  * @param currentName
+ * @param action
  */
-function nodeIn(flTreeUrl, currentName) {
+function nodeIn(flTreeUrl, currentName, action) {
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
 
-    nodeHorizontal(currentNode, flTreeUrl);
+    nodeHorizontal(currentNode, flTreeUrl, action);
 }
 
 /**
  * Перемещаем ноду во внешний уровень к родительской ноде
  * @param flTreeUrl
  * @param currentName
+ * @param action
  */
-function nodeOut(flTreeUrl, currentName) {
+function nodeOut(flTreeUrl, currentName, action) {
     var tree = $('#tree').treeview(true);
     var currentNode = tree.findNodes('^' + currentName + '$', 'text')[0];
     var parentNode = tree.findNodes('^' + currentNode.parentId + '$', 'nodeId')[0];
 
-    nodeHorizontal(parentNode, flTreeUrl);
+    nodeHorizontal(parentNode, flTreeUrl, action);
 }
 
 /**
  * Если внешний уровень корневой, то перезагружаем дерево, если не уорневой то перезагружаем родительскую ноду
  * @param node
  * @param flTreeUrl
+ * @param action
  */
-function nodeHorizontal(node, flTreeUrl) {
+function nodeHorizontal(node, flTreeUrl, action) {
     var tree = $('#tree').treeview(true);
 
     /* Cмотрим на родителя перемещаемой ноды */
@@ -203,11 +225,15 @@ function nodeHorizontal(node, flTreeUrl) {
         /* Определяем родителя */
         var parent = getParentByParentId(tree, reloadNode);
 
+        var int = (action === 'Right')
+            ? parseInt(reloadNode.tags[0]) - 1
+            : parseInt(reloadNode.tags[0]) + 1;
+
         var newReloadNode = {
             text: reloadNode.text,
             href: reloadNode.href,
             href_child: reloadNode.href_child,
-            tags: [parseInt(reloadNode.tags[0]) + 1, reloadNode.tags[1]]
+            tags: [int, reloadNode.tags[1]]
         };
 
         tree.addNode(newReloadNode, parent, reloadNode.index, {silent: true});
@@ -337,7 +363,7 @@ function initFlTree(dataUrl) {
         clearTreeChangeStatus();
 
         /* Еcли есть ссылка для загрузки вложенных документов и если документы еще не загружены,
-        то загружаем и устанавливаем документы в дерево и загружаем дерево с простыми связями для текущего документа */
+         то загружаем и устанавливаем документы в дерево и загружаем дерево с простыми связями для текущего документа */
         if (item.href_child && item.nodes === undefined) {
             $.get(item.href_child, function (vars) {
                 var parent = tree.findNodes(item.text, 'text')[0];

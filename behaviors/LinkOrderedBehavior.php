@@ -368,10 +368,12 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * @param Document|Statuses $newRootDocument - документ, в который перемещаем
      *
      * @return array
+     *
+     * @throws ErrorException
      */
     protected function setStatusInTreeRight($newRootDocument)
     {
-        $this->owner->setParent($newRootDocument);
+        $this->setParent($newRootDocument);
 
         return ['success' => 'Позиция изменена'];
     }
@@ -386,18 +388,20 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      * @param array $parentLinks     - родительские связи 1 и 2 уровней
      *
      * @return array
+     *
+     * @throws \Exception
      */
     protected function setStatusInTreeLeft(array $parentDocuments, array $parentLinks)
     {
         if (array_key_exists(2, $parentLinks)) {
             /* Меняем родителя */
             $documentId = $parentLinks[2]->{$this->linkFieldsArray['status_from']};
-            $this->owner->setParent($parentDocuments[$documentId]);
+            $this->setParent($parentDocuments[$documentId]);
 
             $return = ['success' => 'Позиция изменена'];
         } elseif (array_key_exists(1, $parentLinks)) {
             /* Удаляем родителей */
-            $this->owner->removeParents();
+            $this->removeParents();
 
             $return = ['success' => 'Позиция изменена'];
         } else {

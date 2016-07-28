@@ -331,10 +331,10 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             switch ($actionInTree) {
                 case 'Left':
                     /* Получаем родительские связи 1 и 2 уровней */
-                    $parentLinks = $this->owner->parentLinks1And2Levels;
+                    $parentLinks = $this->parentLinks1And2Levels;
 
                     /* Получаем родительские документы 1 и 2 уровней */
-                    $parentDocuments = $this->owner->parentDocuments1And2Levels;
+                    $parentDocuments = $this->parentDocuments1And2Levels;
 
                     $return = $this->setStatusInTreeLeft($parentDocuments, $parentLinks);
                     break;

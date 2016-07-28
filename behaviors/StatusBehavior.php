@@ -187,7 +187,7 @@ class StatusBehavior extends ActivePropertiesBehavior
      */
     public function getStatus()
     {
-        if (($this->owner->{$this->statusIdField} === null) || (!is_int($this->owner->{$this->statusIdField}))) {
+        if ($this->owner->{$this->statusIdField} === null) {
             throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_IS_EMPTY);
         }
 

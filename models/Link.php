@@ -37,6 +37,10 @@ abstract class Link extends UnstructuredRecord
     protected static $_rightTagField;
     /* @var string имя столбца в таблице со связями с типом relation-а */
     protected static $_relationTypeField;
+    /* @var string имя столбца в таблице со связями с уникальным идентификатором */
+    protected static $_fieldLinkId;
+    /* @var string имя столбца в таблице со связями с временным штампом */
+    protected static $_fieldLinkTimestamp;
 
     protected $upperLinksOld;
     protected $upperLinksNew;
@@ -260,7 +264,10 @@ abstract class Link extends UnstructuredRecord
 
                 /* Вырезаем первичный ключ и временную метку */
                 //TODO необходимо подумать как привести к правильному виду
-                unset($attributes['id'], $attributes['at_data']);
+                unset(
+                    $attributes[static::$_fieldLinkId],
+                    $attributes[static::$_fieldLinkTimestamp]
+                );
                 /* Формируем новые связи между новыми родительскими статусами и детскими статусами (включая перемещаемый статус) */
                 foreach ($this->upperLinksNew as $boss) {
                     foreach ($this->lowerLinks as $dept) {

@@ -26,6 +26,8 @@ class UsersLinks extends Link
     public static $_rightTagField = 'r_tag';
     public static $_relationTypeField = 'rtp';
     public static $_fieldNodeTag = 'tag';
+    public static $_fieldLinkId = 'id';
+    public static $_fieldLinkTimestamp = '';
 
     public static function tableName()
     {

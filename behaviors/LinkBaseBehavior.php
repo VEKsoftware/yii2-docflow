@@ -107,6 +107,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
             'status_from' => $linkClass::$_fieldLinkFrom,
             'type' => $linkClass::$_typeField,
             'node_id' => $linkClass::$_fieldNodeId,
+            'node_tag' => $linkClass::$_fieldNodeTag
         ];
 
         if (!empty($linkClass::$_rightTagField)) {

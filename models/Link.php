@@ -21,15 +21,21 @@ abstract class Link extends UnstructuredRecord
 
     private static $_statuses;
     protected static $_baseClass;
-    /**
-     * @var string наименование поля в котором указан id (идентификатор) базового класса
-     */
+    /* @var string имя столбца в таблице ноде с уникальным идентификатором */
     protected static $_fieldNodeId;
+    /* @var string имя столбца в таблице ноде с "тэгом" */
+    protected static $_fieldNodeTag;
+    /* @var string имя столбца в таблице со связями с идентификатором родителя */
     protected static $_fieldLinkFrom;
+    /* @var string имя столбца в таблице со связями с идентификатором ребенка */
     protected static $_fieldLinkTo;
+    /* @var string имя столбца в таблице со связями с уровнем вложенности */
     protected static $_levelField;
+    /* @var string имя столбца в таблице со связями с типом связи (simple, fltree) */
     protected static $_typeField;
+    /* @var string имя столбца в таблице со связями с тэгом доступа */
     protected static $_rightTagField;
+    /* @var string имя столбца в таблице со связями с типом relation-а */
     protected static $_relationTypeField;
 
     protected $upperLinksOld;

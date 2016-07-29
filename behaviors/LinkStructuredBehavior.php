@@ -183,6 +183,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
          * 1)Если связи нет, то будет создана новая
          * 2)Если связь есть, то будет обновлена
          */
+        //TODO жесткая привязка к id, а вдруг будет другое название? необходимо в link указываеть поле с id
         if (empty($flTreeLink->id)) {
             /* Если отсутствует ближайшая родительская связь, то создаем новую */
             $this->prepareAndAddFlTreeLinks($documentObj);
@@ -352,6 +353,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         $flTreeLink->setScenario($linkClass::LINK_TYPE_FLTREE);
 
         /* Сохраняем изменения */
+        //TODO необходимо сделать возвращяемое значение чтобы был виден результат
         $flTreeLink->save();
     }
 

@@ -27,6 +27,9 @@ class StatusesLinks extends Link
     public static $_typeField = 'type';
     public static $_rightTagField = 'right_tag';
     public static $_relationTypeField = '';
+    public static $_fieldNodeTag = 'tag';
+    public static $_fieldLinkId = 'id';
+    public static $_fieldLinkTimestamp = '';
 
     /**
      * {@inheritdoc}

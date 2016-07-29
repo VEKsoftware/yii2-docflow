@@ -79,7 +79,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_DEL_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -110,7 +110,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -144,7 +144,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -156,7 +156,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -167,7 +167,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         /* Получаем детей у текущего документа */
         $childes = $this->childes;
 
-        if (array_key_exists($documentObj->tag, $childes)) {
+        if (array_key_exists($documentObj->{$this->indexBy}, $childes)) {
             throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_CHILDES_HOW_PARENT);
         }
 
@@ -210,7 +210,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_CHILD_NOT_HAS_AVAILABLE);
         }
 
@@ -244,7 +244,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
@@ -256,7 +256,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
@@ -267,7 +267,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
         /* Получаем родителей у текущего документа */
         $parents = $this->parents;
 
-        if (array_key_exists($documentObj->tag, $parents)) {
+        if (array_key_exists($documentObj->{$this->indexBy}, $parents)) {
             throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_PARENTS_HOW_CHILD);
         }
 

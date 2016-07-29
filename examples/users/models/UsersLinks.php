@@ -25,6 +25,9 @@ class UsersLinks extends Link
     public static $_typeField = 'tp';
     public static $_rightTagField = 'r_tag';
     public static $_relationTypeField = 'rtp';
+    public static $_fieldNodeTag = 'tag';
+    public static $_fieldLinkId = 'id';
+    public static $_fieldLinkTimestamp = '';
 
     public static function tableName()
     {
@@ -40,9 +43,9 @@ class UsersLinks extends Link
             [['from', 'to', 'tp', 'lvl', 'rtp'], 'required', 'on' => static::LINK_TYPE_FLTREE],
             [['from', 'to', 'r_tag', 'tp', 'rtp'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
             [
-                ['from', 'to', 'tp', 'rtp'],
+                ['from', 'to', 'tp', 'rtp', 'lvl'],
                 'unique',
-                'targetAttribute' => ['from', 'to', 'tp', 'rtp'],
+                'targetAttribute' => ['from', 'to', 'tp', 'rtp', 'lvl'],
                 'message' => 'The combination of From, To, Tp and Rtp has already been taken.'
             ],
             [['from', 'to'], 'integer'],

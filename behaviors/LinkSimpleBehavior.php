@@ -75,7 +75,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_OWNER_NOT_HAS_AVAILABLE);
         }
 
@@ -100,7 +100,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -166,7 +166,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
                 throw new ErrorException(BehaviorsMessages::U_IF_SET_LINK_BY_SELF);
             }
 
-            if (!array_key_exists($value->tag, $this->documents)) {
+            if (!array_key_exists($value->{$this->indexBy}, $this->documents)) {
                 throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
             }
         }
@@ -188,7 +188,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -200,7 +200,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_HAS_AVAILABLE);
         }
 
@@ -254,7 +254,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $statusLinkClass->{$this->linkFieldsArray['status_from']} = $this->owner->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['status_to']} = $documentObj->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['type']} = $linkClass::LINK_TYPE_SIMPLE;
-        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docTag() . '.' . $this->owner->tag . '.' . $documentObj->tag;
+        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docTag() . '.' . $this->owner->{$this->linkFieldsArray['node_tag']} . '.' . $documentObj->{$this->linkFieldsArray['node_tag']};
 
         if (!empty($relationType) && is_string($relationType)) {
             $statusLinkClass->{$this->linkFieldsArray['relation_type']} = $relationType;
@@ -280,7 +280,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->tag, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NOT_HAS_AVAILABLE);
         }
 
@@ -292,7 +292,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->tag, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NOT_HAS_AVAILABLE);
         }
 

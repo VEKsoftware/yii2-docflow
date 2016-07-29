@@ -39,6 +39,12 @@ class UsersLinks extends Link
         return [
             [['from', 'to', 'tp', 'lvl', 'rtp'], 'required', 'on' => static::LINK_TYPE_FLTREE],
             [['from', 'to', 'r_tag', 'tp', 'rtp'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
+            [
+                ['from', 'to', 'tp', 'rtp'],
+                'unique',
+                'targetAttribute' => ['from', 'to', 'tp', 'rtp'],
+                'message' => 'The combination of From, To, Tp and Rtp has already been taken.'
+            ],
             [['from', 'to'], 'integer'],
             [['r_tag'], 'string'],
             [['lvl'], 'integer'],

@@ -252,8 +252,9 @@ abstract class Link extends UnstructuredRecord
                 $inserts = [];
                 $attributes = $this->attributes;
 
-                // if there is a serial field id, we remove it from the array
-                unset($attributes['id']);
+                /* Вырезаем первичный ключ и временную метку */
+                //TODO необходимо подумать как привести к правильному виду
+                unset($attributes['id'], $attributes['at_data']);
                 /* Формируем новые связи между новыми родительскими статусами и детскими статусами (включая перемещаемый статус) */
                 foreach ($this->upperLinksNew as $boss) {
                     foreach ($this->lowerLinks as $dept) {

@@ -60,7 +60,7 @@ class m160628_115328_test extends Migration
             'lvl' => $this->integer(),
         ], null);
 
-        $this->createIndex('ux_test_links__from__to__rtp__tp', 'test_links', ['from', 'to', 'rtp', 'tp'], true);
+        $this->createIndex('ux_test_links__from__to__rtp__tp__lvl', 'test_links', ['from', 'to', 'rtp', 'tp', 'lvl'], true);
         $this->createIndex('ix_test_links__status_from', 'test_links', 'from');
         $this->createIndex('ix_test_links__status_to', 'test_links', 'to');
         $this->createIndex('ix_test_links__right_tag', 'test_links', 'r_tag');

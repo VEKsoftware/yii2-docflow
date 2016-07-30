@@ -81,7 +81,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
+                'orderedFieldValue' => 'orderFirmTree'
             ],
             'departments' => [
                 'class' => LinkSimpleBehavior::className(),
@@ -92,7 +94,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'departments\'::text)::int',
+                'orderedFieldValue' => 'orderDepartments'
             ],
             'representatives' => [
                 'class' => LinkSimpleBehavior::className(),
@@ -103,7 +107,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'representatives\'::text)::int',
+                'orderedFieldValue' => 'orderRepresentatives'
             ],
             'firmTree' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -114,7 +120,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
+                'orderedFieldValue' => 'orderFirmTree'
             ],
             'partnerProgram' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -125,7 +133,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'partnerProgram\'::text)::int',
+                'orderedFieldValue' => 'orderPartnerProgram'
             ],
             'subordination' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -136,7 +146,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'subordination\'::text)::int',
+                'orderedFieldValue' => 'orderSubordination'
             ],
             'firmTreeAllO' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -147,7 +159,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
+                'orderedFieldValue' => 'orderFirmTree'
             ],
             'firmTreeOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -158,7 +172,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
+                'orderedFieldValue' => 'orderFirmTree'
             ],
             'partnerProgramOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -169,7 +185,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'partnerProgram\'::text)::int',
+                'orderedFieldValue' => 'orderPartnerProgram'
             ],
             'subordinationOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -180,7 +198,9 @@ class Users extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'orderedFieldDb' => '("order_idx"->>\'subordination\'::text)::int',
+                'orderedFieldValue' => 'orderSubordination'
             ],
         ];
     }
@@ -231,5 +251,42 @@ class Users extends Document
     public static function getDocumentByNodeId($nodeId)
     {
         return static::find()->where(['idx' => $nodeId]);
+    }
+
+    public static function jsonBFields()
+    {
+        return ['order_idx'];
+    }
+
+    /**
+     * Гетер, для сортировки по main
+     *
+     * @return mixed
+     */
+    public function getOrderMain()
+    {
+        return $this->order_idx->main;
+    }
+
+    /**
+     * Гетер, для сортировки по firmTree
+     *
+     * @return mixed
+     */
+    public function getOrderFirmTree()
+    {
+        return $this->order_idx->firmTree;
+    }
+
+    /**
+     * Сетер для сортировки по firmTree
+     *
+     * @param mixed $value - входящее значение
+     *
+     * @return void
+     */
+    public function setOrderFirmTree($value)
+    {
+        $this->order_idx->firmTree = $value;
     }
 }

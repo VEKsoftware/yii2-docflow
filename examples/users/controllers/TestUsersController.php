@@ -127,9 +127,7 @@ class TestUsersController extends Controller
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $structureBehavior->orderedField => SORT_ASC,
-                ]
+                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
             ],
         ]);
 
@@ -202,9 +200,7 @@ class TestUsersController extends Controller
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $structureBehavior->orderedField => SORT_ASC,
-                ]
+                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
             ],
         ]);
 
@@ -279,9 +275,7 @@ class TestUsersController extends Controller
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $structureBehavior->orderedField => SORT_ASC,
-                ]
+                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
             ],
         ]);
 
@@ -374,9 +368,7 @@ class TestUsersController extends Controller
                 'totalCount' => $query->groupBy($groupBy)->count()
             ],
             'sort' => [
-                'defaultOrder' => [
-                    $structureBehavior->orderedField => SORT_ASC,
-                ]
+                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
             ],
         ]);
 

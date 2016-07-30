@@ -57,7 +57,8 @@ class Statuses extends Document
             'structure' => [
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => StatusesLinksStructure::className(),
-                'orderedField' => 'order_idx',
+                'orderedFieldDb' => 'order_idx',
+                'orderedFieldValue' => 'order_idx',
                 'documentQuery' => function () {
                     $query = static::find();
                     /* True - конечный результат будет All(); null, false - one() */
@@ -69,6 +70,8 @@ class Statuses extends Document
             'transitions' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => StatusesLinksTransitions::className(),
+                'orderedFieldDb' => 'order_idx',
+                'orderedFieldValue' => 'order_idx',
                 'documentQuery' => function () {
                     $query = static::find();
                     /* True - конечный результат будет All(); null, false - one() */

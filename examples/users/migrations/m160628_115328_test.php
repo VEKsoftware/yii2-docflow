@@ -21,21 +21,39 @@ class m160628_115328_test extends Migration
         $this->getDb()->createCommand('DROP TYPE IF EXISTS relation_types')->execute();
         $this->getDb()->createCommand('CREATE TYPE relation_types as ENUM (\'Subordination\', \'PartnerProgram\', \'FirmTree\', \'Representatives\', \'Departments\')')->execute();
 
+        $this->getDb()
+            ->createCommand('CREATE SEQUENCE "mixed"."test_users_order_idx_main_seq" INCREMENT 1 MINVALUE 1 START 1 CACHE 1;')
+            ->execute();
+
+        $this->getDb()
+            ->createCommand('CREATE SEQUENCE "mixed"."test_users_order_idx_firmTree_seq" INCREMENT 1 MINVALUE 1 START 1 CACHE 1;')
+            ->execute();
+
         /* Создаем таблицы с индексами */
-        $this->createTable('test_users', [
-            /* TODO поменять потом на нормальное название */
-            'idx' => $this->primaryKey()->notNull(),
-            'short_name' => $this->string(128)->notNull(),
-            'full_name' => $this->string(255)->notNull(),
-            'tag' => $this->string(128)->notNull(),
-            'status_id' => $this->integer()->notNull(),
-            'ref_link' => $this->string(128)->notNull(),
-            'created' => $this->integer()->notNull(),
-            /* TODO выяснить с какой таблицей и по какому полю внешний ключ, в данном контексте использую для разделения на 3 группы */
-            'user_type_id' => $this->integer()->notNull(),
-            /* TODO добавил поле для проверки работоспособности поведения */
-            'order_idx' => 'serial NOT NULL',
-        ], null);
+        $this->createTable(
+            'test_users',
+            [
+                /* TODO поменять потом на нормальное название */
+                'idx' => $this->primaryKey()->notNull(),
+                'short_name' => $this->string(128)->notNull(),
+                'full_name' => $this->string(255)->notNull(),
+                'tag' => $this->string(128)->notNull(),
+                'status_id' => $this->integer()->notNull(),
+                'ref_link' => $this->string(128)->notNull(),
+                'created' => $this->integer()->notNull(),
+                'user_type_id' => $this->integer()->notNull(),
+                'order_idx' => 'jsonb NOT NULL DEFAULT jsonb_object(ARRAY[\'main\'::text, \'firmTree\'::text], ARRAY[(nextval(\'"mixed"."test_users_order_idx_main_seq"\'::regclass))::text, (nextval(\'"mixed"."test_users_order_idx_firmTree_seq"\'::regclass))::text])',
+            ],
+            null
+        );
+
+        $this->getDb()
+            ->createCommand('ALTER SEQUENCE "mixed"."test_users_order_idx_main_seq" OWNED BY "mixed"."test_users".order_idx;')
+            ->execute();
+
+        $this->getDb()
+            ->createCommand('ALTER SEQUENCE "mixed"."test_users_order_idx_firmTree_seq" OWNED BY "mixed"."test_users".order_idx;')
+            ->execute();
 
         $this->createIndex('ux_test_users__ref_link', 'test_users', 'ref_link', true);
         $this->createIndex('ux_test_users__tag', 'test_users', 'tag', true);
@@ -60,7 +78,12 @@ class m160628_115328_test extends Migration
             'lvl' => $this->integer(),
         ], null);
 
-        $this->createIndex('ux_test_links__from__to__rtp__tp__lvl', 'test_links', ['from', 'to', 'rtp', 'tp', 'lvl'], true);
+        $this->createIndex(
+            'ux_test_links__from__to__rtp__tp__lvl',
+            'test_links',
+            ['from', 'to', 'rtp', 'tp', 'lvl'],
+            true
+        );
         $this->createIndex('ix_test_links__status_from', 'test_links', 'from');
         $this->createIndex('ix_test_links__status_to', 'test_links', 'to');
         $this->createIndex('ix_test_links__right_tag', 'test_links', 'r_tag');
@@ -99,23 +122,34 @@ class m160628_115328_test extends Migration
         );
 
         /* Добавляем пару фэйковых записей для вида */
-        $this->batchInsert('test_users', ['short_name', 'full_name', 'tag', 'status_id', 'ref_link', 'created', 'user_type_id'], [
-            ['a', 'aa', 'a', 5, 'cmvkdosldikfmke', time(), 1],
-            ['b', 'bb', 'b', 5, 'dfsfewrfdsfsdfd', time(), 1],
-            ['c', 'cc', 'c', 5, 'cxvdfdfdseerars', time(), 1],
-            ['d', 'dd', 'd', 5, 'xcz drwqesad sd', time(), 1],
-            ['e', 'ee', 'e', 5, 'xzswqwqr trer e', time(), 1],
-            ['f', 'ff', 'f', 5, 'cddereewesdsazf', time(), 2],
-            ['g', 'gg', 'g', 5, '3wqwgre4gds343q', time(), 2],
-            ['h', 'hh', 'h', 5, 'xcv gre5w dfs3z', time(), 2],
-            ['j', 'jj', 'j', 5, 'xcv gre5wfdsda2', time(), 2],
-            ['k', 'kk', 'k', 5, 'xcfdsdfqwe4e21w', time(), 2],
-            ['l', 'll', 'l', 5, 'fferdfsdfsdfsfd', time(), 3],
-            ['m', 'mm', 'm', 5, 'dfsfewsdfdasdfd', time(), 3],
-            ['n', 'nn', 'n', 5, 'cxxcvdrdseerars', time(), 3],
-            ['o', 'oo', 'o', 5, 'xcz drwq64566sd', time(), 3],
-            ['p', 'pp', 'p', 5, 'xzsewlkwwtrer e', time(), 3],
-        ]);
+        $this->batchInsert('test_users',
+            [
+                'short_name',
+                'full_name',
+                'tag',
+                'status_id',
+                'ref_link',
+                'created',
+                'user_type_id'
+            ],
+            [
+                ['a', 'aa', 'a', 5, 'cmvkdosldikfmke', time(), 1],
+                ['b', 'bb', 'b', 5, 'dfsfewrfdsfsdfd', time(), 1],
+                ['c', 'cc', 'c', 5, 'cxvdfdfdseerars', time(), 1],
+                ['d', 'dd', 'd', 5, 'xcz drwqesad sd', time(), 1],
+                ['e', 'ee', 'e', 5, 'xzswqwqr trer e', time(), 1],
+                ['f', 'ff', 'f', 5, 'cddereewesdsazf', time(), 2],
+                ['g', 'gg', 'g', 5, '3wqwgre4gds343q', time(), 2],
+                ['h', 'hh', 'h', 5, 'xcv gre5w dfs3z', time(), 2],
+                ['j', 'jj', 'j', 5, 'xcv gre5wfdsda2', time(), 2],
+                ['k', 'kk', 'k', 5, 'xcfdsdfqwe4e21w', time(), 2],
+                ['l', 'll', 'l', 5, 'fferdfsdfsdfsfd', time(), 3],
+                ['m', 'mm', 'm', 5, 'dfsfewsdfdasdfd', time(), 3],
+                ['n', 'nn', 'n', 5, 'cxxcvdrdseerars', time(), 3],
+                ['o', 'oo', 'o', 5, 'xcz drwq64566sd', time(), 3],
+                ['p', 'pp', 'p', 5, 'xzsewlkwwtrer e', time(), 3],
+            ]
+        );
     }
 
     public function safeDown()

@@ -146,12 +146,12 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
         try {
             /* Массив, содержащий позицию текущего документа и с которым будет произведен обмен местами */
             $array = [
-                'current' => $this->owner->{$this->orderedField},
-                'change' => $changeDocument->{$this->orderedField},
+                'current' => $this->owner->{$this->orderedFieldValue},
+                'change' => $changeDocument->{$this->orderedFieldValue},
             ];
             /* Меняем положения */
-            $this->owner->setAttribute($this->orderedField, $array['change']);
-            $changeDocument->setAttribute($this->orderedField, $array['current']);
+            $this->owner->{$this->orderedFieldValue} = $array['change'];
+            $changeDocument->{$this->orderedFieldValue} = $array['current'];
 
             if ((!$changeDocument->save()) || (!$this->owner->save())) {
                 throw new ErrorException(BehaviorsMessages::ORD_POSITION_NOT_CHANGE);
@@ -281,7 +281,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
          * @var Statuses|Document $value
          */
         foreach ($docsOnLevel as $value) {
-            if ($value->{$this->orderedField} < $this->owner->{$this->orderedField}) {
+            if ($value->{$this->orderedFieldValue} < $this->owner->{$this->orderedFieldValue}) {
                 $document = $value;
             }
         }
@@ -306,7 +306,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
          */
         foreach ($docsOnLevel as $value) {
             /* Если нашли документ на сменту, то выходим из перебора */
-            if ($value->{$this->orderedField} > $this->owner->{$this->orderedField}) {
+            if ($value->{$this->orderedFieldValue} > $this->owner->{$this->orderedFieldValue}) {
                 $document = $value;
                 break;
             }

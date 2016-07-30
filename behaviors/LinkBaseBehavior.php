@@ -49,11 +49,18 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     public $documentQuery;
 
     /**
-     * Поле, по которому будет идти сортировка
+     * Поле, которое отвечает сотрировку в тпблице
      *
      * @var string
      */
-    public $orderedField = 'order_idx';
+    public $orderedFieldDb;
+
+    /**
+     * Поле, которое содержит имя свойства объекта, в котором содержится значние сортировки
+     *
+     * @var string
+     */
+    public $orderedFieldValue;
 
     /**
      * Поле, по которому будет идти индексирование
@@ -192,7 +199,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     {
         return call_user_func($this->documentQuery)
             ->andWhere($this->extraFilter)
-            ->orderBy([$this->orderedField => SORT_ASC])
+            ->orderBy([$this->orderedFieldDb => SORT_ASC])
             ->indexBy($this->indexBy);
     }
 }

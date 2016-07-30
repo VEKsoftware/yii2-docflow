@@ -125,7 +125,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**
@@ -225,7 +225,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**
@@ -426,7 +426,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
             ->via('linksTo')
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**
@@ -446,7 +446,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**
@@ -466,7 +466,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
                 $query->andOnCondition($linkClass::extraWhere());
             })
-            ->indexBy('tag');
+            ->indexBy($this->indexBy);
     }
 
     /**

@@ -77,7 +77,14 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
 
         static::checkParamIsNotEmptyAndArray($config['detailViewConfig'], 'detailViewConfig');
 
-        static::checkRunParamButtons($config['buttons']);
+
+        $buttonsExistInConfig = array_key_exists('buttons', $config);
+        $buttonsIsArray = is_array($config['buttons']);
+        $buttonsNotEmpty = (count($config['buttons']) > 0);
+
+        if ($buttonsExistInConfig && $buttonsIsArray && $buttonsNotEmpty) {
+            static::checkRunParamButtons($config['buttons']);
+        }
     }
 
     /**
@@ -116,12 +123,29 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     protected static function checkRunParamButtons(array $buttons)
     {
-        static::checkRunParamButton($buttons, 'update');
-        static::checkRunParamButton($buttons, 'delete');
-        static::checkRunParamButton($buttons, 'treeUp');
-        static::checkRunParamButton($buttons, 'treeDown');
-        static::checkRunParamButton($buttons, 'treeRight');
-        static::checkRunParamButton($buttons, 'treeLeft');
+        if (array_key_exists('update', $buttons)) {
+            static::checkRunParamButton($buttons, 'update');
+        }
+
+        if (array_key_exists('delete', $buttons)) {
+            static::checkRunParamButton($buttons, 'delete');
+        }
+
+        if (array_key_exists('treeUp', $buttons)) {
+            static::checkRunParamButton($buttons, 'treeUp');
+        }
+
+        if (array_key_exists('treeDown', $buttons)) {
+            static::checkRunParamButton($buttons, 'treeDown');
+        }
+
+        if (array_key_exists('treeRight', $buttons)) {
+            static::checkRunParamButton($buttons, 'treeRight');
+        }
+
+        if (array_key_exists('treeLeft', $buttons)) {
+            static::checkRunParamButton($buttons, 'treeLeft');
+        }
     }
 
     /**

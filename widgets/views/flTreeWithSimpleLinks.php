@@ -14,6 +14,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
 
+$sourceSimpleKeyExist = array_key_exists('flTreeWithSimpleUrl', $sources);
 ?>
     <div class="statuses-view">
         <h1><?php echo Html::encode($base['title']) ?></h1>
@@ -89,6 +90,7 @@ use yii\widgets\DetailView;
         </p>
         <?php echo DetailView::widget($detailViewConfig) ?>
     </div>
+<?php if ($sourceSimpleKeyExist): ?>
     <div class="statuses-index">
         <h3>
             <?php echo Html::encode($base['titleLink']) ?>
@@ -96,10 +98,13 @@ use yii\widgets\DetailView;
         <span id="simple-link-change-status"></span>
         <div id="tree-simple-link"></div>
     </div>
+<?php endif; ?>
 <?php
-
-$this->registerJs("var dataUrl = '" . Url::toRoute($sources['flTreeWithSimpleUrl']) . "'");
-$this->registerJs(<<<'JS'
-    initFlTreeWithSimpleLinks(dataUrl);
+if ($sourceSimpleKeyExist) {
+    $this->registerJs("var dataUrl = '" . Url::toRoute($sources['flTreeWithSimpleUrl']) . "'");
+    $this->registerJs(
+        <<<'JS'
+        initFlTreeWithSimpleLinks(dataUrl);
 JS
-);
+    );
+}

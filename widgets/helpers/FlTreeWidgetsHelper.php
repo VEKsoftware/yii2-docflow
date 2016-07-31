@@ -66,11 +66,14 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName', 'base=>nodeName');
 
         static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl', 'sources=>flTreeUrl');
-        static::checkParamInArrayExistAndNotEmptyAndArray(
-            $config['sources'],
-            'flTreeWithSimpleUrl',
-            'sources=>flTreeWithSimpleUrl'
-        );
+
+        if (array_key_exists('flTreeWithSimpleUrl', $config['sources'])) {
+            static::checkParamInArrayExistAndNotEmptyAndArray(
+                $config['sources'],
+                'flTreeWithSimpleUrl',
+                'sources=>flTreeWithSimpleUrl'
+            );
+        }
 
         static::checkParamIsNotEmptyAndArray($config['detailViewConfig'], 'detailViewConfig');
 

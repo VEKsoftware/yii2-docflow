@@ -65,7 +65,8 @@ class Statuses extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'indexBy' => 'tag'
             ],
             'transitions' => [
                 'class' => LinkSimpleBehavior::className(),
@@ -78,7 +79,8 @@ class Statuses extends Document
                     $query->multiple = true;
 
                     return $query;
-                }
+                },
+                'indexBy' => 'tag'
             ],
         ];
     }

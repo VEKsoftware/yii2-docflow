@@ -42,28 +42,29 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     public $linkFieldsArray;
 
     /**
-     * Callback, содержащий запрос ActiveQuery  - обязательное свойство
+     * Callback, содержащий запрос ActiveQuery - обязательное свойство
      *
      * @var Closure
      */
     public $documentQuery;
 
     /**
-     * Поле, которое отвечает сотрировку в тпблице
+     * Поле, которое отвечает сотрировку в тпблице - обязательное свойство
      *
      * @var string
      */
     public $orderedFieldDb;
 
     /**
-     * Поле, которое содержит имя свойства объекта, в котором содержится значние сортировки
+     * Поле, которое содержит имя свойства объекта,
+     * в котором содержится значние сортировки - обязательное свойство
      *
      * @var string
      */
     public $orderedFieldValue;
 
     /**
-     * Поле, по которому будет идти индексирование
+     * Поле, по которому будет идти индексирование - обязательное свойство
      *
      * @var string
      */
@@ -86,15 +87,8 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
             throw new ErrorException(BehaviorsMessages::B_OWNER_NOT_DOCUMENT);
         }
 
-        if (empty($this->linkClass) || !is_string($this->linkClass)) {
-            throw new ErrorException(BehaviorsMessages::B_LINK_CLASS_EMPTY_OR_NOT_STRING);
-        }
-
-        if (($this->documentQuery === null) || !($this->documentQuery instanceof Closure)) {
-            throw new ErrorException(BehaviorsMessages::B_DOCUMENT_QUERY_NULL_OR_NOT_INSTANCEOF_CLOSURE);
-        }
-
-        //TODO сделать проверку на наличии обязательных параметров
+        /* Проверяем все обязательные параметры на наличие */
+        $this->processRequiredParameters();
 
         /*
         if (empty($this->linkClass) || !($this->linkObject instanceof Link)) {
@@ -203,5 +197,35 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
             ->andWhere($this->extraFilter)
             ->orderBy([$this->orderedFieldDb => SORT_ASC])
             ->indexBy($this->indexBy);
+    }
+
+    /**
+     * Проверяем на наличие всех обязательных праметров при инициализации поведения
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected function processRequiredParameters()
+    {
+        if (empty($this->linkClass) || !is_string($this->linkClass)) {
+            throw new ErrorException(BehaviorsMessages::B_LINK_CLASS_EMPTY_OR_NOT_STRING);
+        }
+
+        if (($this->documentQuery === null) || !($this->documentQuery instanceof Closure)) {
+            throw new ErrorException(BehaviorsMessages::B_DOCUMENT_QUERY_NULL_OR_NOT_INSTANCEOF_CLOSURE);
+        }
+
+        if (empty($this->orderedFieldDb) || !is_string($this->orderedFieldDb)) {
+            throw new ErrorException('Отутствует обязательный параметр orderedFieldDb при объявлении поведения');
+        }
+
+        if (empty($this->orderedFieldValue) || !is_string($this->orderedFieldValue)) {
+            throw new ErrorException('Отутствует обязательный параметр orderedFieldValue при объявлении поведения');
+        }
+
+        if (empty($this->indexBy) || !is_string($this->indexBy)) {
+            throw new ErrorException('Отутствует обязательный параметр indexBy при объявлении поведения');
+        }
     }
 }

@@ -493,13 +493,13 @@ abstract class Link extends UnstructuredRecord
      */
     public static function getRelationType()
     {
-        /**
-         * @var $extraWhere array
-         */
         /** @noinspection DynamicInvocationViaScopeResolutionInspection */
+        /* @var $extraWhere array */
         $extraWhere = static::extraWhere();
 
-        return (!empty($extraWhere[static::$_relationTypeField])) ? $extraWhere[static::$_relationTypeField] : '';
+        return (!empty($extraWhere[static::$_relationTypeField]))
+            ? $extraWhere[static::$_relationTypeField]
+            : '';
     }
 
     /**
@@ -509,12 +509,12 @@ abstract class Link extends UnstructuredRecord
      */
     public static function getType()
     {
-        /**
-         * @var $extraWhere array
-         */
         /** @noinspection DynamicInvocationViaScopeResolutionInspection */
+        /* @var $extraWhere array */
         $extraWhere = static::extraWhere();
 
-        return (!empty($extraWhere[static::$_typeField])) ? $extraWhere[static::$_typeField] : '';
+        return (!empty($extraWhere[static::$_typeField]))
+            ? $extraWhere[static::$_typeField]
+            : '';
     }
 }

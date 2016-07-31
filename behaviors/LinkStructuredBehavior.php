@@ -639,8 +639,8 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             ->with(
                 [
                     'linksTo' => function (ActiveQuery $query) use ($linkClass) {
-                        $query->andOnCondition($linkClass::extraWhere())
-                            ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+                        $query->andWhere($linkClass::extraWhere())
+                            ->andWhere([$this->linkFieldsArray['level'] => 1]);
                     },
                 ]
             );
@@ -673,8 +673,9 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 )
                 ->via(
                     'linksTo',
-                    function (ActiveQuery $query) {
-                        $query->andWhere([$this->linkFieldsArray['level'] => 1]);
+                    function (ActiveQuery $query) use ($linkClass) {
+                        $query->andWhere($linkClass::extraWhere())
+                            ->andWhere([$this->linkFieldsArray['level'] => 1]);
                     }
                 )
                 ->indexBy($this->indexBy);

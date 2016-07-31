@@ -83,7 +83,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree'
+                'orderedFieldValue' => 'orderFirmTree',
+                'indexBy' => 'tag'
             ],
             'departments' => [
                 'class' => LinkSimpleBehavior::className(),
@@ -96,7 +97,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'departments\'::text)::int',
-                'orderedFieldValue' => 'orderDepartments'
+                'orderedFieldValue' => 'orderDepartments',
+                'indexBy' => 'tag'
             ],
             'representatives' => [
                 'class' => LinkSimpleBehavior::className(),
@@ -109,7 +111,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'representatives\'::text)::int',
-                'orderedFieldValue' => 'orderRepresentatives'
+                'orderedFieldValue' => 'orderRepresentatives',
+                'indexBy' => 'tag'
             ],
             'firmTree' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -122,7 +125,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree'
+                'orderedFieldValue' => 'orderFirmTree',
+                'indexBy' => 'tag'
             ],
             'partnerProgram' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -135,7 +139,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'partnerProgram\'::text)::int',
-                'orderedFieldValue' => 'orderPartnerProgram'
+                'orderedFieldValue' => 'orderPartnerProgram',
+                'indexBy' => 'tag'
             ],
             'subordination' => [
                 'class' => LinkStructuredBehavior::className(),
@@ -148,7 +153,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'subordination\'::text)::int',
-                'orderedFieldValue' => 'orderSubordination'
+                'orderedFieldValue' => 'orderSubordination',
+                'indexBy' => 'tag'
             ],
             'firmTreeAllO' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -161,7 +167,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree'
+                'orderedFieldValue' => 'orderFirmTree',
+                'indexBy' => 'tag'
             ],
             'firmTreeOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -174,7 +181,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree'
+                'orderedFieldValue' => 'orderFirmTree',
+                'indexBy' => 'tag'
             ],
             'partnerProgramOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -187,7 +195,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'partnerProgram\'::text)::int',
-                'orderedFieldValue' => 'orderPartnerProgram'
+                'orderedFieldValue' => 'orderPartnerProgram',
+                'indexBy' => 'tag'
             ],
             'subordinationOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
@@ -200,7 +209,8 @@ class Users extends Document
                     return $query;
                 },
                 'orderedFieldDb' => '("order_idx"->>\'subordination\'::text)::int',
-                'orderedFieldValue' => 'orderSubordination'
+                'orderedFieldValue' => 'orderSubordination',
+                'indexBy' => 'tag'
             ],
         ];
     }

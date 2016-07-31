@@ -67,7 +67,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
      *
      * @var string
      */
-    public $indexBy = 'tag';
+    public $indexBy;
 
     /**
      * Условия дополнителоьной фильтрации из внешних источников
@@ -93,6 +93,8 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
         if (($this->documentQuery === null) || !($this->documentQuery instanceof Closure)) {
             throw new ErrorException(BehaviorsMessages::B_DOCUMENT_QUERY_NULL_OR_NOT_INSTANCEOF_CLOSURE);
         }
+
+        //TODO сделать проверку на наличии обязательных параметров
 
         /*
         if (empty($this->linkClass) || !($this->linkObject instanceof Link)) {

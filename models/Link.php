@@ -472,7 +472,7 @@ abstract class Link extends UnstructuredRecord
                 $owner->{static::$_fieldNodeId},
                 $value->{static::$_fieldNodeId},
                 //TODO right tag формируется не верно, ведь иэг типа документа может быть дргуим
-                $owner->docTag() . '.' . $owner->tag . '.' . $value->tag,
+                $owner->docTag() . '.' . $owner->{static::$_fieldNodeTag} . '.' . $value->{static::$_fieldNodeTag},
                 static::LINK_TYPE_SIMPLE
             ];
 

@@ -12,6 +12,7 @@ use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
 use docflow\examples\users\models\Users;
+use docflow\models\Document;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
 use yii;
@@ -111,9 +112,7 @@ class TestUsersController extends Controller
             $statuses = Users::getDocumentByNodeId($nodeIdValue)->one();
         }
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
+        /* @var LinkStructuredBehavior $structureBehavior */
         $structureBehavior = $statuses->getBehavior('firmTree');
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
@@ -184,9 +183,7 @@ class TestUsersController extends Controller
             $statuses = Users::getDocumentByNodeId($nodeIdValue)->one();
         }
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
+        /* @var LinkStructuredBehavior $structureBehavior */
         $structureBehavior = $statuses->getBehavior('firmTree');
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
@@ -259,9 +256,7 @@ class TestUsersController extends Controller
             $statuses = Users::getDocumentByNodeId($currentNodeId)->one();
         }
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
+        /* @var LinkStructuredBehavior $structureBehavior */
         $structureBehavior = $statuses->getBehavior('firmTree');
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
@@ -352,9 +347,7 @@ class TestUsersController extends Controller
             $statuses = Users::getDocumentByNodeId($currentNodeId)->one();
         }
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
+        /* @var LinkStructuredBehavior $structureBehavior */
         $structureBehavior = $statuses->getBehavior('firmTree');
 
         $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
@@ -439,12 +432,12 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
+        /* @var Document $documentFrom */
         $documentFrom = Users::getDocumentByNodeId($fromNodeId)->one();
+        /* @var Document $documentTo */
         $documentTo = Users::getDocumentByNodeId($toNodeId)->one();
 
-        /**
-         * @var LinkSimpleBehavior $behavior
-         */
+        /* @var LinkSimpleBehavior $behavior */
         $behavior = $documentFrom->getBehavior('firmTreeAllS');
 
         return $behavior->addSimpleLink($documentTo);
@@ -466,12 +459,12 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
+        /* @var Document $documentFrom */
         $documentFrom = Users::getDocumentByNodeId($fromNodeId)->one();
+        /* @var Document $documentTo */
         $documentTo = Users::getDocumentByNodeId($toNodeId)->one();
 
-        /**
-         * @var LinkSimpleBehavior $behavior
-         */
+        /* @var LinkSimpleBehavior $behavior */
         $behavior = $documentFrom->getBehavior('firmTreeAllS');
 
         return $behavior->delSimpleLink($documentTo);
@@ -491,9 +484,7 @@ class TestUsersController extends Controller
 
         $document = Users::getDocumentByNodeId($nodeId)->one();
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->orderUp();
@@ -513,9 +504,7 @@ class TestUsersController extends Controller
 
         $document = Users::getDocumentByNodeId($nodeId)->one();
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->orderDown();
@@ -534,9 +523,7 @@ class TestUsersController extends Controller
         Yii::$app->response->format = Response::FORMAT_JSON;
 
         $document = Users::getDocumentByNodeId($nodeId)->one();
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->levelUp();
@@ -556,9 +543,7 @@ class TestUsersController extends Controller
 
         $document = Users::getDocumentByNodeId($nodeId)->one();
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->levelDown();

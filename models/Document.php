@@ -17,10 +17,10 @@ abstract class Document extends UnstructuredRecord
     /**
      * This function returns the document tag. This tag is used to get
      * all information about the document type from the database.
-     * //TODO надо думать, ведь тэг вышестоящего документа не может быть статичным
+     *
      * @return string Document tag
      */
-    abstract public function docTag();
+    abstract static public function docTag();
 
     /**
      * Return field name which use how Document `name`
@@ -44,7 +44,7 @@ abstract class Document extends UnstructuredRecord
      */
     public function getDoc()
     {
-        return DocTypes::getDocType($this->docTag());
+        return DocTypes::getDocType(static::docTag());
     }
 
     /**

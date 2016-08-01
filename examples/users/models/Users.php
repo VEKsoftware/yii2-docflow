@@ -29,7 +29,7 @@ class Users extends Document
      *
      * @return string Document tag
      */
-    public function docTag()
+    public static function docTag()
     {
         return 'vid';
     }

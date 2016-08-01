@@ -244,6 +244,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $linkClass = $this->linkClass;
 
         $relationType = $linkClass::getRelationType();
+        $rightTagFormat = '%s.%s.%s';
 
         /**
          * @var Link $statusLinkClass
@@ -254,7 +255,15 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $statusLinkClass->{$this->linkFieldsArray['status_from']} = $this->owner->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['status_to']} = $documentObj->{$this->linkFieldsArray['node_id']};
         $statusLinkClass->{$this->linkFieldsArray['type']} = $linkClass::LINK_TYPE_SIMPLE;
-        $statusLinkClass->{$this->linkFieldsArray['right_tag']} = $this->owner->docTag() . '.' . $this->owner->{$this->linkFieldsArray['node_tag']} . '.' . $documentObj->{$this->linkFieldsArray['node_tag']};
+
+        if (!empty($this->linkFieldsArray['right_tag']) && is_string($this->linkFieldsArray['right_tag'])) {
+            $statusLinkClass->{$this->linkFieldsArray['right_tag']} = sprintf(
+                $rightTagFormat,
+                $this->owner->docType->tag,
+                $this->owner->{$this->linkFieldsArray['node_tag']},
+                $documentObj->{$this->linkFieldsArray['node_tag']}
+            );
+        }
 
         if (!empty($relationType) && is_string($relationType)) {
             $statusLinkClass->{$this->linkFieldsArray['relation_type']} = $relationType;

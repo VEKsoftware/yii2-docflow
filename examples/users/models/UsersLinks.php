@@ -23,7 +23,7 @@ class UsersLinks extends Link
     public static $_fieldLinkTo = 'to';
     public static $_levelField = 'lvl';
     public static $_typeField = 'tp';
-    public static $_rightTagField = 'r_tag';
+    public static $_rightTagField = '';
     public static $_relationTypeField = 'rtp';
     public static $_fieldNodeTag = 'tag';
     public static $_fieldLinkId = 'id';
@@ -41,7 +41,7 @@ class UsersLinks extends Link
     {
         return [
             [['from', 'to', 'tp', 'lvl', 'rtp'], 'required', 'on' => static::LINK_TYPE_FLTREE],
-            [['from', 'to', 'r_tag', 'tp', 'rtp'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
+            [['from', 'to', 'tp', 'rtp'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
             [
                 ['from', 'to', 'tp', 'rtp', 'lvl'],
                 'unique',
@@ -49,11 +49,9 @@ class UsersLinks extends Link
                 'message' => 'The combination of From, To, Tp and Rtp has already been taken.'
             ],
             [['from', 'to'], 'integer'],
-            [['r_tag'], 'string'],
             [['lvl'], 'integer'],
             [['rtp'], 'string'],
             [['tp'], 'string'],
-            ['r_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [['from', 'to'], 'exist', 'targetClass' => Users::className(), 'targetAttribute' => 'idx'],
         ];
     }

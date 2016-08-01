@@ -467,14 +467,24 @@ abstract class Link extends UnstructuredRecord
     protected static function getRowsForSimpleLink($owner, $documentsArray, $relationType)
     {
         $rows = [];
+        $rightTagFormat = '%s.%s.%s';
+
         foreach ($documentsArray as $value) {
             $attr = [
                 $owner->{static::$_fieldNodeId},
                 $value->{static::$_fieldNodeId},
-                //TODO right tag формируется не верно, ведь иэг типа документа может быть дргуим
-                $owner->docTag() . '.' . $owner->{static::$_fieldNodeTag} . '.' . $value->{static::$_fieldNodeTag},
-                static::LINK_TYPE_SIMPLE
             ];
+
+            if (!empty(static::$_fieldNodeId) and is_string(static::$_fieldNodeId)) {
+                $attr[] = sprintf(
+                    $rightTagFormat,
+                    $owner->docType->tag,
+                    $owner->{static::$_fieldNodeTag},
+                    $value->{static::$_fieldNodeTag}
+                );
+            }
+
+            $attr[] = static::LINK_TYPE_SIMPLE;
 
             if (!empty($relationType)) {
                 $attr[] = $relationType;
@@ -493,7 +503,7 @@ abstract class Link extends UnstructuredRecord
      */
     public static function getRelationType()
     {
-        /** @noinspection DynamicInvocationViaScopeResolutionInspection */
+        /* @noinspection DynamicInvocationViaScopeResolutionInspection */
         /* @var $extraWhere array */
         $extraWhere = static::extraWhere();
 
@@ -509,7 +519,7 @@ abstract class Link extends UnstructuredRecord
      */
     public static function getType()
     {
-        /** @noinspection DynamicInvocationViaScopeResolutionInspection */
+        /* @noinspection DynamicInvocationViaScopeResolutionInspection */
         /* @var $extraWhere array */
         $extraWhere = static::extraWhere();
 

@@ -62,21 +62,23 @@ class m160628_115328_test extends Migration
         $this->createIndex('ix_test_users__created', 'test_users', 'created');
         $this->createIndex('ix_test_users__status_id', 'test_users', 'status_id');
 
-        $this->createTable('test_links', [
-            'id' => $this->primaryKey()->notNull(),
-            /* TODO поменять потом на нормальное название */
-            'from' => $this->integer()->notNull(),
-            /* TODO поменять потом на нормальное название */
-            'to' => $this->integer()->notNull(),
-            /* TODO поменять потом на нормальное название */
-            'r_tag' => $this->string(128),
-            /* TODO поменять потом на нормальное название */
-            'tp' => 'link_types DEFAULT \'simple\'::link_types',
-            /* TODO поменять потом на нормальное название */
-            'rtp' => 'relation_types',
-            /* TODO поменять потом на нормальное название */
-            'lvl' => $this->integer(),
-        ], null);
+        $this->createTable(
+            'test_links',
+            [
+                'id' => $this->primaryKey()->notNull(),
+                /* TODO поменять потом на нормальное название */
+                'from' => $this->integer()->notNull(),
+                /* TODO поменять потом на нормальное название */
+                'to' => $this->integer()->notNull(),
+                /* TODO поменять потом на нормальное название */
+                'tp' => 'link_types DEFAULT \'simple\'::link_types',
+                /* TODO поменять потом на нормальное название */
+                'rtp' => 'relation_types',
+                /* TODO поменять потом на нормальное название */
+                'lvl' => $this->integer(),
+            ],
+            null
+        );
 
         $this->createIndex(
             'ux_test_links__from__to__rtp__tp__lvl',
@@ -86,7 +88,6 @@ class m160628_115328_test extends Migration
         );
         $this->createIndex('ix_test_links__status_from', 'test_links', 'from');
         $this->createIndex('ix_test_links__status_to', 'test_links', 'to');
-        $this->createIndex('ix_test_links__right_tag', 'test_links', 'r_tag');
         $this->createIndex('ix_test_links__type', 'test_links', 'tp');
         $this->createIndex('ix_test_links__relation_type', 'test_links', 'rtp');
         $this->createIndex('ix_test_links__level', 'test_links', 'lvl');

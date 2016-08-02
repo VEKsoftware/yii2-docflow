@@ -12,7 +12,8 @@
     ],
     "require": {
         "yiisoft/yii2": "*",
-        "VEKsoftware/bootstrap-treeview": "dev-develop"
+        "VEKsoftware/bootstrap-treeview": "dev-develop",
+        "yiisoft/yii2-bootstrap": "*"
     },
     "repositories": [
         {

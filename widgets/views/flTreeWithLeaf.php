@@ -27,7 +27,7 @@ use yii\helpers\Url;
 <?php
 
 $this->registerJs("var dataUrl = '" . Url::toRoute($widget['source']) . "'");
-$this->registerJs("var showCheckbox = '" . Url::toRoute($widget['showCheckBox']) . "'");
+$this->registerJs('var showCheckbox = '. $widget['showCheckBox']);
 
 TreeViewAsset::register($this);
 

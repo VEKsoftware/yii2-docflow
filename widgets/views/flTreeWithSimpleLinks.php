@@ -133,7 +133,7 @@ if ($buttonsExist) {
 <?php
 if ($sourceSimpleKeyExist) {
     $this->registerJs("var dataUrl = '" . Url::toRoute($widget['source']) . "'");
-    $this->registerJs("var showCheckbox = '" . Url::toRoute($widget['showCheckBox']) . "'");
+    $this->registerJs('var showCheckbox = '. $widget['showCheckBox']);
     $this->registerJs(
         <<<'JS'
         initFlTreeWithSimpleLinks(dataUrl, showCheckbox);

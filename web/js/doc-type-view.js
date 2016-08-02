@@ -519,6 +519,7 @@ function initFlTreeWithSimpleLinks(dataUrl, showCheckbox) {
 
         var currentNode = {
             'text': item.text,
+            'href': item.href,
             'href_child': item.href_child,
             'href_addSimple': item.href_addSimple,
             'href_delSimple': item.href_delSimple,

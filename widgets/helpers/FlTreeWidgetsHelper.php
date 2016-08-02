@@ -21,13 +21,17 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      *
      * @throws ErrorException
      */
-    public static function checkFlTreeWidgetRunConfig(array $config)
+    public static function checkFlTreeWidgetAndWithLeafRunConfig(array $config)
     {
+        static::checkParamIsExistInArray($config, 'renderView', 'renderView');
         static::checkParamIsNotEmptyAndString($config['renderView'], 'renderView');
 
-        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList', 'base');
+        static::checkParamIsArray($config['base'], 'base');
+        static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleList', 'base => titleList');
 
-        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl', 'sources');
+        static::checkParamIsArray($config['widget'], 'widget');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['widget'], 'source', 'widget => source');
+        static::checkParamInArrayExistAndNotEmptyAndBool($config['widget'], 'showCheckBox', 'widget => showCheckBox');
     }
 
     /**
@@ -40,6 +44,23 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      * @throws ErrorException
      */
     public static function checkFlTreeWidgetStructureConfig(array $config)
+    {
+        static::checkParamIsExistInArray($config, 'links', 'links');
+
+        static::checkStructureParamLinks($config['links'], 'next', 'links');
+        static::checkStructureParamLinks($config['links'], 'child', 'links');
+    }
+
+    /**
+     * Проверяем конфигурацию FlTreeWidget при формировании структуры виджета
+     *
+     * @param array $config - конфигурация
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    public static function checkFlTreeWidgetWithLeafStructureConfig(array $config)
     {
         static::checkParamIsExistInArray($config, 'links', 'links');
 
@@ -59,20 +80,23 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
      */
     public static function checkFlTreeWithSimpleLinksWidgetRunConfig(array $config)
     {
+        static::checkParamIsExistInArray($config, 'renderView', 'renderView');
         static::checkParamIsNotEmptyAndString($config['renderView'], 'renderView');
 
+        static::checkParamIsArray($config['base'], 'base');
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'title', 'base=>title');
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleLink', 'base=>titleLink');
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName', 'base=>nodeName');
 
-        static::checkParamInArrayExistAndNotEmptyAndArray($config['sources'], 'flTreeUrl', 'sources=>flTreeUrl');
-
-        if (array_key_exists('flTreeWithSimpleUrl', $config['sources'])) {
-            static::checkParamInArrayExistAndNotEmptyAndArray(
-                $config['sources'],
-                'flTreeWithSimpleUrl',
-                'sources=>flTreeWithSimpleUrl'
+        if (is_array($config['widget'])) {
+            static::checkParamInArrayExistAndNotEmptyAndArray($config['widget'], 'source', 'widget => source');
+            static::checkParamInArrayExistAndNotEmptyAndBool(
+                $config['widget'],
+                'showCheckBox',
+                'widget => showCheckBox'
             );
+        } elseif ($config['widget'] !== null) {
+            throw new ErrorException('параметр widget не массив');
         }
 
         static::checkParamIsNotEmptyAndArray($config['detailViewConfig'], 'detailViewConfig');

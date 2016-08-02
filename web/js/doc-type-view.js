@@ -355,7 +355,70 @@ function getLeaf(item) {
     }
 }
 
-function initFlTree(dataUrl) {
+function initFlTree(dataUrl, showCheckbox) {
+    var onSelect = function (event, item) {
+        var tree = $('#tree').treeview(true);
+
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+
+        /* Еcли есть ссылка для загрузки вложенных документов и если документы еще не загружены,
+         то загружаем и устанавливаем документы в дерево и загружаем дерево с простыми связями для текущего документа */
+        if (item.href_child && item.nodes === undefined) {
+            $.get(item.href_child, function (vars) {
+                var parent = tree.findNodes(item.text, 'text')[0];
+                tree.addNode(vars, parent, 0, {silent: true});
+            });
+        }
+
+        /* Если есть адрес для загрузки оставшихся документов на уровне, то загружаем их и устанавливаем в дерево */
+        if (item.href_next) {
+            $.get(item.href_next, function (vars) {
+                var parent = getParentByParentId(tree, item);
+
+                tree.removeNode(item, {silent: true});
+                tree.addNode(vars, parent, false, {silent: true});
+            });
+        }
+    };
+
+    var onUnSelect = function (event, item) {
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+    };
+
+    var onCollapsed = function (event, item) {
+        var tree = $('#tree').treeview(true);
+
+        /* Очищаем сообщения о результате операции (перемещения по дереву) */
+        clearTreeChangeStatus();
+
+        var currentNode = {
+            'text': item.text,
+            'href_child': item.href_child,
+            'tags': item.tags
+        };
+
+        var parent = getParentByParentId(tree, item);
+
+        tree.removeNode(item, {silent: true});
+        tree.addNode(currentNode, parent, item.index, {silent: true});
+    };
+
+    $('#tree').treeview({
+        dataUrl: {
+            url: dataUrl
+        },
+        showCheckbox: showCheckbox,
+        levels: 5,
+        showTags: true,
+        onNodeSelected: onSelect,
+        onNodeUnselected: onUnSelect,
+        onNodeCollapsed: onCollapsed
+    });
+}
+
+function initFlTreeWithLeaf(dataUrl, showCheckbox) {
     var onSelect = function (event, item) {
         var tree = $('#tree').treeview(true);
 
@@ -419,6 +482,7 @@ function initFlTree(dataUrl) {
         dataUrl: {
             url: dataUrl
         },
+        showCheckbox: showCheckbox,
         levels: 5,
         showTags: true,
         onNodeSelected: onSelect,
@@ -427,7 +491,7 @@ function initFlTree(dataUrl) {
     });
 }
 
-function initFlTreeWithSimpleLinks(dataUrl) {
+function initFlTreeWithSimpleLinks(dataUrl, showCheckbox) {
     var onSelected = function (event, item) {
         var tree = $('#tree-simple-link').treeview(true);
 
@@ -455,7 +519,6 @@ function initFlTreeWithSimpleLinks(dataUrl) {
 
         var currentNode = {
             'text': item.text,
-            'href': item.href,
             'href_child': item.href_child,
             'href_addSimple': item.href_addSimple,
             'href_delSimple': item.href_delSimple,
@@ -499,7 +562,7 @@ function initFlTreeWithSimpleLinks(dataUrl) {
         dataUrl: {
             'url': dataUrl
         },
-        showCheckbox: true,
+        showCheckbox: showCheckbox,
         levels: 5,
         showTags: true,
         onNodeChecked: onChecked,

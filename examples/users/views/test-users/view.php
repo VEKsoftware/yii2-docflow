@@ -8,13 +8,14 @@
  * @var array $flTreeWidgetParam
  */
 
-use docflow\widgets\FlTreeWidget;
+use docflow\widgets\FlTreeWidgetWithLeaf;
 
-echo FlTreeWidget::widget([
+echo FlTreeWidgetWithLeaf::widget([
     'base' => [
         'titleList' => $flTreeWidgetParam['titleList']
     ],
-    'sources' => [
-        'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
+    'widget' => [
+        'source' => $flTreeWidgetParam['flTreeUrl'],
+        'showCheckBox' => false
     ]
 ]);

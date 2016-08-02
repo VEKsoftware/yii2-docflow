@@ -13,7 +13,7 @@ use docflow\behaviors\LinkSimpleBehavior;
 use docflow\examples\users\models\Users;
 use docflow\examples\users\models\UsersTreeSearch;
 use docflow\models\Document;
-use docflow\widgets\FlTreeWidget;
+use docflow\widgets\FlTreeWidgetWithLeaf;
 use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;
 use yii\base\Action;
@@ -140,7 +140,7 @@ class TestUsersController extends Controller
             ]
         ];
 
-        return FlTreeWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithLeaf::getStructure($dataProvider, $config);
     }
 
     /**
@@ -192,7 +192,7 @@ class TestUsersController extends Controller
             ]
         ];
 
-        return FlTreeWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithLeaf::getStructure($dataProvider, $config);
     }
 
     /**

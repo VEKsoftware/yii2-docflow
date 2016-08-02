@@ -24,7 +24,12 @@ echo FlTreeWidgetWithSimpleLinks::widget([
     'base' => [
         'title' => $this->title,
         'titleLink' => Yii::t('docflow', 'Statuses Links'),
-        'nodeName' => $model->docName
+        'nodeName' => $model->docName,
+        'renderTree' => [
+            'doc-types/ajax-get-child',
+            'docType' => $doc,
+            'extra' => $extra,
+        ]
     ],
     'detailViewConfig' => [
         'model' => $model,
@@ -34,18 +39,13 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             'description'
         ]
     ],
-    'sources' => [
-        'flTreeUrl' => [
-            'doc-types/ajax-get-child',
-            'docType' => $doc,
-            'extra' => $extra,
-        ],
-        'flTreeWithSimpleUrl' => [
+    'widget' => [
+        'source' => [
             'doc-types/ajax-get-child-with-simple',
             'extra' => $extra,
             'fromNodeId' => $model->id
-        ]
-
+        ],
+        'showCheckBox' => true
     ],
     'buttons' => [
         'update' => [

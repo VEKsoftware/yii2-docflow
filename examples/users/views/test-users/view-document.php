@@ -16,13 +16,14 @@ echo FlTreeWidgetWithSimpleLinks::widget([
         'title' => $document->docName,
         'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),
         'nodeName' => $document->docName,
+        'renderTree' => ['test-users/ajax-child']
     ],
-    'sources' => [
-        'flTreeUrl' => ['test-users/ajax-child'],
-        'flTreeWithSimpleUrl' => [
+    'widget' => [
+        'source' => [
             'test-users/ajax-child-simple',
             'fromNodeId' => $document->idx
-        ]
+        ],
+        'showCheckBox' => true
     ],
     'detailViewConfig' => [
         'model' => $document,

@@ -28,31 +28,28 @@ class FlTreeWidget extends Widget
     /**
      * Содержит инфорацию о:
      *
-     * FlTreeWidget:
+     * FlTreeWidget, FlTreeWidgetWithLeaf:
      * 1)Название списка плоского дерева - titleList
      *
      * FlTreeWidgetWithSimpleLinks:
      * 1)Названии документа - title
      * 2)Названии плоского дерева с простыми связями - titleLink
      * 3)Имя текущего документа, которое отображается в виджете - nodeName
+     * 4)Линк для получения данных для древа основоно древа - renderTree
      *
      * @var array
      */
     public $base;
 
     /**
-     * Содержит Url до действий, возвращающих первичную структуру деревьев:
+     * Содержит информацию о виджете:
      *
-     * FlTreeWidget:
-     * 1)Плоское дерево - flTreeUrl
-     *
-     * FlTreeWidgetWithSimpleLinks:
-     * 1)Плоское дерево - flTreeUrl
-     * 2)Плоское дерево с простыми связями - flTreeWithSimpleUrl
+     * 1)Линк на данные для дерева - source
+     * 2)true/false: показывать checkBox-ы - showCheckBox
      *
      * @var array
      */
-    public $sources;
+    public $widget;
 
     /**
      * Инициализируем виджет
@@ -67,11 +64,11 @@ class FlTreeWidget extends Widget
             $this->renderView = 'flTree';
         }
 
-        FlTreeWidgetsHelper::checkFlTreeWidgetRunConfig(
+        FlTreeWidgetsHelper::checkFlTreeWidgetAndWithLeafRunConfig(
             [
                 'renderView' => $this->renderView,
                 'base' => $this->base,
-                'sources' => $this->sources
+                'widget' => $this->widget
             ]
         );
     }
@@ -86,7 +83,7 @@ class FlTreeWidget extends Widget
      */
     public function run()
     {
-        return $this->render($this->renderView, ['base' => $this->base, 'sources' => $this->sources]);
+        return $this->render($this->renderView, ['base' => $this->base, 'widget' => $this->widget]);
     }
 
     /**
@@ -102,7 +99,7 @@ class FlTreeWidget extends Widget
      */
     public static function getStructure(ActiveDataProvider $docADP, array $config)
     {
-        FlTreeWidgetsHelper::checkFlTreeWidgetStructureConfig($config);
+        //FlTreeWidgetsHelper::checkFlTreeWidgetStructureConfig($config);
 
         return array_merge(
             static::prepareMainStructure($docADP, $config),
@@ -149,7 +146,6 @@ class FlTreeWidget extends Widget
     {
         return [
             'text' => $value->docName,
-            'href' => static::getLink($config['links']['documentView'], $value),
         ];
     }
 

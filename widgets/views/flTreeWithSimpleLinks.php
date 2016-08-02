@@ -14,7 +14,7 @@ use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
 
-$sourceSimpleKeyExist = (!empty($widget) && is_array($widget) && array_key_exists('source', $widget));
+$widgetExist = (!empty($widget) && is_array($widget) && array_key_exists('source', $widget));
 
 $buttonsExist = (!empty($buttons) && is_array($buttons));
 
@@ -121,7 +121,7 @@ if ($buttonsExist) {
         </p>
         <?php echo DetailView::widget($detailViewConfig) ?>
     </div>
-<?php if ($sourceSimpleKeyExist): ?>
+<?php if ($widgetExist): ?>
     <div class="statuses-index">
         <h3>
             <?php echo Html::encode($base['titleLink']) ?>
@@ -131,7 +131,7 @@ if ($buttonsExist) {
     </div>
 <?php endif; ?>
 <?php
-if ($sourceSimpleKeyExist) {
+if ($widgetExist) {
     $this->registerJs("var dataUrl = '" . Url::toRoute($widget['source']) . "'");
     $this->registerJs('var showCheckbox = '. $widget['showCheckBox']);
     $this->registerJs(

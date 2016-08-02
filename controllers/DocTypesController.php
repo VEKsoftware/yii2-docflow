@@ -6,7 +6,7 @@ use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\models\Document;
 use docflow\models\StatusesTreeSearch;
-use docflow\widgets\FlTreeWidget;
+use docflow\widgets\FlTreeWidgetWithLeaf;
 use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;
 
@@ -190,7 +190,7 @@ class DocTypesController extends Controller
             ]
         ];
 
-        return FlTreeWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithLeaf::getStructure($dataProvider, $config);
     }
 
     /**
@@ -250,7 +250,7 @@ class DocTypesController extends Controller
             ]
         ];
 
-        return FlTreeWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithLeaf::getStructure($dataProvider, $config);
     }
 
     /**

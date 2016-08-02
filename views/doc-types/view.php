@@ -6,7 +6,7 @@
  */
 
 use docflow\models\DocTypes;
-use docflow\widgets\FlTreeWidget;
+use docflow\widgets\FlTreeWidgetWithLeaf;
 use yii\helpers\Html;
 
 use yii\web\View;
@@ -56,12 +56,13 @@ $this->params['breadcrumbs'][] = $this->title;
         ) ?>
     </p>
 
-    <?php echo FlTreeWidget::widget([
+    <?php echo FlTreeWidgetWithLeaf::widget([
         'base' => [
             'titleList' => $flTreeWidgetParam['titleList']
         ],
-        'sources' => [
-            'flTreeUrl' => $flTreeWidgetParam['flTreeUrl'],
+        'widget' => [
+            'source' => $flTreeWidgetParam['flTreeUrl'],
+            'showCheckBox' => false
         ]
     ]) ?>
 </div>

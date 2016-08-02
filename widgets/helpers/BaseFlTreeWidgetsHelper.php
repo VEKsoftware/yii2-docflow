@@ -79,6 +79,23 @@ class BaseFlTreeWidgetsHelper
     }
 
     /**
+     * Проверяем параметр на присутствие в массиве и является ли параметр булевым
+     *
+     * @param array  $array      - массив конфигурации
+     * @param string $param      - параметр в массиве
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkParamInArrayExistAndNotEmptyAndBool(array $array, $param, $paramRoute)
+    {
+        static::checkParamInArrayExistAndNotEmpty($array, $param, $paramRoute);
+        static::checkParamIsBool($array[$param], $paramRoute);
+    }
+
+    /**
      * Проверяем параметр на присутствие в массиве
      *
      * @param array  $array      - массив конфигурации
@@ -93,6 +110,23 @@ class BaseFlTreeWidgetsHelper
     {
         static::checkParamIsExistInArray($array, $param, $paramRoute);
         static::checkParamIsNotEmpty($array[$param], $paramRoute);
+    }
+
+    /**
+     * Проверяем, является ли передаваемый параметр булевым типом
+     *
+     * @param mixed  $param      - параметр
+     * @param string $paramRoute - картуа-путь до параметра, в котором несоответствие
+     *
+     * @return void
+     *
+     * @throws ErrorException
+     */
+    protected static function checkParamIsBool($param, $paramRoute)
+    {
+        if (!is_bool($param)) {
+            throw new ErrorException('параметр ' . $paramRoute . ' не булев');
+        }
     }
 
     /**
@@ -159,7 +193,11 @@ class BaseFlTreeWidgetsHelper
      */
     protected static function checkParamIsNotEmpty($param, $paramRoute)
     {
-        if (empty($param)) {
+        $isNumeric = is_numeric($param);
+        $isEmptyString = (is_string($param) && (strlen($param) < 1));
+        $isBool = is_bool($param);
+
+        if (!$isBool && !$isNumeric && $isEmptyString && empty($param)) {
             throw new ErrorException('параметр ' . $paramRoute . ' пуст');
         }
     }

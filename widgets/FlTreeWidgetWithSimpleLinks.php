@@ -52,7 +52,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
             [
                 'renderView' => $this->renderView,
                 'base' => $this->base,
-                'sources' => $this->sources,
+                'widget' => $this->widget,
                 'buttons' => $this->buttons,
                 'detailViewConfig' => $this->detailViewConfig,
             ]
@@ -73,7 +73,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
             $this->renderView,
             [
                 'base' => $this->base,
-                'sources' => $this->sources,
+                'widget' => $this->widget,
                 'buttons' => $this->buttons,
                 'detailViewConfig' => $this->detailViewConfig,
             ]

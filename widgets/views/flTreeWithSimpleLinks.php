@@ -7,14 +7,14 @@
  *
  * @var array $buttons
  * @var array $detailViewConfig
- * @var array $sources
+ * @var array $widget
  * @var array $base
  */
 use yii\helpers\Html;
 use yii\helpers\Url;
 use yii\widgets\DetailView;
 
-$sourceSimpleKeyExist = array_key_exists('flTreeWithSimpleUrl', $sources);
+$sourceSimpleKeyExist = (!empty($widget) && is_array($widget) && array_key_exists('source', $widget));
 
 $buttonsExist = (!empty($buttons) && is_array($buttons));
 
@@ -56,7 +56,7 @@ if ($buttonsExist) {
                         [
                             'name' => 'left-in-tree',
                             'data-href' => Url::toRoute($buttons['treeLeft']['url']),
-                            'data-fl-tree-url' => Url::toRoute($sources['flTreeUrl']),
+                            'data-fl-tree-url' => Url::toRoute($base['renderTree']),
                             'data-name' => $base['nodeName'],
                             'class' => 'btn btn-primary glyphicon glyphicon-arrow-left'
                         ]
@@ -69,7 +69,7 @@ if ($buttonsExist) {
                         [
                             'name' => 'up-in-tree',
                             'data-href' => Url::toRoute($buttons['treeUp']['url']),
-                            'data-fl-tree-url' => Url::toRoute($sources['flTreeUrl']),
+                            'data-fl-tree-url' => Url::toRoute($base['renderTree']),
                             'data-name' => $base['nodeName'],
                             'class' => 'btn btn-primary glyphicon glyphicon-arrow-up'
                         ]
@@ -82,7 +82,7 @@ if ($buttonsExist) {
                         [
                             'name' => 'down-in-tree',
                             'data-href' => Url::toRoute($buttons['treeDown']['url']),
-                            'data-fl-tree-url' => Url::toRoute($sources['flTreeUrl']),
+                            'data-fl-tree-url' => Url::toRoute($base['renderTree']),
                             'data-name' => $base['nodeName'],
                             'class' => 'btn btn-primary glyphicon glyphicon-arrow-down'
                         ]
@@ -95,7 +95,7 @@ if ($buttonsExist) {
                         [
                             'name' => 'right-in-tree',
                             'data-href' => Url::toRoute($buttons['treeRight']['url']),
-                            'data-fl-tree-url' => Url::toRoute($sources['flTreeUrl']),
+                            'data-fl-tree-url' => Url::toRoute($base['renderTree']),
                             'data-name' => $base['nodeName'],
                             'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
                         ]
@@ -132,10 +132,11 @@ if ($buttonsExist) {
 <?php endif; ?>
 <?php
 if ($sourceSimpleKeyExist) {
-    $this->registerJs("var dataUrl = '" . Url::toRoute($sources['flTreeWithSimpleUrl']) . "'");
+    $this->registerJs("var dataUrl = '" . Url::toRoute($widget['source']) . "'");
+    $this->registerJs("var showCheckbox = '" . Url::toRoute($widget['showCheckBox']) . "'");
     $this->registerJs(
         <<<'JS'
-        initFlTreeWithSimpleLinks(dataUrl);
+        initFlTreeWithSimpleLinks(dataUrl, showCheckbox);
 JS
     );
 }

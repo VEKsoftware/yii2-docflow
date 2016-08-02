@@ -20,6 +20,9 @@ use yii\helpers\Url;
             <span id="tree-change-status"></span>
             <div id="tree"></div>
         </div>
+        <div class="col-sm-8">
+            <div id="tree-leaf"></div>
+        </div>
     </div>
 <?php
 
@@ -29,6 +32,6 @@ $this->registerJs("var showCheckbox = '" . Url::toRoute($widget['showCheckBox'])
 TreeViewAsset::register($this);
 
 $this->registerJs(<<<'JS'
-    initFlTree(dataUrl, showCheckbox);
+    initFlTreeWithLeaf(dataUrl, showCheckbox);
 JS
 );

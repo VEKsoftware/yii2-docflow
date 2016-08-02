@@ -10,8 +10,8 @@ namespace docflow\examples\users\controllers;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
-use docflow\behaviors\LinkStructuredBehavior;
 use docflow\examples\users\models\Users;
+use docflow\examples\users\models\UsersTreeSearch;
 use docflow\models\Document;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
@@ -20,7 +20,6 @@ use yii\base\Action;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
-use yii\data\ActiveDataProvider;
 use yii\db\StaleObjectException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
@@ -106,29 +105,10 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($nodeIdValue === null) {
-            $statuses = new Users();
-        } else {
-            $statuses = Users::getDocumentByNodeId($nodeIdValue)->one();
-        }
+        $document = $this->findModel($nodeIdValue);
 
-        /* @var LinkStructuredBehavior $structureBehavior */
-        $structureBehavior = $statuses->getBehavior('firmTree');
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 2,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
-            ],
-        ]);
+        $searchModel = new UsersTreeSearch();
+        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -136,7 +116,7 @@ class TestUsersController extends Controller
                     'route' => 'test-users/view-document',
                     'params' => [
                         'nodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -152,7 +132,7 @@ class TestUsersController extends Controller
                     'route' => 'test-users/ajax-child',
                     'params' => [
                         'nodeIdValue' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -177,29 +157,10 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($nodeIdValue === null) {
-            $statuses = new Users();
-        } else {
-            $statuses = Users::getDocumentByNodeId($nodeIdValue)->one();
-        }
+        $document = $this->findModel($nodeIdValue);
 
-        /* @var LinkStructuredBehavior $structureBehavior */
-        $structureBehavior = $statuses->getBehavior('firmTree');
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 2,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
-            ],
-        ]);
+        $searchModel = new UsersTreeSearch();
+        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -207,7 +168,7 @@ class TestUsersController extends Controller
                     'route' => 'test-users/view-document',
                     'params' => [
                         'nodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -223,7 +184,7 @@ class TestUsersController extends Controller
                     'route' => 'test-users/ajax-child',
                     'params' => [
                         'nodeIdValue' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -250,29 +211,10 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($currentNodeId === null) {
-            $statuses = new Users();
-        } else {
-            $statuses = Users::getDocumentByNodeId($currentNodeId)->one();
-        }
+        $document = $this->findModel($currentNodeId);
 
-        /* @var LinkStructuredBehavior $structureBehavior */
-        $structureBehavior = $statuses->getBehavior('firmTree');
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 2,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
-            ],
-        ]);
+        $searchModel = new UsersTreeSearch();
+        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
@@ -280,14 +222,14 @@ class TestUsersController extends Controller
 
         $config = [
             'simpleLinks' => $simpleBehavior->statusesTransitionTo,
-            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdField' => $document->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
                     'route' => 'test-users/ajax-add-simple',
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -297,7 +239,7 @@ class TestUsersController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -315,7 +257,7 @@ class TestUsersController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'currentNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -341,29 +283,10 @@ class TestUsersController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($currentNodeId === null) {
-            $statuses = new Users();
-        } else {
-            $statuses = Users::getDocumentByNodeId($currentNodeId)->one();
-        }
+        $document = $this->findModel($currentNodeId);
 
-        /* @var LinkStructuredBehavior $structureBehavior */
-        $structureBehavior = $statuses->getBehavior('firmTree');
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 2,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => $structureBehavior->orderedFieldDb . ' asc'
-            ],
-        ]);
+        $searchModel = new UsersTreeSearch();
+        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
@@ -371,14 +294,14 @@ class TestUsersController extends Controller
 
         $config = [
             'simpleLinks' => $simpleBehavior->statusesTransitionTo,
-            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdField' => $document->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
                     'route' => 'test-users/ajax-add-simple',
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -388,7 +311,7 @@ class TestUsersController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                     ]
@@ -406,7 +329,7 @@ class TestUsersController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'currentNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -547,5 +470,23 @@ class TestUsersController extends Controller
         $behavior = $document->getBehavior('firmTreeAllO');
 
         return $behavior->levelDown();
+    }
+
+    /**
+     * Находим модельку по её идентификатору
+     *
+     * @param integer $currentNodeId - идентификатор модели
+     *
+     * @return Users
+     */
+    protected function findModel($currentNodeId)
+    {
+        if ($currentNodeId === null) {
+            $document = new Users();
+        } else {
+            $document = Users::getDocumentByNodeId($currentNodeId)->one();
+        }
+
+        return $document;
     }
 }

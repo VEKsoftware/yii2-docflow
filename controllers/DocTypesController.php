@@ -4,7 +4,8 @@ namespace docflow\controllers;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
-use docflow\behaviors\LinkStructuredBehavior;
+use docflow\models\Document;
+use docflow\models\StatusesTreeSearch;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWithSimpleLinksWidget;
 use yii;
@@ -12,12 +13,10 @@ use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
-use yii\data\ActiveDataProvider;
 use yii\db\StaleObjectException;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 
-use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
@@ -151,37 +150,10 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($nodeIdValue === null) {
-            $statuses = new Statuses();
-        } else {
-            $statuses = Statuses::getDocumentByNodeId($nodeIdValue)->one();
-        }
+        $document = $this->findTreeStatusModel($nodeIdValue);
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
-        $structureBehavior = $statuses->getBehavior('structure');
-
-        if ($extra !== null) {
-            $structureBehavior->extraFilter = (array)json_decode($extra);
-        }
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
-                ]
-            ],
-        ]);
+        $searchModel = new StatusesTreeSearch();
+        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -209,7 +181,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'docType' => $docType,
                         'nodeIdValue' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                         'extra' => $extra,
@@ -238,37 +210,10 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($nodeIdValue === null) {
-            $statuses = new Statuses();
-        } else {
-            $statuses = Statuses::getDocumentByNodeId($nodeIdValue)->one();
-        }
+        $document = $this->findTreeStatusModel($nodeIdValue);
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
-        $structureBehavior = $statuses->getBehavior('structure');
-
-        if ($extra !== null) {
-            $structureBehavior->extraFilter = (array)json_decode($extra);
-        }
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
-                ]
-            ],
-        ]);
+        $searchModel = new StatusesTreeSearch();
+        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -296,7 +241,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'docType' => $docType,
                         'nodeIdValue' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                         'extra' => $extra,
@@ -326,37 +271,10 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($currentNodeId === null) {
-            $statuses = new Statuses();
-        } else {
-            $statuses = Statuses::getDocumentByNodeId($currentNodeId)->one();
-        }
+        $document = $this->findTreeStatusModel($currentNodeId);
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
-        $structureBehavior = $statuses->getBehavior('structure');
-
-        if ($extra !== null) {
-            $structureBehavior->extraFilter = (array)json_decode($extra);
-        }
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
-                ]
-            ],
-        ]);
+        $searchModel = new StatusesTreeSearch();
+        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
@@ -364,14 +282,14 @@ class DocTypesController extends Controller
 
         $config = [
             'simpleLinks' => $simpleBehavior->statusesTransitionTo,
-            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdField' => $document->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
                     'route' => 'doc-types/ajax-add-simple-link',
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -381,7 +299,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -400,7 +318,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'currentNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                         'extra' => $extra,
@@ -429,37 +347,10 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
-        if ($currentNodeId === null) {
-            $statuses = new Statuses();
-        } else {
-            $statuses = Statuses::getDocumentByNodeId($currentNodeId)->one();
-        }
+        $document = $this->findTreeStatusModel($currentNodeId);
 
-        /**
-         * @var LinkStructuredBehavior $structureBehavior
-         */
-        $structureBehavior = $statuses->getBehavior('structure');
-
-        if ($extra !== null) {
-            $structureBehavior->extraFilter = (array)json_decode($extra);
-        }
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $statuses::tableName() . '.' . $statuses->linkFieldsArray['node_id'];
-
-        /* Страница для провайдера берется из url */
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 50,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => [
-                    $statuses->linkFieldsArray['node_id'] => SORT_ASC,
-                ]
-            ],
-        ]);
+        $searchModel = new StatusesTreeSearch();
+        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
@@ -467,14 +358,14 @@ class DocTypesController extends Controller
 
         $config = [
             'simpleLinks' => $simpleBehavior->statusesTransitionTo,
-            'nodeIdField' => $statuses->linkFieldsArray['node_id'],
+            'nodeIdField' => $document->linkFieldsArray['node_id'],
             'links' => [
                 'addSimple' => [
                     'route' => 'doc-types/ajax-add-simple-link',
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -484,7 +375,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'toNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ]
                     ]
@@ -503,7 +394,7 @@ class DocTypesController extends Controller
                     'params' => [
                         'fromNodeId' => $fromNodeId,
                         'currentNodeId' => [
-                            'value' => $statuses->linkFieldsArray['node_id'],
+                            'value' => $document->linkFieldsArray['node_id'],
                             'type' => 'property'
                         ],
                         'extra' => $extra,
@@ -683,17 +574,23 @@ class DocTypesController extends Controller
         }
 
         if (Yii::$app->request->isAjax) {
-            return $this->renderAjax('view-status', [
-                'doc' => $doc,
-                'model' => $model,
-                'extra' => $extra,
-            ]);
+            return $this->renderAjax(
+                'view-status',
+                [
+                    'doc' => $doc,
+                    'model' => $model,
+                    'extra' => $extra,
+                ]
+            );
         } else {
-            return $this->render('view-status', [
-                'doc' => $doc,
-                'model' => $model,
-                'extra' => $extra,
-            ]);
+            return $this->render(
+                'view-status',
+                [
+                    'doc' => $doc,
+                    'model' => $model,
+                    'extra' => $extra,
+                ]
+            );
         }
     }
 
@@ -795,9 +692,7 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $model->getBehavior('structure');
 
         if ($extra !== null) {
@@ -826,9 +721,7 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $model->getBehavior('structure');
 
         if ($extra !== null) {
@@ -858,9 +751,7 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $model->getBehavior('structure');
 
         if ($extra !== null) {
@@ -890,9 +781,7 @@ class DocTypesController extends Controller
 
         $model = $this->findStatusModel($docTag, $statusTag);
 
-        /**
-         * @var LinkOrderedBehavior $behavior
-         */
+        /* @var LinkOrderedBehavior $behavior */
         $behavior = $model->getBehavior('structure');
 
         if ($extra !== null) {
@@ -918,12 +807,12 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
+        /* @var Document $documentFrom */
         $documentFrom = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        /* @var Document $documentTo */
         $documentTo = Statuses::getDocumentByNodeId($toNodeId)->one();
 
-        /**
-         * @var LinkSimpleBehavior $behavior
-         */
+        /* @var LinkSimpleBehavior $behavior */
         $behavior = $documentFrom->getBehavior('transitions');
 
         return $behavior->addSimpleLink($documentTo);
@@ -947,14 +836,33 @@ class DocTypesController extends Controller
     {
         Yii::$app->response->format = Response::FORMAT_JSON;
 
+        /* @var Document $documentFrom */
         $documentFrom = Statuses::getDocumentByNodeId($fromNodeId)->one();
+        /* @var Document $documentTo */
         $documentTo = Statuses::getDocumentByNodeId($toNodeId)->one();
 
-        /**
-         * @var LinkSimpleBehavior $behavior
-         */
+        /* @var LinkSimpleBehavior $behavior */
         $behavior = $documentFrom->getBehavior('transitions');
 
         return $behavior->delSimpleLink($documentTo);
+    }
+
+
+    /**
+     * Получаем модель статуса для построеня древа
+     *
+     * @param null|integer $nodeIdValue - id ноды
+     *
+     * @return Statuses
+     */
+    protected function findTreeStatusModel($nodeIdValue)
+    {
+        if ($nodeIdValue === null) {
+            $statuses = new Statuses();
+        } else {
+            $statuses = Statuses::getDocumentByNodeId($nodeIdValue)->one();
+        }
+
+        return $statuses;
     }
 }

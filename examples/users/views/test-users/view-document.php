@@ -9,9 +9,9 @@
  */
 
 use docflow\examples\users\models\Users;
-use docflow\widgets\FlTreeWithSimpleLinksWidget;
+use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 
-echo FlTreeWithSimpleLinksWidget::widget([
+echo FlTreeWidgetWithSimpleLinks::widget([
     'base' => [
         'title' => $document->docName,
         'titleLink' => Yii::t('docflow', 'Тест: пользовательские связи'),

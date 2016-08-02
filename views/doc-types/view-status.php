@@ -13,14 +13,14 @@
  */
 
 use docflow\models\Document;
-use docflow\widgets\FlTreeWithSimpleLinksWidget;
+use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii\web\View;
 
 $this->title = $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Statuses'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = $this->title;
 
-echo FlTreeWithSimpleLinksWidget::widget([
+echo FlTreeWidgetWithSimpleLinks::widget([
     'base' => [
         'title' => $this->title,
         'titleLink' => Yii::t('docflow', 'Statuses Links'),

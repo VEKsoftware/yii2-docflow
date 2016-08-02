@@ -7,7 +7,7 @@ use docflow\behaviors\LinkSimpleBehavior;
 use docflow\models\Document;
 use docflow\models\StatusesTreeSearch;
 use docflow\widgets\FlTreeWidget;
-use docflow\widgets\FlTreeWithSimpleLinksWidget;
+use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;
 
 use yii\base\ErrorException;
@@ -327,7 +327,7 @@ class DocTypesController extends Controller
             ]
         ];
 
-        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithSimpleLinks::getStructure($dataProvider, $config);
     }
 
     /**
@@ -403,7 +403,7 @@ class DocTypesController extends Controller
             ]
         ];
 
-        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithSimpleLinks::getStructure($dataProvider, $config);
     }
 
     /**

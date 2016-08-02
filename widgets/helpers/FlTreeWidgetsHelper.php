@@ -49,7 +49,7 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
     }
 
     /**
-     * Проверяем конфигурацию FlTreeWithSimpleLinksWidget при запуске виджета
+     * Проверяем конфигурацию FlTreeWidgetWithSimpleLinks при запуске виджета
      *
      * @param array $config - конфигурация
      *
@@ -88,7 +88,7 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
     }
 
     /**
-     * Проверяем конфигурацию FlTreeWithSimpleLinksWidget при формировании структуры виджета
+     * Проверяем конфигурацию FlTreeWidgetWithSimpleLinks при формировании структуры виджета
      *
      * @param array $config - конфигурация
      *

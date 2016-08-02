@@ -31,7 +31,7 @@ class FlTreeWidget extends Widget
      * FlTreeWidget:
      * 1)Название списка плоского дерева - titleList
      *
-     * FlTreeWithSimpleLinksWidget:
+     * FlTreeWidgetWithSimpleLinks:
      * 1)Названии документа - title
      * 2)Названии плоского дерева с простыми связями - titleLink
      * 3)Имя текущего документа, которое отображается в виджете - nodeName
@@ -46,7 +46,7 @@ class FlTreeWidget extends Widget
      * FlTreeWidget:
      * 1)Плоское дерево - flTreeUrl
      *
-     * FlTreeWithSimpleLinksWidget:
+     * FlTreeWidgetWithSimpleLinks:
      * 1)Плоское дерево - flTreeUrl
      * 2)Плоское дерево с простыми связями - flTreeWithSimpleUrl
      *

@@ -12,7 +12,7 @@ use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\ArrayHelper;
 
-class FlTreeWithSimpleLinksWidget extends FlTreeWidget
+class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
 {
     /**
      * Содержащит наименования и ссылки на действия для кнопок:

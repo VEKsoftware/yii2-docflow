@@ -14,7 +14,7 @@ use docflow\examples\users\models\Users;
 use docflow\examples\users\models\UsersTreeSearch;
 use docflow\models\Document;
 use docflow\widgets\FlTreeWidget;
-use docflow\widgets\FlTreeWithSimpleLinksWidget;
+use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;
 use yii\base\Action;
 use yii\base\ErrorException;
@@ -265,7 +265,7 @@ class TestUsersController extends Controller
             ]
         ];
 
-        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithSimpleLinks::getStructure($dataProvider, $config);
     }
 
     /**
@@ -337,7 +337,7 @@ class TestUsersController extends Controller
             ]
         ];
 
-        return FlTreeWithSimpleLinksWidget::getStructure($dataProvider, $config);
+        return FlTreeWidgetWithSimpleLinks::getStructure($dataProvider, $config);
     }
 
     /**

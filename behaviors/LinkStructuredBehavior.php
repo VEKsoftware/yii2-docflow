@@ -83,11 +83,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_DEL_PARENT_NOT_HAS_AVAILABLE);
         }
 
-        /**
-         * Получаем родительскую связь с ближайшим родителем
-         *
-         * @var Link $flTreeLink
-         */
+        /* @var Link $flTreeLink Получаем родительскую связь с ближайшим родителем */
         $flTreeLink = $this->linksParent;
 
         if (empty($flTreeLink->id)) {
@@ -122,9 +118,12 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksFrom',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 
@@ -171,11 +170,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_CHILDES_HOW_PARENT);
         }
 
-        /**
-         * Получаем ближайшую родительскую связь для текущего документа (owner)
-         *
-         * @var Link $flTreeLink
-         */
+        /* @var Link $flTreeLink Получаем ближайшую родительскую связь для текущего документа (owner) */
         $flTreeLink = $this->getParentLinkByStatus($this->owner)->one();
 
         /**
@@ -222,9 +217,12 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksTo',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 
@@ -271,11 +269,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DENIED_SET_ONE_OF_PARENTS_HOW_CHILD);
         }
 
-        /**
-         * Получаем ближайшую родительскую связь нового дочернего документа
-         *
-         * @var Link $flTreeLink
-         */
+        /* @var Link $flTreeLink Получаем ближайшую родительскую связь нового дочернего документа */
         $flTreeLink = $this->getParentLinkByStatus($documentObj)->one();
 
         if (empty($flTreeLink->id)) {
@@ -306,9 +300,8 @@ class LinkStructuredBehavior extends LinkBaseBehavior
     {
         /* Назначаем название класса связи на переменную ради удобства */
         $linkClass = $this->linkClass;
-        /**
-         * @var Link $statusesLinksClass
-         */
+
+        /* @var Link $statusesLinksClass */
         $statusesLinksClass = new $linkClass;
 
         $statusesLinksClass->setScenario($linkClass::LINK_TYPE_FLTREE);
@@ -373,10 +366,13 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere())
-                    ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
-            })
+            ->via(
+                'linksTo',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere())
+                        ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+                }
+            )
             ->inverseOf('statusParent');
 
         if (!empty($this->orderedFieldDb) && is_string($this->orderedFieldDb)) {
@@ -443,9 +439,12 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksTo',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 
@@ -463,9 +462,12 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksFrom',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 
@@ -485,10 +487,13 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksParent', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere())
-                    ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
-            });
+            ->via(
+                'linksParent',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere())
+                        ->andOnCondition([$this->linkFieldsArray['level'] => 1]);
+                }
+            );
     }
 
     /**
@@ -613,11 +618,14 @@ class LinkStructuredBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere())
-                    ->andWhere(['in', $this->linkFieldsArray['level'], [1, 2]])
-                    ->indexBy($this->linkFieldsArray['level']);
-            })
+            ->via(
+                'linksFrom',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere())
+                        ->andWhere(['in', $this->linkFieldsArray['level'], [1, 2]])
+                        ->indexBy($this->linkFieldsArray['level']);
+                }
+            )
             ->indexBy($this->linkFieldsArray['node_id']);
     }
 
@@ -684,7 +692,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             $childDocTagArray = ArrayHelper::getColumn($subQuery->all(), $this->linkFieldsArray['node_id']);
 
             /* Получаем только те документы, которые есть в списке разрешенных */
-            $query->andWhere(['in', $this->linkFieldsArray['node_id'], $childDocTagArray]);
+            $query->andWhere(['in', $owner::tableName() . '.' . $this->linkFieldsArray['node_id'], $childDocTagArray]);
         }
 
         return $query;

@@ -87,6 +87,7 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'title', 'base=>title');
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'titleLink', 'base=>titleLink');
         static::checkParamInArrayExistAndNotEmptyAndString($config['base'], 'nodeName', 'base=>nodeName');
+        static::checkParamInArrayExistAndNotEmptyAndArray($config['base'], 'renderTree', 'base=>renderTree');
 
         if (is_array($config['widget'])) {
             static::checkParamInArrayExistAndNotEmptyAndArray($config['widget'], 'source', 'widget => source');

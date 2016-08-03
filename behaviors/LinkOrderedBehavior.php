@@ -277,12 +277,12 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     {
         $document = null;
 
-        /**
-         * @var Statuses|Document $value
-         */
+        /* @var Document $value */
         foreach ($docsOnLevel as $value) {
+            /* Если нашли документ на сменту, то выходим из перебора */
             if ($value->{$this->orderedFieldValue} < $this->owner->{$this->orderedFieldValue}) {
                 $document = $value;
+                break;
             }
         }
 
@@ -301,9 +301,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     {
         $document = null;
 
-        /**
-         * @var Statuses|Document $value
-         */
+        /* @var Document $value */
         foreach ($docsOnLevel as $value) {
             /* Если нашли документ на сменту, то выходим из перебора */
             if ($value->{$this->orderedFieldValue} > $this->owner->{$this->orderedFieldValue}) {

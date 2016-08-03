@@ -375,12 +375,6 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             )
             ->inverseOf('statusParent');
 
-        if (!empty($this->orderedFieldDb) && is_string($this->orderedFieldDb)) {
-            $query->orderBy([
-                $this->orderedFieldDb => SORT_ASC
-            ]);
-        }
-
         return $query;
     }
 

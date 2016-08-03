@@ -154,8 +154,7 @@ class DocTypes extends UnstructuredRecord
         $query = $this->hasMany(Statuses::className(), ['doc_type_id' => 'id'])
             ->with(['statusParent', 'statusChildren'])
             ->indexBy('tag')
-            ->inverseOf('docType')
-            ->orderBy(['order_idx' => SORT_ASC]);
+            ->inverseOf('docType');
 
         return $query;
     }

@@ -2,6 +2,7 @@
 
 namespace docflow\examples\users\models;
 
+use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
 use docflow\models\Document;
 use yii;
@@ -37,6 +38,10 @@ class UsersTreeSearch extends UsersSearch
 
         $dataProvider = parent::search($params);
         $dataProvider->query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument($dataProvider->query);
+
+        if ($structureBehavior instanceof LinkOrderedBehavior) {
+            $dataProvider->query = $dataProvider->query->orderBy($structureBehavior->orderedFieldDb . ' asc');
+        }
 
         return $dataProvider;
     }

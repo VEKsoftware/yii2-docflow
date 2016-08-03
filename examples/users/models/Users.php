@@ -81,8 +81,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree',
                 'indexBy' => 'tag'
             ],
             'departments' => [
@@ -95,8 +93,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'departments\'::text)::int',
-                'orderedFieldValue' => 'orderDepartments',
                 'indexBy' => 'tag'
             ],
             'representatives' => [
@@ -109,8 +105,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'representatives\'::text)::int',
-                'orderedFieldValue' => 'orderRepresentatives',
                 'indexBy' => 'tag'
             ],
             'firmTree' => [
@@ -122,8 +116,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'firmTree\'::text)::int',
-                'orderedFieldValue' => 'orderFirmTree',
                 'indexBy' => 'tag'
             ],
             'partnerProgram' => [
@@ -136,8 +128,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'partnerProgram\'::text)::int',
-                'orderedFieldValue' => 'orderPartnerProgram',
                 'indexBy' => 'tag'
             ],
             'subordination' => [
@@ -150,8 +140,6 @@ class Users extends Document
 
                     return $query;
                 },
-                'orderedFieldDb' => '("order_idx"->>\'subordination\'::text)::int',
-                'orderedFieldValue' => 'orderSubordination',
                 'indexBy' => 'tag'
             ],
             'firmTreeAllO' => [

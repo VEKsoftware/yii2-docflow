@@ -2,6 +2,7 @@
 
 namespace docflow\models;
 
+use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
 use yii;
 use yii\base\InvalidParamException;
@@ -37,10 +38,7 @@ class StatusesTreeSearch extends StatusesSearch
     /**
      * Creates data provider instance with search query applied
      *
-     * @param Document $document     - объект документа
-     * @param string   $behaviorName - имя поведения
-     * @param string   $extra        - дополнительные параметры фильтрации
-     * @param array    $params       - массив параметров
+     * @param array $params - массив параметров
      *
      * @return ActiveDataProvider
      *
@@ -54,6 +52,10 @@ class StatusesTreeSearch extends StatusesSearch
 
         $dataProvider = parent::search($params);
         $dataProvider->query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument($dataProvider->query);
+
+        if ($structureBehavior instanceof LinkOrderedBehavior) {
+            $dataProvider->query = $dataProvider->query->orderBy($structureBehavior->orderedFieldDb . ' asc');
+        }
 
         return $dataProvider;
     }

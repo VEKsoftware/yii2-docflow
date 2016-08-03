@@ -49,7 +49,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     public $documentQuery;
 
     /**
-     * Поле, которое отвечает сотрировку в тпблице - обязательное свойство
+     * Поле, которое отвечает сотрировку в таблице - обязательное свойство для LinksOrderedBehavior
      *
      * @var string
      */
@@ -57,7 +57,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
 
     /**
      * Поле, которое содержит имя свойства объекта,
-     * в котором содержится значние сортировки - обязательное свойство
+     * в котором содержится значние сортировки - обязательное свойство для LinksOrderedBehavior
      *
      * @var string
      */
@@ -223,11 +223,11 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
             throw new ErrorException(BehaviorsMessages::B_DOCUMENT_QUERY_NULL_OR_NOT_INSTANCEOF_CLOSURE);
         }
 
-        if (empty($this->orderedFieldDb) || !is_string($this->orderedFieldDb)) {
+        if (($this instanceof LinkOrderedBehavior) && (empty($this->orderedFieldDb) || !is_string($this->orderedFieldDb))) {
             throw new ErrorException('Отутствует обязательный параметр orderedFieldDb при объявлении поведения');
         }
 
-        if (empty($this->orderedFieldValue) || !is_string($this->orderedFieldValue)) {
+        if (($this instanceof LinkOrderedBehavior) && (empty($this->orderedFieldValue) || !is_string($this->orderedFieldValue))) {
             throw new ErrorException('Отутствует обязательный параметр orderedFieldValue при объявлении поведения');
         }
 

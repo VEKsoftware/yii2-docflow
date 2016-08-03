@@ -70,8 +70,6 @@ class Statuses extends Document
             'transitions' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => StatusesLinksTransitions::className(),
-                'orderedFieldDb' => 'order_idx',
-                'orderedFieldValue' => 'order_idx',
                 'documentQuery' => function (ActiveQuery $query) {
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;

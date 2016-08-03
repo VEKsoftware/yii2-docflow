@@ -146,6 +146,16 @@ function renderTree(currentName, flTreeUrl, action) {
     }
 }
 
+function renderModalTree() {
+    var modalTree = $('#tree-modal').treeview(true);
+    var buttonSetParent = $('#set-parent-button');
+    var treeParentRenderUrl = buttonSetParent.data('render-tree-parent');
+    var parentShowCheckBox = buttonSetParent.data('show-checkbox-parent');
+
+    modalTree.remove();
+    initFlTreeModal(treeParentRenderUrl, parentShowCheckBox);
+}
+
 /**
  * Перемещаем ноду на 1 положение:
  * 1)Если action - Up - то выше
@@ -178,6 +188,9 @@ function nodeVertical(currentName, action) {
     tree.addNode(newCurrentNode, parent, needIndex, {silent: true});
 
     tree.selectNode(newCurrentNode);
+
+    /* Перерисовываем дерево в модалке, если оно есть */
+    renderModalTree();
 }
 
 /**
@@ -243,6 +256,9 @@ function nodeHorizontal(node, flTreeUrl, action) {
         tree.remove();
         initFlTree(flTreeUrl);
     }
+
+    /* Перерисовываем дерево в модалке, если оно есть */
+    renderModalTree();
 }
 
 /**

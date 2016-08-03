@@ -25,13 +25,16 @@ use yii\helpers\Url;
         </div>
     </div>
 <?php
+$isShow = ($widget['showCheckBox'] === true)
+    ? 'true'
+    : 'false';
 
-$this->registerJs("var dataUrl = '" . Url::toRoute($widget['source']) . "'");
-$this->registerJs('var showCheckbox = '. $widget['showCheckBox']);
+$this->registerJs("var flTreeWithLeafDataUrl = '" . Url::toRoute($widget['source']) . "'");
+$this->registerJs('var flTreeWithLeafShowCheckbox = '. $isShow);
 
 TreeViewAsset::register($this);
 
 $this->registerJs(<<<'JS'
-    initFlTreeWithLeaf(dataUrl, showCheckbox);
+    initFlTreeWithLeaf(flTreeWithLeafDataUrl, flTreeWithLeafShowCheckbox);
 JS
 );

@@ -96,5 +96,12 @@ echo FlTreeWidgetWithSimpleLinks::widget([
                 'extra' => $extra
             ]
         ],
+        'setParent' => [
+            'name' => 'Назначить родителя',
+            'modalId' => '#myModal',
+            'childShowCheckBox' => false,
+            'parentShowCheckBox' => false,
+            'setParentUrl' => ['doc-types/set-parent']
+        ]
     ],
 ]);

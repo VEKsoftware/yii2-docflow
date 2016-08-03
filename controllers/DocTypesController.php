@@ -893,4 +893,40 @@ class DocTypesController extends Controller
 
         return $statuses;
     }
+
+    /**
+     * Устанавливаем родителя
+     *
+     * @param string $childName  - имя ребенка
+     * @param string $parentName - имя родителя
+     *
+     * @return array
+     *
+     * @throws StaleObjectException
+     * @throws \Exception
+     * @throws InvalidConfigException
+     * @throws ErrorException
+     */
+    public function actionSetParent($childName, $parentName)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /* @var Document $child */
+        $child = Statuses::getStatusByDocName($childName);
+
+        /* @var Document $parent */
+        $parent = Statuses::getStatusByDocName($parentName);
+
+        /* @var LinkOrderedBehavior $behavior */
+        $behavior = $child->getBehavior('structure');
+
+        if ($parentName !== 'null') {
+            $behavior->setParent($parent);
+        } else {
+            $behavior->removeParents();
+        }
+
+        /* TODO отдавать ответы от методов, а не такие.... */
+        return ['success' => 'Родитель изменен'];
+    }
 }

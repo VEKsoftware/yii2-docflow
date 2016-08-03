@@ -218,6 +218,20 @@ class Statuses extends Document
     }
 
     /**
+     * Получаем статус по имени документа
+     *
+     * @param string $name - имя
+     *
+     * @return array|null|\yii\db\ActiveRecord
+     */
+    public static function getStatusByDocName($name)
+    {
+        return static::find()
+            ->where(['name' => $name])
+            ->one();
+    }
+
+    /**
      * Получаем документ по его дентификатору
      *
      * @param int $nodeId - id ноды

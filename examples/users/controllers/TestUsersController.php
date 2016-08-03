@@ -109,7 +109,7 @@ class TestUsersController extends Controller
 
         $searchModel = new UsersTreeSearch();
         $searchModel->document = $document;
-        $searchModel->behaviorName = 'firmTree';
+        $searchModel->behaviorName = 'firmTreeAllO';
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
@@ -163,7 +163,7 @@ class TestUsersController extends Controller
 
         $searchModel = new UsersTreeSearch();
         $searchModel->document = $document;
-        $searchModel->behaviorName = 'firmTree';
+        $searchModel->behaviorName = 'firmTreeAllO';
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
@@ -219,7 +219,7 @@ class TestUsersController extends Controller
 
         $searchModel = new UsersTreeSearch();
         $searchModel->document = $document;
-        $searchModel->behaviorName = 'firmTree';
+        $searchModel->behaviorName = 'firmTreeAllO';
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
@@ -293,7 +293,7 @@ class TestUsersController extends Controller
 
         $searchModel = new UsersTreeSearch();
         $searchModel->document = $document;
-        $searchModel->behaviorName = 'firmTree';
+        $searchModel->behaviorName = 'firmTreeAllO';
         $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */

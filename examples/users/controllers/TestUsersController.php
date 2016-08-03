@@ -108,7 +108,9 @@ class TestUsersController extends Controller
         $document = $this->findModel($nodeIdValue);
 
         $searchModel = new UsersTreeSearch();
-        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'firmTree';
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -160,7 +162,9 @@ class TestUsersController extends Controller
         $document = $this->findModel($nodeIdValue);
 
         $searchModel = new UsersTreeSearch();
-        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'firmTree';
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -214,7 +218,9 @@ class TestUsersController extends Controller
         $document = $this->findModel($currentNodeId);
 
         $searchModel = new UsersTreeSearch();
-        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'firmTree';
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
@@ -286,7 +292,9 @@ class TestUsersController extends Controller
         $document = $this->findModel($currentNodeId);
 
         $searchModel = new UsersTreeSearch();
-        $dataProvider = $searchModel->search($document, 'firmTree', Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'firmTree';
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Users::getDocumentByNodeId($fromNodeId)->one();
@@ -488,5 +496,41 @@ class TestUsersController extends Controller
         }
 
         return $document;
+    }
+
+    /**
+     * Устанавливаем родителя
+     *
+     * @param string $childName  - имя ребенка
+     * @param string $parentName - имя родителя
+     *
+     * @return array
+     *
+     * @throws StaleObjectException
+     * @throws \Exception
+     * @throws InvalidConfigException
+     * @throws ErrorException
+     */
+    public function actionSetParent($childName, $parentName)
+    {
+        Yii::$app->response->format = Response::FORMAT_JSON;
+
+        /* @var Document $child */
+        $child = Users::getUsersByShortName($childName);
+
+        /* @var Document $parent */
+        $parent = Users::getUsersByShortName($parentName);
+
+        /* @var LinkOrderedBehavior $behavior */
+        $behavior = $child->getBehavior('firmTreeAllO');
+
+        if ($parentName !== 'null') {
+            $behavior->setParent($parent);
+        } else {
+            $behavior->removeParents();
+        }
+
+        /* TODO отдавать ответы от методов, а не такие.... */
+        return ['success' => 'Родитель изменен'];
     }
 }

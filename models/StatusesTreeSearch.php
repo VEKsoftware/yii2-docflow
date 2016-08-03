@@ -11,39 +11,28 @@ use yii\data\ActiveDataProvider;
 /**
  * UnitsSearch represents the model behind the search form about `vekuser\models\units\Units`.
  */
-class StatusesTreeSearch extends Statuses
+class StatusesTreeSearch extends StatusesSearch
 {
     /**
-     * Правила валидации
+     * Документ
      *
-     * @inheritdoc
-     *
-     * @return array
+     * @var Document
      */
-    public function rules()
-    {
-        return [
-            [
-                ['id'],
-                'integer',
-            ],
-            [
-                [
-                    'name',
-                    'tag'
-                ],
-                'string'
-            ],
-        ];
-    }
+    public $document;
 
     /**
-     * @inheritdoc
+     * Имя поведения
+     *
+     * @var string
      */
-    public function scenarios()
-    {
-        return Model::scenarios();
-    }
+    public $behaviorName;
+
+    /**
+     * Дополнительные условия для фильтрации
+     *
+     * @var array
+     */
+    public $extraFilter = [];
 
     /**
      * Creates data provider instance with search query applied
@@ -57,66 +46,14 @@ class StatusesTreeSearch extends Statuses
      *
      * @throws InvalidParamException
      */
-    public function search($document, $behaviorName, $extra, $params)
+    public function search($params)
     {
         /* @var LinkStructuredBehavior $structureBehavior */
-        $structureBehavior = $document->getBehavior($behaviorName);
+        $structureBehavior = $this->document->getBehavior($this->behaviorName);
+        $structureBehavior->extraFilter = $this->extraFilter;
 
-        if ($extra !== null) {
-            $structureBehavior->extraFilter = (array)json_decode($extra);
-        }
-
-        $query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument();
-        $groupBy = $document::tableName() . '.' . $document->linkFieldsArray['node_id'];
-
-        $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'pagination' => [
-                'pageSize' => 5,
-                'totalCount' => $query->groupBy($groupBy)->count()
-            ],
-            'sort' => [
-                'defaultOrder' => ['id' => SORT_ASC],
-                'attributes' => [
-                    'id' => [
-                        'asc' => ['id' => SORT_ASC],
-                        'desc' => ['id' => SORT_DESC],
-                        'label' => 'Id',
-                        'default' => SORT_ASC
-                    ],
-                    'name' => [
-                        'asc' => ['name' => SORT_ASC],
-                        'desc' => ['name' => SORT_DESC],
-                        'label' => 'Name',
-                        'default' => SORT_ASC
-                    ],
-                    'tag' => [
-                        'asc' => ['tag' => SORT_ASC],
-                        'desc' => ['tag' => SORT_DESC],
-                        'label' => 'Tag',
-                        'default' => SORT_ASC
-                    ],
-                ]
-            ]
-        ]);
-
-        $this->load($params);
-
-        if (!$this->validate()) {
-            // uncomment the following line if you do not want to return any records when validation fails
-            // $query->where('0=1');
-            return $dataProvider;
-        }
-
-        $query->andFilterWhere(
-            [
-                'and',
-                ['like', 'name', $this->name],
-                ['like', 'tag', $this->tag],
-            ]
-        );
-
-        $dataProvider->query = $query;
+        $dataProvider = parent::search($params);
+        $dataProvider->query = $structureBehavior->getDocumentsWhichChild1LevelByRootDocument($dataProvider->query);
 
         return $dataProvider;
     }

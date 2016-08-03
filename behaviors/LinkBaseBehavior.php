@@ -189,13 +189,20 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
     /**
      * Получаем документы по переданному в поведения запросу
      *
+     * @param ActiveQuery $query - запрос
+     *
      * @return ActiveQuery
      */
-    public function getDocuments()
+    public function getDocuments(ActiveQuery $query = null)
     {
-        return call_user_func($this->documentQuery)
+        $owner = $this->owner;
+
+        if ($query === null) {
+            $query = $owner::find();
+        }
+
+        return call_user_func($this->documentQuery, $query)
             ->andWhere($this->extraFilter)
-            ->orderBy([$this->orderedFieldDb => SORT_ASC])
             ->indexBy($this->indexBy);
     }
 

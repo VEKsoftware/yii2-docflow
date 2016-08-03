@@ -75,8 +75,7 @@ class Users extends Document
             'firmTreeAllS' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => UsersLinksFirmTreeSimple::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu();
+                'documentQuery' => function (ActiveQuery $query) {
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -89,8 +88,8 @@ class Users extends Document
             'departments' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => UsersLinksDepartments::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 1]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 1]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -103,8 +102,8 @@ class Users extends Document
             'representatives' => [
                 'class' => LinkSimpleBehavior::className(),
                 'linkClass' => UsersLinksRepresentatives::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 2]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 2]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -117,8 +116,7 @@ class Users extends Document
             'firmTree' => [
                 'class' => LinkStructuredBehavior::className(),
                 'linkClass' => UsersLinksFirmTreeFlTree::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu();
+                'documentQuery' => function (ActiveQuery $query) {
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -131,8 +129,8 @@ class Users extends Document
             'partnerProgram' => [
                 'class' => LinkStructuredBehavior::className(),
                 'linkClass' => UsersLinksPartnerProgram::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 2]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 2]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -145,8 +143,8 @@ class Users extends Document
             'subordination' => [
                 'class' => LinkStructuredBehavior::className(),
                 'linkClass' => UsersLinksSubordination::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 3]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 3]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -159,8 +157,7 @@ class Users extends Document
             'firmTreeAllO' => [
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => UsersLinksFirmTreeFlTree::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu();
+                'documentQuery' => function (ActiveQuery $query) {
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -173,8 +170,8 @@ class Users extends Document
             'firmTreeOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => UsersLinksFirmTreeFlTree::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 1]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 1]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -187,8 +184,8 @@ class Users extends Document
             'partnerProgramOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => UsersLinksPartnerProgram::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 2]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 2]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -201,8 +198,8 @@ class Users extends Document
             'subordinationOrdered' => [
                 'class' => LinkOrderedBehavior::className(),
                 'linkClass' => UsersLinksSubordination::className(),
-                'documentQuery' => function () {
-                    $query = $this->getDocu()->where(['user_type_id' => 3]);
+                'documentQuery' => function (ActiveQuery $query) {
+                    $query->andWhere(['user_type_id' => 3]);
                     /* True - конечный результат будет All(); null, false - one() */
                     $query->multiple = true;
 
@@ -215,14 +212,13 @@ class Users extends Document
         ];
     }
 
-    public function getUsersByIdx($idx)
-    {
-        return static::find()
-            ->where(['=', 'idx', $idx])
-            ->limit(1)
-            ->one();
-    }
-
+    /**
+     * Получаем пользователя по короткому имени
+     *
+     * @param string $shortName - короткое имя
+     *
+     * @return array|null|\yii\db\ActiveRecord
+     */
     public static function getUsersByShortName($shortName)
     {
         return static::find()
@@ -234,11 +230,6 @@ class Users extends Document
     public function isAllowed()
     {
         return true;
-    }
-
-    public function getDocu()
-    {
-        return static::find();
     }
 
     /**
@@ -263,6 +254,11 @@ class Users extends Document
         return static::find()->where(['idx' => $nodeId]);
     }
 
+    /**
+     * Аттрибуты содержащие json
+     *
+     * @return array
+     */
     public static function jsonBFields()
     {
         return ['order_idx'];

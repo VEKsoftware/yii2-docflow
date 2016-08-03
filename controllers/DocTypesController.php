@@ -153,7 +153,14 @@ class DocTypesController extends Controller
         $document = $this->findTreeStatusModel($nodeIdValue);
 
         $searchModel = new StatusesTreeSearch();
-        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'structure';
+
+        if ($extra !== null) {
+            $searchModel->extraFilter = (array)json_decode($extra);
+        }
+
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -213,7 +220,14 @@ class DocTypesController extends Controller
         $document = $this->findTreeStatusModel($nodeIdValue);
 
         $searchModel = new StatusesTreeSearch();
-        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'structure';
+
+        if ($extra !== null) {
+            $searchModel->extraFilter = (array)json_decode($extra);
+        }
+
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         $config = [
             'links' => [
@@ -274,7 +288,14 @@ class DocTypesController extends Controller
         $document = $this->findTreeStatusModel($currentNodeId);
 
         $searchModel = new StatusesTreeSearch();
-        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'structure';
+
+        if ($extra !== null) {
+            $searchModel->extraFilter = (array)json_decode($extra);
+        }
+
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();
@@ -350,7 +371,14 @@ class DocTypesController extends Controller
         $document = $this->findTreeStatusModel($currentNodeId);
 
         $searchModel = new StatusesTreeSearch();
-        $dataProvider = $searchModel->search($document, 'structure', $extra, Yii::$app->request->queryParams);
+        $searchModel->document = $document;
+        $searchModel->behaviorName = 'structure';
+
+        if ($extra !== null) {
+            $searchModel->extraFilter = (array)json_decode($extra);
+        }
+
+        $dataProvider = $searchModel->search(Yii::$app->request->queryParams);
 
         /* Получаем документы с родительскими связями 1 уровня */
         $parentDocument = Statuses::getDocumentByNodeId($fromNodeId)->one();

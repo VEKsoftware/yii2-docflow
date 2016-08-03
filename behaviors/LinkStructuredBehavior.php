@@ -634,16 +634,18 @@ class LinkStructuredBehavior extends LinkBaseBehavior
      * 1)Если корневой документ не указан, то берем корневые документы
      * 2)Если корневой документ указан, то берем его подчиненные документы
      *
+     * @param ActiveQuery $queryArg - запрос
+     *
      * @return ActiveQuery
      */
-    public function getDocumentsWhichChild1LevelByRootDocument()
+    public function getDocumentsWhichChild1LevelByRootDocument(ActiveQuery $queryArg)
     {
         /* Передаем название класса связи в переменную ради удобства */
         $linkClass = $this->linkClass;
         $owner = $this->owner;
 
         /* Запрос на получение документов, указанных в запросе при инициализации поведения, с подчиненными связями */
-        $query = $this->getDocuments()
+        $query = $this->getDocuments($queryArg)
             ->with(
                 [
                     'linksTo' => function (ActiveQuery $query) use ($linkClass) {

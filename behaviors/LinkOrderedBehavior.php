@@ -51,6 +51,7 @@ use docflow\models\Statuses;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
+use yii\helpers\ArrayHelper;
 
 class LinkOrderedBehavior extends LinkStructuredBehavior
 {
@@ -207,9 +208,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      */
     protected function getDocumentsWithLevel(array $documents)
     {
-        /**
-         * @var array $parentLink
-         */
+        /* @var array $parentLink */
         $parentLink = $documents[$this->owner->{$this->indexBy}]->linksFrom;
 
         $currentDocumentParent = null;
@@ -254,6 +253,8 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
     {
         $return = null;
 
+        ArrayHelper::multisort($docsOnLevel, $this->orderedFieldValue);
+
         if ($action === 'Up') {
             $return = $this->getUpDocument($docsOnLevel);
         }
@@ -282,7 +283,6 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             /* Если нашли документ на сменту, то выходим из перебора */
             if ($value->{$this->orderedFieldValue} < $this->owner->{$this->orderedFieldValue}) {
                 $document = $value;
-                break;
             }
         }
 

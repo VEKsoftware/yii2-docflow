@@ -11,6 +11,7 @@ namespace docflow\base;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
+use yii\helpers\ArrayHelper;
 
 class UnstructuredRecord extends MultipleActiveRecord
 {
@@ -205,10 +206,16 @@ class UnstructuredRecord extends MultipleActiveRecord
      */
     public function __get($name)
     {
-        if (array_key_exists($name, $this->_hiddenAttributes) || isset($this->_hiddenAttributes[$name])) {
-            return $this->_hiddenAttributes[$name];
+        $explode = explode('.', $name);
+
+        if (array_key_exists($explode[0], $this->_hiddenAttributes) || isset($this->_hiddenAttributes[$explode[0]])) {
+            if (count($explode) < 2) {
+                return $this->_hiddenAttributes[$explode[0]];
+            } else {
+                return ArrayHelper::getValue($this->_hiddenAttributes, implode('.', $explode));
+            }
         } else {
-            return parent::__get($name);
+            return parent::__get($explode[0]);
         }
     }
 
@@ -222,12 +229,37 @@ class UnstructuredRecord extends MultipleActiveRecord
      */
     public function __set($name, $value)
     {
-        if ($this->hasHiddenAttribute($name)) {
-            if (is_array($value)) {
-                $this->_hiddenAttributes[$name] = new JsonB($value);
+        $explode = explode('.', $name);
+
+        if ($this->hasHiddenAttribute($explode[0])) {
+            if (count($explode) < 2) {
+                if (is_array($value)) {
+                    $this->_hiddenAttributes[$explode[0]] = new JsonB($value);
+                }
+            } else {
+                /* Распаковка */
+                $endField = $this;
+                $previous = [];
+                foreach ($explode as $field) {
+                    $endField = $endField->{$field};
+                    $previous[] = $endField;
+                }
+
+                /* Установление нового значения */
+                $lastNum = (count($previous) - 1);
+                $previous[$lastNum] = $value;
+
+                /* Упаковка */
+                for ($current = (count($previous) - 1); $current >= 1; $current--) {
+                    $next = ($current - 1);
+                    $previous[$next]->{$explode[$current]} = $previous[$current];
+                }
+
+                /* Финальное присваивание */
+                $this->{$explode[0]} = $previous[0];
             }
         } else {
-            parent::__set($name, $value);
+            parent::__set($explode[0], $value);
         }
     }
 

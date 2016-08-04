@@ -156,11 +156,14 @@ class UnstructuredRecord extends MultipleActiveRecord
 
         foreach ($jsonBColumns as $jsonBColumn) {
             if (array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
-                $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
-                $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
-                $json = json_encode($prepareJsonB);
+                /* Проверяем на null значение аттрибутов JsonB (когда только создаем и можем не записать ничего) */
+                if ($this->_hiddenAttributes[$jsonBColumn]->attributes !== null) {
+                    $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
+                    $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
+                    $json = json_encode($prepareJsonB);
 
-                $this->setAttribute($jsonBColumn, $json);
+                    $this->setAttribute($jsonBColumn, $json);
+                }
 
                 unset($this->_hiddenAttributes[$jsonBColumn]);
             }

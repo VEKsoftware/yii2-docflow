@@ -218,7 +218,7 @@ class UnstructuredRecord extends MultipleActiveRecord
                 return ArrayHelper::getValue($this->_hiddenAttributes, implode('.', $explode));
             }
         } else {
-            return parent::__get($explode[0]);
+            return parent::__get($name);
         }
     }
 
@@ -262,7 +262,7 @@ class UnstructuredRecord extends MultipleActiveRecord
                 $this->{$explode[0]} = $previous[0];
             }
         } else {
-            parent::__set($explode[0], $value);
+            parent::__set($name, $value);
         }
     }
 

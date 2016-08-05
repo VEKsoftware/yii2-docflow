@@ -158,82 +158,76 @@ class m160401_000000_init extends Migration
             'CASCADE'
         );
 
-        /*
-        // ????????
-        $this->createTable('doc_dynafields', [
-            'id' => $this->primaryKey(),
-            'doc_type_id' => $this->integer()->notNull(),
-            'tag' => $this->string(128)->notNull(), // field tag
-            'name' => $this->string(128)->notNull(), // Human readable name of the property
-            'description' => $this->string(512),
-        ], null);
+        /* Определяем тип данных для operation_types */
+        $this->getDb()
+            ->createCommand('DROP TYPE IF EXISTS "operation_types"')
+            ->execute();
 
-        $this->addForeignKey(
-            'doc_dynafields_doc_type_fkey',
-            'doc_dynafields',
-            'doc_type_id',
-            'doc_types',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
+        $this->getDb()
+            ->createCommand('CREATE TYPE operation_types as ENUM (\'Nope\')')
+            ->execute();
 
-        // ????????
+        /* Таблица операций */
         $this->createTable(
-            'doc_structure',
+            '{{%operations}}',
             [
-                'id' => $this->primaryKey(),
-                'doc_type_id' => $this->integer()->notNull(),
-                'tag' => $this->string(128)->notNull(), // category tag
-                'name' => $this->string(128)->notNull(), // Human readable name of the category
-                'description' => $this->string(512),
-            ],
-            null
+                'id' => $this->primaryKey()->notNull(),
+                'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
+                'status_id' => $this->integer()->notNull(),
+                'unit_real_id' => $this->integer(),
+                'unit_resp_id' => $this->integer(),
+                'field' => 'jsonb',
+                'comment' => $this->text(),
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
         );
 
-        $this->addForeignKey(
-            'doc_dynafields_doc_type_fkey',
-            'doc_dynafields',
-            'doc_type_id',
-            'doc_types',
-            'id',
-            'CASCADE',
-            'CASCADE'
+        $this->createIndex(
+            'ix_operations_operation_type',
+            '{{%operations}}',
+            'operation_type'
         );
 
-        // ????????
-        $this->createTable(
-            'doc_structure_links',
-            [
-                'id' => $this->primaryKey(),
-                'doc_type_id' => $this->integer()->notNull(),
-                'tag' => $this->string(128)->notNull(), // category tag
-                'name' => $this->string(128)->notNull(), // Human readable name of the category
-                'description' => $this->string(512),
-            ],
-            null
+        $this->createIndex(
+            'ix_operations_status_id',
+            '{{%operations}}',
+            'status_id'
         );
 
-        $this->addForeignKey(
-            'doc_dynafields_doc_type_fkey',
-            'doc_dynafields',
-            'doc_type_id',
-            'doc_types',
-            'id',
-            'CASCADE',
-            'CASCADE'
+        $this->createIndex(
+            'ix_operations_unit_real_id',
+            '{{%operations}}',
+            'unit_real_id'
         );
-        */
+
+        $this->createIndex(
+            'ix_operations_unit_resp_id',
+            '{{%operations}}',
+            'unit_resp_id'
+        );
+
+        $this->createIndex(
+            'ix_operations_version',
+            '{{%operations}}',
+            'version'
+        );
+
+        $this->createIndex(
+            'ix_operations_atime',
+            '{{%operations}}',
+            'atime'
+        );
     }
 
     public function safeDown()
     {
-        //$this->dropForeignKey('doc_statuses_doc_type_fkey', 'doc_statuses');
         $this->dropForeignKey('doc_types_doc_statuses_fkey', 'doc_statuses');
         $this->dropForeignKey('doc_statuses_links_statuses_id_fk1', 'doc_statuses_links');
         $this->dropForeignKey('doc_statuses_links_statuses_id_fk2', 'doc_statuses_links');
         $this->dropTable('doc_statuses_links');
         $this->dropTable('doc_statuses');
         $this->dropTable('doc_types');
+        $this->dropTable('{{%operations}}');
     }
 }

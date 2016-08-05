@@ -65,3 +65,8 @@ php yii migrate/up
 php yii migrate/up --migrationPath=@docflow/migrations
 php yii migrate/up --migrationPath=@docflow/examples/users/migrations
 php yii migrate/up --migrationPath=@docflow/examples/jsonb/migrations
+
+php yii migrate/down 1 --migrationPath=@docflow/examples/jsonb/migrations
+php yii migrate/down 1 --migrationPath=@docflow/examples/users/migrations
+php yii migrate/down 1 --migrationPath=@docflow/migrations
+php yii migrate/down

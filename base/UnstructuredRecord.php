@@ -8,6 +8,7 @@
 
 namespace docflow\base;
 
+use docflow\helpers\DocFlowArrayHelper;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
@@ -240,26 +241,7 @@ class UnstructuredRecord extends MultipleActiveRecord
                     $this->_hiddenAttributes[$explode[0]] = new JsonB($value);
                 }
             } else {
-                /* Распаковка */
-                $endField = $this;
-                $previous = [];
-                foreach ($explode as $field) {
-                    $endField = $endField->{$field};
-                    $previous[] = $endField;
-                }
-
-                /* Установление нового значения */
-                $lastNum = (count($previous) - 1);
-                $previous[$lastNum] = $value;
-
-                /* Упаковка */
-                for ($current = (count($previous) - 1); $current >= 1; $current--) {
-                    $next = ($current - 1);
-                    $previous[$next]->{$explode[$current]} = $previous[$current];
-                }
-
-                /* Финальное присваивание */
-                $this->{$explode[0]} = $previous[0];
+                DocFlowArrayHelper::setValues($this, $name, $value);
             }
         } else {
             parent::__set($name, $value);

@@ -189,6 +189,9 @@ function nodeVertical(currentName, action) {
 
     tree.selectNode(newCurrentNode);
 
+    /* Очищаем пространство с данными */
+    $('#tree-leaf').html('');
+
     /* Перерисовываем дерево в модалке, если оно есть */
     renderModalTree();
 }
@@ -254,8 +257,11 @@ function nodeHorizontal(node, flTreeUrl, action) {
         tree.selectNode(newReloadNode);
     } else {
         tree.remove();
-        initFlTree(flTreeUrl);
+        initFlTreeWithLeaf(flTreeUrl);
     }
+
+    /* Очищаем пространство с данными */
+    $('#tree-leaf').html('');
 
     /* Перерисовываем дерево в модалке, если оно есть */
     renderModalTree();

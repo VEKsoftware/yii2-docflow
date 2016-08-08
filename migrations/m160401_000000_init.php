@@ -31,7 +31,7 @@ class m160401_000000_init extends Migration
         $this->getDb()->createCommand('CREATE TYPE link_types as ENUM (\'simple\', \'fltree\')')->execute();
 
         $this->createTable(
-            'doc_types',
+            '{{%doc_types}}',
             [
                 'id' => $this->primaryKey(),
                 'tag' => $this->string(128)->notNull()->unique(),
@@ -42,10 +42,10 @@ class m160401_000000_init extends Migration
             ]
         );
 
-        $this->createIndex('doc_types_tags', 'doc_types', 'tag', true);
+        $this->createIndex('doc_types_tags', '{{%doc_types}}', 'tag', true);
 
         $this->batchInsert(
-            'doc_types',
+            '{{%doc_types}}',
             ['tag', 'name', 'description', 'class', 'table'],
             [
                 [
@@ -59,103 +59,6 @@ class m160401_000000_init extends Migration
             ]
         );
 
-        $this->createTable(
-            'doc_statuses',
-            [
-                'id' => $this->primaryKey(),
-                'doc_type_id' => $this->integer()->notNull(),
-                'tag' => $this->string(128)->notNull(),
-                'name' => $this->string(128)->notNull(),
-                'description' => $this->string(512),
-                'order_idx' => 'serial NOT NULL',
-                'version' => $this->bigInteger(),
-                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
-            ]
-        );
-
-
-        $this->batchInsert(
-            'doc_statuses',
-            ['doc_type_id', 'tag', 'name', 'description'],
-            [
-                [
-                    1,
-                    'active',
-                    Yii::t('docflow', 'Active'),
-                    Yii::t('docflow', 'Active document')
-                ],
-                [2, 1, 1, 1],
-                [2, 2, 2, 2],
-                [2, 3, 3, 3],
-                [2, 4, 4, 4],
-                [2, 5, 5, 5],
-                [2, 6, 6, 6],
-                [2, 7, 7, 7],
-                [2, 8, 8, 8],
-                [2, 9, 9, 9],
-                [2, 10, 10, 10],
-            ]
-        );
-
-        $this->createIndex(
-            'doc_statuses_tags_key',
-            'doc_statuses',
-            ['doc_type_id', 'tag'],
-            true
-        );
-
-        $this->addForeignKey(
-            'doc_types_doc_statuses_fkey',
-            'doc_statuses',
-            'doc_type_id',
-            'doc_types',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-
-        $this->createTable(
-            'doc_statuses_links',
-            [
-                'id' => $this->primaryKey(),
-                'status_from' => $this->integer()->notNull(),
-                'status_to' => $this->integer()->notNull(),
-                'right_tag' => $this->string(128),
-                'type' => 'link_types DEFAULT \'simple\'::link_types',
-                'level' => $this->integer(),
-            ]
-        );
-
-        $this->createIndex(
-            'doc_statuses_links_from',
-            'doc_statuses_links',
-            'status_from',
-            false
-        );
-        $this->createIndex(
-            'doc_statuses_links_to',
-            'doc_statuses_links',
-            'status_to',
-            false
-        );
-        $this->addForeignKey(
-            'doc_statuses_links_statuses_id_fk1',
-            'doc_statuses_links',
-            'status_from',
-            'doc_statuses',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-        $this->addForeignKey(
-            'doc_statuses_links_statuses_id_fk2',
-            'doc_statuses_links',
-            'status_to',
-            'doc_statuses',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
 
         /* Определяем тип данных для operation_types */
         $this->getDb()
@@ -218,6 +121,118 @@ class m160401_000000_init extends Migration
             '{{%operations}}',
             'atime'
         );
+
+
+        $this->createTable(
+            '{{%doc_statuses}}',
+            [
+                'id' => $this->primaryKey(),
+                'doc_type_id' => $this->integer()->notNull(),
+                'tag' => $this->string(128)->notNull(),
+                'name' => $this->string(128)->notNull(),
+                'description' => $this->string(512),
+                'order_idx' => 'serial NOT NULL',
+                'operations_ids' => $this->integer() . '[]',
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+
+        $this->batchInsert(
+            '{{%doc_statuses}}',
+            ['doc_type_id', 'tag', 'name', 'description'],
+            [
+                [
+                    1,
+                    'active',
+                    Yii::t('docflow', 'Active'),
+                    Yii::t('docflow', 'Active document')
+                ],
+                [2, 1, 1, 1],
+                [2, 2, 2, 2],
+                [2, 3, 3, 3],
+                [2, 4, 4, 4],
+                [2, 5, 5, 5],
+                [2, 6, 6, 6],
+                [2, 7, 7, 7],
+                [2, 8, 8, 8],
+                [2, 9, 9, 9],
+                [2, 10, 10, 10],
+            ]
+        );
+
+        $this->createIndex(
+            'doc_statuses_tags_key',
+            '{{%doc_statuses}}',
+            ['doc_type_id', 'tag'],
+            true
+        );
+
+        $this->addForeignKey(
+            'fk_doc_statuses__doc_type_id-doc_types__id',
+            '{{%doc_statuses}}',
+            'doc_type_id',
+            '{{%doc_types}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+        /*
+        $this->addForeignKey(
+            'fk_doc_statuses__operations_ids-operations__id',
+            '{{%doc_statuses}}',
+            'operations_ids',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        */
+
+        $this->createTable(
+            '{{%doc_statuses_links}}',
+            [
+                'id' => $this->primaryKey(),
+                'status_from' => $this->integer()->notNull(),
+                'status_to' => $this->integer()->notNull(),
+                'right_tag' => $this->string(128),
+                'type' => 'link_types DEFAULT \'simple\'::link_types',
+                'level' => $this->integer(),
+            ]
+        );
+
+        $this->createIndex(
+            'doc_statuses_links_from',
+            '{{%doc_statuses_links}}',
+            'status_from',
+            false
+        );
+        $this->createIndex(
+            'doc_statuses_links_to',
+            '{{%doc_statuses_links}}',
+            'status_to',
+            false
+        );
+        $this->addForeignKey(
+            'doc_statuses_links_statuses_id_fk1',
+            '{{%doc_statuses_links}}',
+            'status_from',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'doc_statuses_links_statuses_id_fk2',
+            '{{%doc_statuses_links}}',
+            'status_to',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
     }
 
     /**
@@ -227,12 +242,9 @@ class m160401_000000_init extends Migration
      */
     public function safeDown()
     {
-        $this->dropForeignKey('doc_types_doc_statuses_fkey', 'doc_statuses');
-        $this->dropForeignKey('doc_statuses_links_statuses_id_fk1', 'doc_statuses_links');
-        $this->dropForeignKey('doc_statuses_links_statuses_id_fk2', 'doc_statuses_links');
-        $this->dropTable('doc_statuses_links');
-        $this->dropTable('doc_statuses');
-        $this->dropTable('doc_types');
+        $this->dropTable('{{%doc_statuses_links}}');
+        $this->dropTable('{{%doc_statuses}}');
+        $this->dropTable('{{%doc_types}}');
         $this->dropTable('{{%operations}}');
     }
 }

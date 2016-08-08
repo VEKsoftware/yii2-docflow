@@ -5,7 +5,7 @@
 
 namespace docflow\widgets;
 
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\widgets\helpers\FlTreeWidgetsHelper;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;
@@ -179,7 +179,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
     {
         $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinks'], $config['nodeIdField']);
 
-        $key = array_search($value->{$config['nodeIdField']}, $simpleLinksParentDoc);
+        $key = array_search($value->{$config['nodeIdField']}, $simpleLinksParentDoc, null);
 
         return ($key !== false);
     }

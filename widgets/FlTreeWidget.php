@@ -8,7 +8,7 @@
 
 namespace docflow\widgets;
 
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\widgets\helpers\FlTreeWidgetsHelper;
 use yii\base\ErrorException;
 use yii\base\InvalidParamException;

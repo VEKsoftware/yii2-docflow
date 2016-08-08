@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\base;
 
 use yii\data\ActiveDataProvider;
 
@@ -11,6 +11,8 @@ class DocTypesSearch extends DocTypes
 {
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function rules()
     {
@@ -23,7 +25,7 @@ class DocTypesSearch extends DocTypes
     /**
      * Creates data provider instance with search query applied.
      *
-     * @param array $params
+     * @param array $params - параметры
      *
      * @return ActiveDataProvider
      */
@@ -32,13 +34,14 @@ class DocTypesSearch extends DocTypes
         $query = DocTypes::find();
 
         $dataProvider = new ActiveDataProvider([
-            'query' => $query,
+            'query' => $query
         ]);
 
         $this->load($params);
 
         if (!$this->validate()) {
             $query->where('0=1');
+
             return $dataProvider;
         }
 
@@ -47,8 +50,7 @@ class DocTypesSearch extends DocTypes
         ]);
 
         $query->andFilterWhere(['like', 'name', $this->name])
-            ->andFilterWhere(['like', 'tag', $this->tag])
-        ;
+            ->andFilterWhere(['like', 'tag', $this->tag]);
 
         return $dataProvider;
     }

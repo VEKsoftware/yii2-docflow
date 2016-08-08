@@ -5,8 +5,7 @@ namespace docflow\models;
 use yii;
 
 use docflow\Docflow;
-use docflow\models\Link;
-use docflow\models\Statuses;
+use yii\base\ErrorException;
 
 /**
  * This is the model class for table "statuses_links".
@@ -33,6 +32,8 @@ class StatusesLinks extends Link
 
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
     public static function tableName()
     {
@@ -41,6 +42,8 @@ class StatusesLinks extends Link
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function rules()
     {
@@ -56,6 +59,11 @@ class StatusesLinks extends Link
         ];
     }
 
+    /**
+     * Сценарии
+     *
+     * @return array
+     */
     public function scenarios()
     {
         return array_merge(
@@ -69,6 +77,8 @@ class StatusesLinks extends Link
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function attributeLabels()
     {
@@ -78,11 +88,13 @@ class StatusesLinks extends Link
             'right_tag' => Yii::t('docflow', 'Access Right Tag'),
             'level' => Yii::t('docflow', 'Link Level'),
             'type' => Yii::t('docflow', 'Link Type'),
-        ] + parent::attributeLabels();
+        ];
     }
 
     /**
-     * @inherit
+     * {@inheritdoc}
+     *
+     * @return array
      */
     public function behaviors()
     {
@@ -93,11 +105,21 @@ class StatusesLinks extends Link
         ];
     }
 
+    /**
+     * Подтверждение
+     *
+     * @param array $row - строка
+     *
+     * @return StatusesLinksStructure|StatusesLinksTransitions
+     *
+     * @throws \yii\base\ErrorException
+     */
     public static function instantiate($row)
     {
         if (!isset($row['type'])) {
             throw new ErrorException('You need pass doc_statuses type in the $row parameter for instantiation of the StatusesLinks model');
         }
+
         switch ($row['type']) {
             case(static::LINK_TYPE_SIMPLE):
                 return new StatusesLinksTransitions($row);

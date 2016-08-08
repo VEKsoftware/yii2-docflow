@@ -42,7 +42,9 @@ class m160401_000000_init extends Migration
             ]
         );
 
-        $this->createIndex('doc_types_tags', '{{%doc_types}}', 'tag', true);
+        $this->createIndex('ux_doc_types__tags', '{{%doc_types}}', 'tag', true);
+        $this->createIndex('ix_doc_types__name', '{{%doc_types}}', 'name');
+        $this->createIndex('ix_doc_types__description', '{{%doc_types}}', 'description');
 
         $this->batchInsert(
             '{{%doc_types}}',
@@ -87,37 +89,37 @@ class m160401_000000_init extends Migration
         );
 
         $this->createIndex(
-            'ix_operations_operation_type',
+            'ix_operations__operation_type',
             '{{%operations}}',
             'operation_type'
         );
-
         $this->createIndex(
-            'ix_operations_status_id',
+            'ix_operations__status_id',
             '{{%operations}}',
             'status_id'
         );
-
         $this->createIndex(
-            'ix_operations_unit_real_id',
+            'ix_operations__unit_real_id',
             '{{%operations}}',
             'unit_real_id'
         );
-
         $this->createIndex(
-            'ix_operations_unit_resp_id',
+            'ix_operations__unit_resp_id',
             '{{%operations}}',
             'unit_resp_id'
         );
-
         $this->createIndex(
-            'ix_operations_version',
+            'ix_operations__comment',
+            '{{%operations}}',
+            'comment'
+        );
+        $this->createIndex(
+            'ix_operations__version',
             '{{%operations}}',
             'version'
         );
-
         $this->createIndex(
-            'ix_operations_atime',
+            'ix_operations__atime',
             '{{%operations}}',
             'atime'
         );
@@ -163,11 +165,46 @@ class m160401_000000_init extends Migration
         );
 
         $this->createIndex(
-            'doc_statuses_tags_key',
+            'ix_doc_statuses__doc_type_id',
             '{{%doc_statuses}}',
-            ['doc_type_id', 'tag'],
+            'doc_type_id'
+        );
+        $this->createIndex(
+            'ux_doc_statuses__tag',
+            '{{%doc_statuses}}',
+            'tag',
             true
         );
+        $this->createIndex(
+            'ix_doc_statuses__name',
+            '{{%doc_statuses}}',
+            'name'
+        );
+        $this->createIndex(
+            'ix_doc_statuses__description',
+            '{{%doc_statuses}}',
+            'description'
+        );
+        $this->createIndex(
+            'ix_doc_statuses__order_idx',
+            '{{%doc_statuses}}',
+            'order_idx'
+        );
+        $this->createIndex(
+            'ix_doc_statuses__version',
+            '{{%doc_statuses}}',
+            'version'
+        );
+        $this->createIndex(
+            'ix_doc_statuses__atime',
+            '{{%doc_statuses}}',
+            'atime'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses__operations_ids" ON "doc_statuses" USING gin ("operations_ids");')
+            ->execute();
 
         $this->addForeignKey(
             'fk_doc_statuses__doc_type_id-doc_types__id',
@@ -179,18 +216,6 @@ class m160401_000000_init extends Migration
             'CASCADE'
         );
 
-        /*
-        $this->addForeignKey(
-            'fk_doc_statuses__operations_ids-operations__id',
-            '{{%doc_statuses}}',
-            'operations_ids',
-            '{{%operations}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-        */
-
         $this->createTable(
             '{{%doc_statuses_links}}',
             [
@@ -200,20 +225,45 @@ class m160401_000000_init extends Migration
                 'right_tag' => $this->string(128),
                 'type' => 'link_types DEFAULT \'simple\'::link_types',
                 'level' => $this->integer(),
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp() . ' default current_timestamp'
             ]
         );
 
         $this->createIndex(
-            'doc_statuses_links_from',
+            'ix_doc_statuses_links__from',
             '{{%doc_statuses_links}}',
-            'status_from',
-            false
+            'status_from'
         );
         $this->createIndex(
-            'doc_statuses_links_to',
+            'ix_doc_statuses_links__to',
             '{{%doc_statuses_links}}',
-            'status_to',
-            false
+            'status_to'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links__version',
+            '{{%doc_statuses_links}}',
+            'version'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links__atime',
+            '{{%doc_statuses_links}}',
+            'atime'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links__right_tag',
+            '{{%doc_statuses_links}}',
+            'right_tag'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links__type',
+            '{{%doc_statuses_links}}',
+            'type'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links__level',
+            '{{%doc_statuses_links}}',
+            'level'
         );
         $this->addForeignKey(
             'doc_statuses_links_statuses_id_fk1',

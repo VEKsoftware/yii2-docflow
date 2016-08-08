@@ -8,22 +8,23 @@ use docflow\models\Statuses;
 
 class m160401_000000_init extends Migration
 {
-    /*
-        public function init()
-        {
-            $db = Docflow::getInstance()->db;
-            $this->db = $db;
-            parent::init();
-        }
-    //*/
-
+    /**
+     * Получаем соединение с БД, используемое модулем.
+     *
+     * @return mixed
+     */
     public function getDb()
     {
-        $db = Docflow::getInstance()->db;
-
-        return Yii::$app->$db;
+        return Yii::$app->{Docflow::getInstance()->db};
     }
 
+    /**
+     * Безопасно накатываем миграции
+     *
+     * @return void
+     *
+     * @throws \yii\db\Exception
+     */
     public function safeUp()
     {
         $this->getDb()->createCommand('DROP TYPE IF EXISTS link_types')->execute();
@@ -36,11 +37,9 @@ class m160401_000000_init extends Migration
                 'tag' => $this->string(128)->notNull()->unique(),
                 'name' => $this->string(128)->notNull(),
                 'description' => $this->string(512),
-                //'status_id' => $this->integer(),
                 'class' => $this->string(128), // Name of the class handling the document
                 'table' => $this->string(128), // Name of the table containging the documents
-            ],
-            null
+            ]
         );
 
         $this->createIndex('doc_types_tags', 'doc_types', 'tag', true);
@@ -69,8 +68,9 @@ class m160401_000000_init extends Migration
                 'name' => $this->string(128)->notNull(),
                 'description' => $this->string(512),
                 'order_idx' => 'serial NOT NULL',
-            ],
-            null
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
         );
 
 
@@ -104,7 +104,6 @@ class m160401_000000_init extends Migration
             true
         );
 
-        //$this->addForeignKey('doc_statuses_doc_type_fkey', 'doc_statuses', 'doc_type_id', 'doc_types', 'id', 'CASCADE', 'CASCADE');
         $this->addForeignKey(
             'doc_types_doc_statuses_fkey',
             'doc_statuses',
@@ -124,8 +123,8 @@ class m160401_000000_init extends Migration
                 'right_tag' => $this->string(128),
                 'type' => 'link_types DEFAULT \'simple\'::link_types',
                 'level' => $this->integer(),
-            ],
-            null);
+            ]
+        );
 
         $this->createIndex(
             'doc_statuses_links_from',
@@ -221,6 +220,11 @@ class m160401_000000_init extends Migration
         );
     }
 
+    /**
+     * Безопасно откатываем миграции
+     *
+     * @return void
+     */
     public function safeDown()
     {
         $this->dropForeignKey('doc_types_doc_statuses_fkey', 'doc_statuses');

@@ -6,7 +6,7 @@
  * Time: 13:02
  */
 
-namespace docflow\models;
+namespace docflow\models\base;
 
 use yii\base\ErrorException;
 use yii\db\Connection;
@@ -18,7 +18,7 @@ use yii\db\Connection;
  *
  * @package Docflow\Models
  */
-abstract class Operations extends Document
+abstract class Operations extends OperationBase
 {
     /**
      * Хранилище итемов

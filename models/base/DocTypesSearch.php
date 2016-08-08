@@ -2,7 +2,6 @@
 
 namespace docflow\models;
 
-use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
 /**

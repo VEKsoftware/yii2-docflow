@@ -4,7 +4,6 @@ namespace docflow\models;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
-use yii\db\ActiveQuery;
 
 /**
  * StatusesLinksSearch represents the model behind the search form about `docflow\models\Statuses`.

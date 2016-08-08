@@ -2,9 +2,10 @@
 
 namespace docflow\models;
 
-use docflow\base\UnstructuredRecord;
 use yii;
+use docflow\models\base\DocFlowBase;
 use docflow\Docflow;
+use yii\base\ErrorException;
 
 /**
  * This is the model class for table "statuses_doctypes".
@@ -14,7 +15,7 @@ use docflow\Docflow;
  * @property string     $tag
  * @property Statuses[] $statuses
  */
-class DocTypes extends UnstructuredRecord
+class DocTypes extends DocFlowBase
 {
     protected static $_doctypes;
 

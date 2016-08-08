@@ -1,15 +1,13 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\base;
 
-use docflow\base\UnstructuredRecord;
 use yii;
 
 /**
  * This is the base model class for all documents.
- *
  */
-abstract class Document extends UnstructuredRecord
+abstract class Document extends DocFlowBase
 {
     protected static $statusIdField = 'status_id';
     protected static $newStatusTag = 'active';
@@ -72,7 +70,7 @@ abstract class Document extends UnstructuredRecord
      *    ...
      *  ],
      */
-    abstract public static function accessData();
+    /* abstract public static function accessData(); */
 
     /**
      * This method resolves the relation names between $this object and that is set as an argument.

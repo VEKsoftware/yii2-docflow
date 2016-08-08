@@ -2,10 +2,7 @@
 
 namespace docflow\models;
 
-use Yii;
-
-use docflow\Docflow;
-use docflow\models\StatusesLinks;
+use yii;
 
 /**
  * This is the model class for table "statuses_links".

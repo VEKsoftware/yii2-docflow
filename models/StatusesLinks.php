@@ -2,7 +2,7 @@
 
 namespace docflow\models;
 
-use Yii;
+use yii;
 
 use docflow\Docflow;
 use docflow\models\Link;

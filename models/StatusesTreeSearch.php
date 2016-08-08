@@ -4,9 +4,9 @@ namespace docflow\models;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
+use docflow\models\base\Document;
 use yii;
 use yii\base\InvalidParamException;
-use yii\base\Model;
 use yii\data\ActiveDataProvider;
 
 /**

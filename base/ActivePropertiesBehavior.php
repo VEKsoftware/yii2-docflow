@@ -12,12 +12,15 @@ namespace docflow\base;
 
 use docflow\models\Document;
 use yii\base\Behavior;
+use yii\base\InvalidCallException;
 use yii\base\UnknownPropertyException;
 use yii\db\ActiveQueryInterface;
 
 class ActivePropertiesBehavior extends Behavior
 {
     /**
+     * Массив, в который записываются кешированные значения
+     *
      * @var array
      */
     private $_cache = [];
@@ -25,10 +28,11 @@ class ActivePropertiesBehavior extends Behavior
     /**
      * Кешируем запросы
      *
-     * @param string $name
+     * @param string $name - имяя
      *
      * @return mixed
      *
+     * @throws InvalidCallException
      * @throws UnknownPropertyException
      */
     public function __get($name)
@@ -39,9 +43,7 @@ class ActivePropertiesBehavior extends Behavior
 
         $value = parent::__get($name);
         if ($value instanceof ActiveQueryInterface) {
-            /**
-             * @var Document $this->owner
-             */
+            /* @var Document $this->owner */
             return $this->_cache[$name] = $value->findFor($name, $this->owner);
         } else {
             return $value;

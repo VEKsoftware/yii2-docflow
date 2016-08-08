@@ -1,11 +1,15 @@
 <?php
 
+use docflow\models\base\DocTypesSearch;
 use yii\helpers\Html;
+use yii\web\View;
 use yii\widgets\ActiveForm;
 
-/* @var $this yii\web\View */
-/* @var $model docflow\models\DocTypesSearch */
-/* @var $form yii\widgets\ActiveForm */
+/**
+ * @var View $this
+ * @var DocTypesSearch $model
+ * @var ActiveForm $form
+ */
 ?>
 
 <div class="statuses-doctypes-search">
@@ -15,15 +19,15 @@ use yii\widgets\ActiveForm;
         'method' => 'get',
     ]); ?>
 
-    <?= $form->field($model, 'id') ?>
+    <?php echo $form->field($model, 'id') ?>
 
-    <?= $form->field($model, 'name') ?>
+    <?php echo $form->field($model, 'name') ?>
 
-    <?= $form->field($model, 'tag') ?>
+    <?php echo $form->field($model, 'tag') ?>
 
     <div class="form-group">
-        <?= Html::submitButton(Yii::t('docflow', 'Search'), ['class' => 'btn btn-primary']) ?>
-        <?= Html::resetButton(Yii::t('docflow', 'Reset'), ['class' => 'btn btn-default']) ?>
+        <?php echo Html::submitButton(Yii::t('docflow', 'Search'), ['class' => 'btn btn-primary']) ?>
+        <?php echo Html::resetButton(Yii::t('docflow', 'Reset'), ['class' => 'btn btn-default']) ?>
     </div>
 
     <?php ActiveForm::end(); ?>

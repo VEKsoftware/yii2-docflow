@@ -12,7 +12,7 @@
  * @var string   $flTreeWithSimpleUrl
  */
 
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii\web\View;
 

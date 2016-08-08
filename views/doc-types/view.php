@@ -5,7 +5,7 @@
  * @var array    $flTreeWidgetParam
  */
 
-use docflow\models\DocTypes;
+use docflow\models\base\DocTypes;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWidgetWithLeaf;
 use yii\bootstrap\Modal;

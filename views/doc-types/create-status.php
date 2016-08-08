@@ -1,10 +1,15 @@
 <?php
 
+use docflow\models\base\DocTypes;
+use docflow\models\Statuses;
 use yii\helpers\Html;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $doc docflow\models\DocTypes */
-/* @var $model docflow\models\Statuses */
+/**
+ * @var View     $this
+ * @var DocTypes $doc
+ * @var Statuses $model
+ */
 
 $this->title = Yii::t('docflow', 'Create Status');
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Document Types'), 'url' => ['index']];
@@ -13,10 +18,8 @@ $this->params['breadcrumbs'][] = $this->title;
 ?>
 <div class="statuses-doctypes-create">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?php echo Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form-status', [
-        'model' => $model,
-    ]) ?>
+    <?php echo $this->render('_form-status', ['model' => $model]) ?>
 
 </div>

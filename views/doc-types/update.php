@@ -1,23 +1,23 @@
 <?php
 
+use docflow\models\base\DocTypes;
 use yii\helpers\Html;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $model statuses\models\DocTypes */
+/**
+ * @var View     $this
+ * @var DocTypes $model
+ */
 
-$this->title = Yii::t('docflow', 'Update {modelClass}: ', [
-    'modelClass' => 'Document Type',
-]).' '.$model->name;
+$this->title = Yii::t('docflow', 'Update {modelClass}: ', ['modelClass' => 'Document Type']) . ' ' . $model->name;
 $this->params['breadcrumbs'][] = ['label' => Yii::t('docflow', 'Document Types'), 'url' => ['index']];
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'doc' => $model->tag]];
 $this->params['breadcrumbs'][] = Yii::t('docflow', 'Update');
 ?>
 <div class="statuses-doctypes-update">
 
-    <h1><?= Html::encode($this->title) ?></h1>
+    <h1><?php echo Html::encode($this->title) ?></h1>
 
-    <?= $this->render('_form', [
-        'model' => $model,
-    ]) ?>
+    <?php echo $this->render('_form', ['model' => $model]) ?>
 
 </div>

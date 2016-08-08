@@ -8,7 +8,6 @@ use docflow\models\base\DocTypes;
 use docflow\models\base\Document;
 use yii;
 
-use docflow\Docflow;
 use yii\db\ActiveQuery;
 
 /**
@@ -60,35 +59,35 @@ class Statuses extends Document
      */
     public function behaviors()
     {
-        return [
-            'access' => [
-                'class' => Docflow::getInstance()->accessClass,
-            ],
-            'structure' => [
-                'class' => LinkOrderedBehavior::className(),
-                'linkClass' => StatusesLinksStructure::className(),
-                'orderedFieldDb' => 'order_idx',
-                'orderedFieldValue' => 'order_idx',
-                'documentQuery' => function (ActiveQuery $query) {
-                    /* True - конечный результат будет All(); null, false - one() */
-                    $query->multiple = true;
+        return array_merge(
+            parent::behaviors(),
+            [
+                'structure' => [
+                    'class' => LinkOrderedBehavior::className(),
+                    'linkClass' => StatusesLinksStructure::className(),
+                    'orderedFieldDb' => 'order_idx',
+                    'orderedFieldValue' => 'order_idx',
+                    'documentQuery' => function (ActiveQuery $query) {
+                        /* True - конечный результат будет All(); null, false - one() */
+                        $query->multiple = true;
 
-                    return $query;
-                },
-                'indexBy' => 'tag'
-            ],
-            'transitions' => [
-                'class' => LinkSimpleBehavior::className(),
-                'linkClass' => StatusesLinksTransitions::className(),
-                'documentQuery' => function (ActiveQuery $query) {
-                    /* True - конечный результат будет All(); null, false - one() */
-                    $query->multiple = true;
+                        return $query;
+                    },
+                    'indexBy' => 'tag'
+                ],
+                'transitions' => [
+                    'class' => LinkSimpleBehavior::className(),
+                    'linkClass' => StatusesLinksTransitions::className(),
+                    'documentQuery' => function (ActiveQuery $query) {
+                        /* True - конечный результат будет All(); null, false - one() */
+                        $query->multiple = true;
 
-                    return $query;
-                },
-                'indexBy' => 'tag'
-            ],
-        ];
+                        return $query;
+                    },
+                    'indexBy' => 'tag'
+                ],
+            ]
+        );
     }
 
     /**

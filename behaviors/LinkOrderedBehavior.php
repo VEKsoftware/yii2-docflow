@@ -46,10 +46,11 @@
 namespace docflow\behaviors;
 
 use docflow\messages\behaviors\BehaviorsMessages;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\models\Statuses;
 use yii;
 use yii\base\ErrorException;
+use yii\base\InvalidConfigException;
 use yii\base\InvalidParamException;
 use yii\helpers\ArrayHelper;
 
@@ -367,6 +368,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
      *
      * @return array
      *
+     * @throws InvalidConfigException
      * @throws ErrorException
      */
     protected function setStatusInTreeRight($newRootDocument)

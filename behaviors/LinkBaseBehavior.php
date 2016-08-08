@@ -15,7 +15,7 @@ namespace docflow\behaviors;
 use Closure;
 use docflow\base\ActivePropertiesBehavior;
 use docflow\messages\behaviors\BehaviorsMessages;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\models\Statuses;
 use yii\base\ErrorException;
 use yii\db\ActiveQuery;
@@ -23,6 +23,8 @@ use yii\db\ActiveQuery;
 class LinkBaseBehavior extends ActivePropertiesBehavior
 {
     /**
+     * Владелей документа
+     *
      * @var Statuses|Document
      */
     public $owner;

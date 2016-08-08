@@ -244,9 +244,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         $relationType = $linkClass::getRelationType();
         $rightTagFormat = '%s.%s.%s';
 
-        /**
-         * @var Link $statusLinkClass
-         */
+        /* @var Link $statusLinkClass */
         $statusLinkClass = new $linkClass;
         $statusLinkClass->setScenario($linkClass::LINK_TYPE_SIMPLE);
 

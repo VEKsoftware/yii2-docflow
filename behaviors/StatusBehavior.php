@@ -48,11 +48,10 @@ use docflow\messages\behaviors\BehaviorsMessages;
 
 use yii;
 use yii\db\ActiveQuery;
-use yii\db\ActiveRecord;
 use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\models\Statuses;
 
 /**
@@ -66,7 +65,7 @@ class StatusBehavior extends ActivePropertiesBehavior
     /**
      * The owner of this behavior
      *
-     * @var ActiveRecord
+     * @var Document
      */
     public $owner;
 
@@ -148,7 +147,8 @@ class StatusBehavior extends ActivePropertiesBehavior
     {
         $key = array_search(
             $this->owner->{$this->statusIdField},
-            array_column($this->allStatuses, 'id')
+            array_column($this->allStatuses, 'id'),
+            null
         );
 
         if ($key === false) {
@@ -167,7 +167,8 @@ class StatusBehavior extends ActivePropertiesBehavior
     {
         $key = array_search(
             $statusId,
-            array_column($this->allStatuses, 'id')
+            array_column($this->allStatuses, 'id'),
+            null
         );
 
         $return = true;
@@ -239,7 +240,7 @@ class StatusBehavior extends ActivePropertiesBehavior
             throw new ErrorException(BehaviorsMessages::STAT_NEW_STATUS_EQUAL_OLD_STATUS);
         }
 
-        /* Получаем текущий статус */
+        /* @var Statuses $status Получаем текущий статус */
         $status = $this->getStatus()->one();
 
         /* Получаем простые связи для текущего статуса */
@@ -317,7 +318,7 @@ class StatusBehavior extends ActivePropertiesBehavior
         // то добавляем к массиву статус, на который может измениться текущий статус
         foreach ($simpleLinks as $value) {
             if ($this->owner->isAllowed($value->right_tag)) {
-                $key = array_search($value->status_to, $childStatusesIdArray);
+                $key = array_search($value->status_to, $childStatusesIdArray, null);
 
                 if ($key !== false) {
                     $statuses[$key] = $childStatuses[$key];

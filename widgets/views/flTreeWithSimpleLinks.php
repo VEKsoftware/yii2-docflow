@@ -16,9 +16,9 @@ use yii\helpers\Url;
 use yii\web\View;
 use yii\widgets\DetailView;
 
-$widgetExist = (!empty($widget) && is_array($widget) && array_key_exists('source', $widget));
+$widgetExist = ((count($widget) > 0) && is_array($widget) && array_key_exists('source', $widget));
 
-$buttonsExist = (!empty($buttons) && is_array($buttons));
+$buttonsExist = ((count($buttons) > 0) && is_array($buttons));
 
 $buttonUpdateExist = false;
 $buttonDeleteExist = false;

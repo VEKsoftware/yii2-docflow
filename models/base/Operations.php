@@ -87,37 +87,6 @@ abstract class Operations extends OperationBase
     }
 
     /**
-     * This function returns the structure containing access rights tags.
-     *
-     * @return mixed Structure is the following
-     *  [
-     *     [
-     *        'operation' => 'view', // This is the name of operation. It will be refered in the access check methods like $user->can(operation)
-     *        'label' => 'View document',
-     *        'conditions' => [ // These conditions are handled in the document model and are set up in the access settings page
-     *            [
-     *                'condition' => 'own',
-     *                'label' => 'Only my',
-     *            ],
-     *            [
-     *                'condition' => 'all',
-     *                'label' => 'All',
-     *            ],
-     *        ],
-     *    ],
-     *    [
-     *      ...
-     *    ],
-     *    ...
-     *  ],
-     */
-    /*
-    public static function accessData()
-    {
-        return [];
-    }*/
-
-    /**
      * Имя операции
      *
      * @return mixed
@@ -216,7 +185,7 @@ abstract class Operations extends OperationBase
      */
     protected function batchInsertItems($items)
     {
-        $columns = static::getAttributes();
+        $columns = $this->getAttributes();
         unset($columns['id'], $columns['atime'], $columns['version']);
 
         return \Yii::$app->{static::getModuleDb()}

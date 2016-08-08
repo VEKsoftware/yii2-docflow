@@ -2,6 +2,7 @@
 
 namespace docflow\models\base;
 
+use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 
 /**
@@ -28,6 +29,8 @@ class DocTypesSearch extends DocTypes
      * @param array $params - параметры
      *
      * @return ActiveDataProvider
+     *
+     * @throws InvalidParamException
      */
     public function search($params)
     {

@@ -49,7 +49,7 @@ namespace docflow\behaviors;
 
 use docflow\Docflow;
 use docflow\messages\behaviors\BehaviorsMessages;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\models\Link;
 use docflow\models\Statuses;
 use yii;
@@ -116,9 +116,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
         /* Назначаем название класса связи на переменную ради удобства */
         $linkClass = $this->linkClass;
 
-        /**
-         * @var $transaction Transaction
-         */
+        /* @var $transaction Transaction */
         $transaction = Yii::$app->{Docflow::getInstance()->db}->beginTransaction();
 
         try {
@@ -355,9 +353,12 @@ class LinkSimpleBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_to']]
             )
-            ->via('linksTo', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksTo',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 
@@ -377,9 +378,12 @@ class LinkSimpleBehavior extends LinkBaseBehavior
                 $owner::className(),
                 [$this->linkFieldsArray['node_id'] => $this->linkFieldsArray['status_from']]
             )
-            ->via('linksFrom', function (ActiveQuery $query) use ($linkClass) {
-                $query->andOnCondition($linkClass::extraWhere());
-            })
+            ->via(
+                'linksFrom',
+                function (ActiveQuery $query) use ($linkClass) {
+                    $query->andOnCondition($linkClass::extraWhere());
+                }
+            )
             ->indexBy($this->indexBy);
     }
 

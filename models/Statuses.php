@@ -4,6 +4,7 @@ namespace docflow\models;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\models\base\DocTypes;
 use docflow\models\base\Document;
 use yii;
 
@@ -23,6 +24,9 @@ use yii\db\ActiveQuery;
  * @property string          docTypeName
  * @property string          tag
  * @property string          fullName
+ *
+ * @mixin LinkSimpleBehavior
+ * @mixin LinkOrderedBehavior
  */
 class Statuses extends Document
 {
@@ -31,6 +35,8 @@ class Statuses extends Document
 
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
     public static function tableName()
     {
@@ -39,6 +45,8 @@ class Statuses extends Document
 
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
     public static function docTag()
     {
@@ -46,7 +54,9 @@ class Statuses extends Document
     }
 
     /**
-     * @inherit
+     * {@inheritdoc}
+     *
+     * @return array
      */
     public function behaviors()
     {
@@ -83,6 +93,8 @@ class Statuses extends Document
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function rules()
     {
@@ -98,6 +110,8 @@ class Statuses extends Document
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function attributeLabels()
     {
@@ -111,7 +125,9 @@ class Statuses extends Document
     }
 
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @return array
      */
     public static function accessData()
     {
@@ -167,6 +183,8 @@ class Statuses extends Document
     }
 
     /**
+     * Связь с DocType
+     *
      * @return \yii\db\ActiveQuery
      */
     public function getDocType()

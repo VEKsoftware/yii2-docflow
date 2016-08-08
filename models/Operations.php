@@ -25,7 +25,7 @@ abstract class Operations extends Document
      *
      * @var array
      */
-    protected $itemsCache = [];
+    protected $documents = [];
 
     /**
      * Все сценарии.
@@ -111,10 +111,11 @@ abstract class Operations extends Document
      *    ...
      *  ],
      */
+    /*
     public static function accessData()
     {
         return [];
-    }
+    }*/
 
     /**
      * Имя операции
@@ -132,7 +133,7 @@ abstract class Operations extends Document
      *
      * @return mixed
      */
-    abstract public function operationPermitted($operation);
+    /* abstract public function operationPermitted($operation); */
 
     /**
      * Получае БД используемую в модуле
@@ -148,13 +149,13 @@ abstract class Operations extends Document
      *
      * @param array $attributes - аттрибуты
      *
-     * @return mixed
+     * @return operations
      */
     public static function instantiate($attributes)
     {
-        $class = get_called_class();
-        if (array_key_exists($attributes['doc_type'], static::$operationsList)) {
-            $class = static::$operationsList[$attributes['doc_type']];
+        $class = static::className();
+        if (array_key_exists($attributes['operation_type'], static::$operationsList)) {
+            $class = static::$operationsList[$attributes['operation_type']];
         }
 
         return new $class($attributes);
@@ -193,16 +194,16 @@ abstract class Operations extends Document
      */
     public function addItems($items)
     {
-        $this->itemsCache = array_merge($this->itemsCache, $items);
+        $this->documents = array_merge($this->documents, $items);
 
-        if (count($this->itemsCache) > 100) {
-            $batch = $this->batchInsertItems($this->itemsCache);
+        if (count($this->documents) > 100) {
+            $batch = $this->batchInsertItems($this->documents);
 
             if ($batch === false) {
                 throw new ErrorException('Массовое добавление Items в БД не удалось');
             }
 
-            $this->itemsCache = [];
+            $this->documents = [];
         }
     }
 
@@ -234,7 +235,7 @@ abstract class Operations extends Document
      */
     public function deleteItems()
     {
-        $this->itemsCache = [];
+        $this->documents = [];
         static::deleteAll(['invoice_id' => $this->id]);
     }
 }

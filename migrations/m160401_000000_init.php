@@ -164,6 +164,8 @@ class m160401_000000_init extends Migration
                 'order_idx' => 'serial NOT NULL',
                 'operations_ids' => $this->integer() . '[]',
                 'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->string()->notNull(),
                 'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
             ]
         );
@@ -173,6 +175,16 @@ class m160401_000000_init extends Migration
             'ix_doc_statuses_log__doc_type_id',
             '{{%doc_statuses_log}}',
             'doc_type_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_id',
+            '{{%doc_statuses_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__changed_by',
+            '{{%doc_statuses_log}}',
+            'changed_by'
         );
         $this->createIndex(
             'ux_doc_statuses_log__tag',
@@ -236,6 +248,16 @@ class m160401_000000_init extends Migration
             ]
         );
 
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_id',
+            '{{%doc_statuses_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__changed_by',
+            '{{%doc_statuses_log}}',
+            'changed_by'
+        );
         $this->createIndex(
             'ix_doc_statuses_links__from',
             '{{%doc_statuses_links}}',
@@ -301,10 +323,22 @@ class m160401_000000_init extends Migration
                 'type' => 'link_types DEFAULT \'simple\'::link_types',
                 'level' => $this->integer(),
                 'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->string()->notNull(),
                 'atime' => $this->timestamp() . ' default current_timestamp'
             ]
         );
 
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_id',
+            '{{%doc_statuses_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__changed_by',
+            '{{%doc_statuses_log}}',
+            'changed_by'
+        );
         $this->createIndex(
             'ix_doc_statuses_links_log__from',
             '{{%doc_statuses_links_log}}',
@@ -447,10 +481,22 @@ class m160401_000000_init extends Migration
                 'field' => 'jsonb',
                 'comment' => $this->text(),
                 'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->string()->notNull(),
                 'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
             ]
         );
 
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_id',
+            '{{%doc_statuses_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__changed_by',
+            '{{%doc_statuses_log}}',
+            'changed_by'
+        );
         $this->createIndex(
             'ix_operations_log__operation_type',
             '{{%operations_log}}',

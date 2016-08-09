@@ -163,6 +163,7 @@ class m160401_000000_init extends Migration
                 'description' => $this->string(512),
                 'order_idx' => 'serial NOT NULL',
                 'operations_ids' => $this->integer() . '[]',
+                'changed_attributes' => $this->string(255) . '[]',
                 'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
             ]
         );
@@ -203,6 +204,11 @@ class m160401_000000_init extends Migration
         /* Индекс для полнотекстового поиска */
         $this->getDb()
             ->createCommand('CREATE INDEX "ix_doc_statuses_log__operations_ids" ON "doc_statuses_log" USING gin ("operations_ids");')
+            ->execute();
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_log__changed_attributes" ON "doc_statuses_log" USING gin ("changed_attributes");')
             ->execute();
 
         $this->addForeignKey(

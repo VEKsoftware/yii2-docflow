@@ -10,7 +10,7 @@
 
 namespace docflow\base;
 
-use docflow\models\Document;
+use docflow\models\base\Document;
 use yii\base\Behavior;
 use yii\base\InvalidCallException;
 use yii\base\UnknownPropertyException;

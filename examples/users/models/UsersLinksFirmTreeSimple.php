@@ -8,8 +8,6 @@
 
 namespace docflow\examples\users\models;
 
-use docflow\models\Link;
-
 class UsersLinksFirmTreeSimple extends UsersLinks
 {
     public function extraWhere()

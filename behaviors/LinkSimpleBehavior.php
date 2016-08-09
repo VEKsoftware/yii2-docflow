@@ -50,7 +50,7 @@ namespace docflow\behaviors;
 use docflow\Docflow;
 use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\base\Document;
-use docflow\models\Link;
+use docflow\models\base\Link;
 use docflow\models\Statuses;
 use yii;
 use yii\base\ErrorException;

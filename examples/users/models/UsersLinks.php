@@ -8,7 +8,7 @@
 
 namespace docflow\examples\users\models;
 
-use docflow\models\Link;
+use docflow\models\base\Link;
 
 class UsersLinks extends Link
 {

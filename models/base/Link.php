@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\base;
 
 use docflow\base\UnstructuredRecord;
 use docflow\Docflow;

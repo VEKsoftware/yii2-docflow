@@ -2,6 +2,7 @@
 
 namespace docflow\models;
 
+use docflow\models\base\Link;
 use yii;
 
 use docflow\Docflow;
@@ -27,8 +28,7 @@ class StatusesLinks extends Link
     public static $_rightTagField = 'right_tag';
     public static $_relationTypeField = '';
     public static $_fieldNodeTag = 'tag';
-    public static $_fieldLinkId = 'id';
-    public static $_fieldLinkTimestamp = '';
+    public static $_removedAttributes = ['id', 'atime', 'version'];
 
     /**
      * {@inheritdoc}

@@ -31,8 +31,6 @@ class StatusesLinksLog extends StatusesLinks
     public function rules()
     {
         return [
-            [['status_from', 'status_to', 'type', 'level'], 'required', 'on' => static::LINK_TYPE_FLTREE],
-            [['status_from', 'status_to', 'right_tag', 'type'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
             [['status_from', 'status_to', 'level', 'operation_log_id', 'changed_by', 'doc_id'], 'integer'],
             [['right_tag', 'type', 'changed_attributes'], 'string'],
             ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],

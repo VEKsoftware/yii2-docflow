@@ -31,7 +31,19 @@ class OperationsLog extends OperationBase
             parent::rules(),
             [
                 [['changed_attributes'], 'string'],
-                [['changed_attributes'], 'required']
+                [['changed_attributes', 'doc_id', 'changed_by'], 'required'],
+                [['doc_id', 'changed_by'], 'integer'],
+                [
+                    ['doc_id'],
+                    'exist',
+                    'targetClass' => Operations::className(),
+                    'targetAttribute' => 'id'
+                ],
+                [
+                    ['changed_by'],
+                    'exist',
+                    'targetAttribute' => '"user".id'
+                ]
             ]
         );
     }
@@ -46,7 +58,9 @@ class OperationsLog extends OperationBase
         return array_merge(
             parent::attributeLabels(),
             [
-                'changed_attributes' => 'Измененные аттрибуты'
+                'changed_attributes' => 'Измененные аттрибуты',
+                'doc_id' => 'Документ',
+                'changed_by' => 'Изменено'
             ]
         );
     }

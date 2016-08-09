@@ -2,6 +2,7 @@
 
 namespace docflow\models;
 
+use docflow\behaviors\LogMultiple;
 use docflow\models\base\Link;
 use yii;
 
@@ -50,7 +51,7 @@ class StatusesLinks extends Link
         return [
             [['status_from', 'status_to', 'type', 'level'], 'required', 'on' => static::LINK_TYPE_FLTREE],
             [['status_from', 'status_to', 'right_tag', 'type'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
-            [['status_from', 'status_to'], 'integer'],
+            [['status_from', 'status_to', 'version'], 'integer'],
             [['right_tag'], 'string'],
             [['level'], 'integer'],
             [['type'], 'string'],
@@ -88,6 +89,8 @@ class StatusesLinks extends Link
             'right_tag' => Yii::t('docflow', 'Access Right Tag'),
             'level' => Yii::t('docflow', 'Link Level'),
             'type' => Yii::t('docflow', 'Link Type'),
+            'version' => 'Версия',
+            'atime' => 'Штамп времени'
         ];
     }
 
@@ -101,6 +104,22 @@ class StatusesLinks extends Link
         return [
             'access' => [
                 'class' => Docflow::getInstance()->accessClass,
+            ],
+            'log' => [
+                'class' => LogMultiple::className(),
+                'logAttributes' => [
+                    'id',
+                    'status_from',
+                    'status_to',
+                    'right_tag',
+                    'level',
+                    'type',
+                    'atime'
+                ],
+                'timeField' => 'atime',
+                'logClass' => StatusesLinksLog::className(),
+                'changedAttributesField' => 'changed_attributes',
+                'versionField' => 'version',
             ],
         ];
     }

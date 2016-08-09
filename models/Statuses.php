@@ -4,6 +4,7 @@ namespace docflow\models;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\behaviors\LogMultiple;
 use docflow\models\base\DocTypes;
 use docflow\models\base\Document;
 use yii;
@@ -62,6 +63,23 @@ class Statuses extends Document
         return array_merge(
             parent::behaviors(),
             [
+                'log' => [
+                    'class' => LogMultiple::className(),
+                    'logAttributes' => [
+                        'id',
+                        'doc_type_id',
+                        'tag',
+                        'name',
+                        'description',
+                        'order_idx',
+                        'operations_ids',
+                        'atime'
+                    ],
+                    'timeField' => 'atime',
+                    'logClass' => StatusesLog::className(),
+                    'changedAttributesField' => 'changed_attributes',
+                    'versionField' => 'version',
+                ],
                 'structure' => [
                     'class' => LinkOrderedBehavior::className(),
                     'linkClass' => StatusesLinksStructure::className(),
@@ -99,11 +117,12 @@ class Statuses extends Document
     {
         return [
             [['doc_type_id', 'name', 'tag'], 'required'],
-            [['doc_type_id'], 'integer'],
+            [['doc_type_id', 'order_idx', 'version'], 'integer'],
             [['name', 'tag'], 'string', 'max' => 128],
             [['description'], 'string', 'max' => 512],
             ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
             ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
+            [['operations_ids'], 'string']
         ];
     }
 
@@ -120,6 +139,10 @@ class Statuses extends Document
             'name' => Yii::t('docflow', 'Status Name'),
             'description' => Yii::t('docflow', 'Status Description'),
             'tag' => Yii::t('docflow', 'Status Tag'),
+            'order_idx' => 'Сортировка',
+            'operations_ids' => 'Текущие операции',
+            'version' => 'Версия',
+            'atime' => 'Штамп времени'
         ];
     }
 

@@ -239,8 +239,8 @@ class m160401_000000_init extends Migration
                 'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
                 'status_id' => $this->integer()->notNull(),
                 /* Связь с контр агнетами */
-                'unit_real_id' => $this->integer(),
-                'unit_resp_id' => $this->integer(),
+                'unit_real_id' => $this->integer()->notNull(),
+                'unit_resp_id' => $this->integer()->notNull(),
                 'field' => 'jsonb',
                 'comment' => $this->text(),
                 'version' => $this->bigInteger(),

@@ -61,69 +61,6 @@ class m160401_000000_init extends Migration
         );
 
 
-        /* Определяем тип данных для operation_types */
-        $this->getDb()
-            ->createCommand('DROP TYPE IF EXISTS "operation_types"')
-            ->execute();
-
-        $this->getDb()
-            ->createCommand('CREATE TYPE operation_types as ENUM (\'Nope\')')
-            ->execute();
-
-        /* Таблица операций */
-        $this->createTable(
-            '{{%operations}}',
-            [
-                'id' => $this->primaryKey()->notNull(),
-                'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
-                'status_id' => $this->integer()->notNull(),
-                /* Связь с контр агнетами */
-                'unit_real_id' => $this->integer(),
-                'unit_resp_id' => $this->integer(),
-                'field' => 'jsonb',
-                'comment' => $this->text(),
-                'version' => $this->bigInteger(),
-                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
-            ]
-        );
-
-        $this->createIndex(
-            'ix_operations__operation_type',
-            '{{%operations}}',
-            'operation_type'
-        );
-        $this->createIndex(
-            'ix_operations__status_id',
-            '{{%operations}}',
-            'status_id'
-        );
-        $this->createIndex(
-            'ix_operations__unit_real_id',
-            '{{%operations}}',
-            'unit_real_id'
-        );
-        $this->createIndex(
-            'ix_operations__unit_resp_id',
-            '{{%operations}}',
-            'unit_resp_id'
-        );
-        $this->createIndex(
-            'ix_operations__comment',
-            '{{%operations}}',
-            'comment'
-        );
-        $this->createIndex(
-            'ix_operations__version',
-            '{{%operations}}',
-            'version'
-        );
-        $this->createIndex(
-            'ix_operations__atime',
-            '{{%operations}}',
-            'atime'
-        );
-
-
         $this->createTable(
             '{{%doc_statuses}}',
             [
@@ -215,6 +152,70 @@ class m160401_000000_init extends Migration
             'CASCADE'
         );
 
+
+        $this->createTable(
+            '{{%doc_statuses_log}}',
+            [
+                'id' => $this->primaryKey(),
+                'doc_type_id' => $this->integer()->notNull(),
+                'tag' => $this->string(128)->notNull(),
+                'name' => $this->string(128)->notNull(),
+                'description' => $this->string(512),
+                'order_idx' => 'serial NOT NULL',
+                'operations_ids' => $this->integer() . '[]',
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_type_id',
+            '{{%doc_statuses_log}}',
+            'doc_type_id'
+        );
+        $this->createIndex(
+            'ux_doc_statuses_log__tag',
+            '{{%doc_statuses_log}}',
+            'tag',
+            true
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__name',
+            '{{%doc_statuses_log}}',
+            'name'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__description',
+            '{{%doc_statuses_log}}',
+            'description'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__order_idx',
+            '{{%doc_statuses_log}}',
+            'order_idx'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__atime',
+            '{{%doc_statuses_log}}',
+            'atime'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_log__operations_ids" ON "doc_statuses_log" USING gin ("operations_ids");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_doc_statuses_log__doc_type_id-doc_types__id',
+            '{{%doc_statuses_log}}',
+            'doc_type_id',
+            '{{%doc_types}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
         $this->createTable(
             '{{%doc_statuses_links}}',
             [
@@ -265,7 +266,7 @@ class m160401_000000_init extends Migration
             'level'
         );
         $this->addForeignKey(
-            'doc_statuses_links_statuses_id_fk1',
+            'fk_doc_statuses_links__status_from-doc_statuses__id',
             '{{%doc_statuses_links}}',
             'status_from',
             '{{%doc_statuses}}',
@@ -274,9 +275,215 @@ class m160401_000000_init extends Migration
             'CASCADE'
         );
         $this->addForeignKey(
-            'doc_statuses_links_statuses_id_fk2',
+            'fk_doc_statuses_links__status_to-doc_statuses__id',
             '{{%doc_statuses_links}}',
             'status_to',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
+        $this->createTable(
+            '{{%doc_statuses_links_log}}',
+            [
+                'id' => $this->primaryKey(),
+                'status_from' => $this->integer()->notNull(),
+                'status_to' => $this->integer()->notNull(),
+                'right_tag' => $this->string(128),
+                'type' => 'link_types DEFAULT \'simple\'::link_types',
+                'level' => $this->integer(),
+                'changed_attributes' => $this->string(255) . '[]',
+                'atime' => $this->timestamp() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_doc_statuses_links_log__from',
+            '{{%doc_statuses_links_log}}',
+            'status_from'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__to',
+            '{{%doc_statuses_links_log}}',
+            'status_to'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__atime',
+            '{{%doc_statuses_links_log}}',
+            'atime'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__right_tag',
+            '{{%doc_statuses_links_log}}',
+            'right_tag'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__type',
+            '{{%doc_statuses_links_log}}',
+            'type'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__level',
+            '{{%doc_statuses_links_log}}',
+            'level'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_links_log__changed_attributes" ON "doc_statuses_links_log" USING gin ("changed_attributes");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_doc_statuses_links_log__status_from-doc_statuses__id',
+            '{{%doc_statuses_links_log}}',
+            'status_from',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_doc_statuses_links_log__status_to-doc_statuses__id',
+            '{{%doc_statuses_links_log}}',
+            'status_to',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
+        /* Определяем тип данных для operation_types */
+        $this->getDb()
+            ->createCommand('DROP TYPE IF EXISTS "operation_types"')
+            ->execute();
+
+        $this->getDb()
+            ->createCommand('CREATE TYPE operation_types as ENUM (\'Nope\')')
+            ->execute();
+
+        /* Таблица операций */
+        $this->createTable(
+            '{{%operations}}',
+            [
+                'id' => $this->primaryKey()->notNull(),
+                'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
+                'status_id' => $this->integer()->notNull(),
+                /* Связь с контр агнетами */
+                'unit_real_id' => $this->integer(),
+                'unit_resp_id' => $this->integer(),
+                'field' => 'jsonb',
+                'comment' => $this->text(),
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_operations__operation_type',
+            '{{%operations}}',
+            'operation_type'
+        );
+        $this->createIndex(
+            'ix_operations__status_id',
+            '{{%operations}}',
+            'status_id'
+        );
+        $this->createIndex(
+            'ix_operations__unit_real_id',
+            '{{%operations}}',
+            'unit_real_id'
+        );
+        $this->createIndex(
+            'ix_operations__unit_resp_id',
+            '{{%operations}}',
+            'unit_resp_id'
+        );
+        $this->createIndex(
+            'ix_operations__comment',
+            '{{%operations}}',
+            'comment'
+        );
+        $this->createIndex(
+            'ix_operations__version',
+            '{{%operations}}',
+            'version'
+        );
+        $this->createIndex(
+            'ix_operations__atime',
+            '{{%operations}}',
+            'atime'
+        );
+
+        $this->addForeignKey(
+            'fk_operations__status_id-doc_statuses__id',
+            '{{%operations}}',
+            'status_id',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
+        /* Таблица операций */
+        $this->createTable(
+            '{{%operations_log}}',
+            [
+                'id' => $this->primaryKey()->notNull(),
+                'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
+                'status_id' => $this->integer()->notNull(),
+                /* Связь с контр агнетами */
+                'unit_real_id' => $this->integer(),
+                'unit_resp_id' => $this->integer(),
+                'field' => 'jsonb',
+                'comment' => $this->text(),
+                'changed_attributes' => $this->string(255) . '[]',
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_operations_log__operation_type',
+            '{{%operations_log}}',
+            'operation_type'
+        );
+        $this->createIndex(
+            'ix_operations_log__status_id',
+            '{{%operations_log}}',
+            'status_id'
+        );
+        $this->createIndex(
+            'ix_operations_log__unit_real_id',
+            '{{%operations_log}}',
+            'unit_real_id'
+        );
+        $this->createIndex(
+            'ix_operations_log__unit_resp_id',
+            '{{%operations_log}}',
+            'unit_resp_id'
+        );
+        $this->createIndex(
+            'ix_operations_log__comment',
+            '{{%operations_log}}',
+            'comment'
+        );
+        $this->createIndex(
+            'ix_operations_log__atime',
+            '{{%operations_log}}',
+            'atime'
+        );
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_operations_log__changed_attributes" ON "operations_log" USING gin ("changed_attributes");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_operations_log__status_id-doc_statuses__id',
+            '{{%operations_log}}',
+            'status_id',
             '{{%doc_statuses}}',
             'id',
             'CASCADE',
@@ -291,9 +498,12 @@ class m160401_000000_init extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('{{%doc_statuses_links}}');
-        $this->dropTable('{{%doc_statuses}}');
-        $this->dropTable('{{%doc_types}}');
         $this->dropTable('{{%operations}}');
+        $this->dropTable('{{%operations_log}}');
+        $this->dropTable('{{%doc_statuses_links}}');
+        $this->dropTable('{{%doc_statuses_links_log}}');
+        $this->dropTable('{{%doc_statuses}}');
+        $this->dropTable('{{%doc_statuses_log}}');
+        $this->dropTable('{{%doc_types}}');
     }
 }

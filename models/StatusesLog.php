@@ -9,6 +9,7 @@
 namespace docflow\models;
 
 use docflow\models\base\Document;
+use docflow\models\base\Operations;
 use yii;
 
 class StatusesLog extends Document
@@ -31,13 +32,30 @@ class StatusesLog extends Document
     public function rules()
     {
         return [
-            [['doc_type_id', 'name', 'tag'], 'required'],
-            [['doc_type_id', 'order_idx'], 'integer'],
+            [['doc_type_id', 'name', 'tag', 'changed_attributes', 'doc_id', 'changed_by'], 'required'],
+            [['doc_type_id', 'order_idx', 'doc_id', 'changed_by', 'operation_log_id'], 'integer'],
             [['name', 'tag'], 'string', 'max' => 128],
             [['description'], 'string', 'max' => 512],
             ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
             ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
-            [['operations_ids', 'changed_attributes'], 'string']
+            [['operations_ids', 'changed_attributes'], 'string'],
+            [
+                ['doc_id'],
+                'exist',
+                'targetClass' => Statuses::className(),
+                'targetAttribute' => 'id'
+            ],
+            [
+                ['changed_by'],
+                'exist',
+                'targetAttribute' => '"user".id'
+            ],
+            [
+                ['operation_log_id'],
+                'exist',
+                'targetClass' => Operations::className(),
+                'targetAttribute' => 'id'
+            ]
         ];
     }
 
@@ -57,7 +75,10 @@ class StatusesLog extends Document
             'order_idx' => 'Сортировка',
             'operations_ids' => 'Текущие операции',
             'changed_attributes' => 'Измененные аттрибуты',
-            'atime' => 'Штамп времени'
+            'atime' => 'Штамп времени',
+            'changed_by' => 'Изменено',
+            'operation_log_id' => 'Операция в логе',
+            'doc_id' => 'Документ'
         ];
     }
 

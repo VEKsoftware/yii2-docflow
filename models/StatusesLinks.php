@@ -51,10 +51,8 @@ class StatusesLinks extends Link
         return [
             [['status_from', 'status_to', 'type', 'level'], 'required', 'on' => static::LINK_TYPE_FLTREE],
             [['status_from', 'status_to', 'right_tag', 'type'], 'required', 'on' => static::LINK_TYPE_SIMPLE],
-            [['status_from', 'status_to', 'version'], 'integer'],
-            [['right_tag'], 'string'],
-            [['level'], 'integer'],
-            [['type'], 'string'],
+            [['status_from', 'status_to', 'level', 'version'], 'integer'],
+            [['right_tag', 'type'], 'string'],
             ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [['status_from', 'status_to'], 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'id'],
         ];

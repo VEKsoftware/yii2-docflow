@@ -2,8 +2,6 @@
 
 namespace docflow\examples\users\models;
 
-use docflow\behaviors\LinkStructuredBehavior;
-use docflow\models\Document;
 use yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;

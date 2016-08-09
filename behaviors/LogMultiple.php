@@ -2,8 +2,8 @@
 
 namespace docflow\behaviors;
 
-use app\base\VekActiveRecord;
-use Yii;
+use docflow\base\UnstructuredRecord;
+use yii;
 use yii\base\ErrorException;
 use yii\base\Event;
 use Yii\console\Application;
@@ -16,7 +16,7 @@ use yii\helpers\ArrayHelper;
  * Behavior class for logging all changes to a log table.
  * It requires a log model. By default it is owner class name + 'Log'.
  *
- * @property array $logAttributes          A list of all attributes to be saved in the log table
+ * @property array  $logAttributes          A list of all attributes to be saved in the log table
  * @property string $logClass               Class name for the log model
  * @property string $changedAttributesField Field in the table to store changed attributes list. Default: changed_attributes
  * @property string $changedByField         Field in the table to store the author of the changes (Yii::$app->user->id). Default: changed_by
@@ -31,13 +31,16 @@ class LogMultiple extends Log
      */
     public function events()
     {
-        return parent::events() + [
-            VekActiveRecord::EVENT_TO_SAVE_MULTIPLE => 'logToSaveMultiple',
-            VekActiveRecord::EVENT_BEFORE_INSERT_MULTIPLE => 'logBeforeSaveMultiple',
-            VekActiveRecord::EVENT_BEFORE_UPDATE_MULTIPLE => 'logBeforeSaveMultiple',
-            VekActiveRecord::EVENT_AFTER_INSERT_MULTIPLE => 'logAfterSaveMultiple',
-            VekActiveRecord::EVENT_AFTER_UPDATE_MULTIPLE => 'logAfterSaveMultiple',
-        ];
+        return array_merge(
+            parent::events(),
+            [
+                UnstructuredRecord::EVENT_TO_SAVE_MULTIPLE => 'logToSaveMultiple',
+                UnstructuredRecord::EVENT_BEFORE_INSERT_MULTIPLE => 'logBeforeSaveMultiple',
+                UnstructuredRecord::EVENT_BEFORE_UPDATE_MULTIPLE => 'logBeforeSaveMultiple',
+                UnstructuredRecord::EVENT_AFTER_INSERT_MULTIPLE => 'logAfterSaveMultiple',
+                UnstructuredRecord::EVENT_AFTER_UPDATE_MULTIPLE => 'logAfterSaveMultiple',
+            ]
+        );
     }
 
     /**
@@ -50,8 +53,10 @@ class LogMultiple extends Log
     public function attach($owner)
     {
         if (!self::$_eventSwitched) {
-            Event::on($owner->className(), VekActiveRecord::EVENT_TO_SAVE_MULTIPLE, [self::className(), 'logToSaveMultiple']);
-            Event::on($owner->className(), VekActiveRecord::EVENT_SAVED_MULTIPLE, [self::className(), 'logSavedMultiple']);
+            Event::on($owner->className(), UnstructuredRecord::EVENT_TO_SAVE_MULTIPLE,
+                [self::className(), 'logToSaveMultiple']);
+            Event::on($owner->className(), UnstructuredRecord::EVENT_SAVED_MULTIPLE,
+                [self::className(), 'logSavedMultiple']);
             self::$_eventSwitched = true;
         }
         parent::attach($owner);
@@ -72,7 +77,7 @@ class LogMultiple extends Log
 
         $updateModels = [];
         $primary_keys = [];
-        $versionField = NULL;
+        $versionField = null;
         $tableFields = [];
         $types = [];
         foreach ($models as $model) {
@@ -90,7 +95,7 @@ class LogMultiple extends Log
             $updateModels[] = $model;
             $updateStrs = [];
             foreach ($tableFields as $field) {
-                if ($updateModels->$field === NULL) {
+                if ($updateModels->$field === null) {
                     $updateStrs[] = 'NULL::' . $types[$field];
                 } else {
                     $updateStrs[] = Yii::$app->db->quoteValue($updateModels->$field) . '::' . $types[$field];
@@ -124,6 +129,7 @@ class LogMultiple extends Log
 //            $event->isValid = false;
 //            return false;
         }
+
         return true;
     }
 
@@ -185,7 +191,7 @@ class LogMultiple extends Log
             }
         }
 
-        /** @var VekActiveRecord $logClass */
+        /** @var UnstructuredRecord $logClass */
         $logClass = $this->logClass;
         /** @var ActiveRecord $log */
 
@@ -203,7 +209,8 @@ class LogMultiple extends Log
 
         $logClass = $tmp_model->logClass;
         unset($tmp_model);
-        /** @var VekActiveRecord $logClass */
+
+        /** @var UnstructuredRecord $logClass */
         return $logClass::saveMultiple();
     }
 

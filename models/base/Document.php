@@ -38,39 +38,13 @@ abstract class Document extends DocFlowBase
 
     /**
      * Return description of the type of current document
-     * @return \docflow\models\DocTypes the object specifying the document type
+     *
+     * @return DocTypes the object specifying the document type
      */
     public function getDoc()
     {
         return DocTypes::getDocType(static::docTag());
     }
-
-    /**
-     * This function returns the structure containing access rights tags.
-     *
-     * @return mixed Structure is the following
-     *  [
-     *     [
-     *        'operation' => 'view', // This is the name of operation. It will be refered in the access check methods like $user->can(operation)
-     *        'label' => 'View document',
-     *        'conditions' => [ // These conditions are handled in the document model and are set up in the access settings page
-     *            [
-     *                'condition' => 'own',
-     *                'label' => 'Only my',
-     *            ],
-     *            [
-     *                'condition' => 'all',
-     *                'label' => 'All',
-     *            ],
-     *        ],
-     *    ],
-     *    [
-     *      ...
-     *    ],
-     *    ...
-     *  ],
-     */
-    /* abstract public static function accessData(); */
 
     /**
      * This method resolves the relation names between $this object and that is set as an argument.

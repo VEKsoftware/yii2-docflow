@@ -1,11 +1,12 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\base;
 
+use docflow\models\Statuses;
 use yii;
-use docflow\models\base\DocFlowBase;
 use docflow\Docflow;
 use yii\base\ErrorException;
+use yii\db\ActiveQuery;
 
 /**
  * This is the model class for table "statuses_doctypes".
@@ -17,10 +18,17 @@ use yii\base\ErrorException;
  */
 class DocTypes extends DocFlowBase
 {
-    protected static $_doctypes;
+    /**
+     * Переменная хранит загруженные типы документов
+     *
+     * @var array
+     */
+    protected static $docTypes = [];
 
     /**
      * {@inheritdoc}
+     *
+     * @return string
      */
     public static function tableName()
     {
@@ -29,14 +37,15 @@ class DocTypes extends DocFlowBase
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function rules()
     {
         return [
             [['name', 'tag'], 'required'],
-            [['name', 'tag'], 'string', 'max' => 128],
-//            ['statusTag', 'string', 'max' => 128],
-//            ['statusTag', 'exist', 'targetClass' => Statuses::className(), 'targetAttribute' => 'tag', 'filter' => ['doc_type_id' => $this->id]],
+            [['name', 'tag', 'class', 'table'], 'string', 'max' => 128],
+            [['description'], 'string', 'max' => 512],
             [['tag'], 'unique'],
             ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
         ];
@@ -44,6 +53,8 @@ class DocTypes extends DocFlowBase
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function attributeLabels()
     {
@@ -55,7 +66,11 @@ class DocTypes extends DocFlowBase
     }
 
     /**
-     * @inherit
+     * {@inheritdoc}
+     *
+     * @return array
+     *
+     * @throws ErrorException
      */
     public function behaviors()
     {
@@ -71,9 +86,7 @@ class DocTypes extends DocFlowBase
         ];
     }
 
-    /**
-     * @inheritdoc
-     */
+    /*
     public static function accessData()
     {
         return [
@@ -99,31 +112,42 @@ class DocTypes extends DocFlowBase
             ],
         ];
     }
+    */
 
     /**
-     * @param $doc_string
+     * Получаем тип документа по тэгу
+     *
+     * @param string $docTag - тэг документа
+     *
      * @return static
      */
-    public static function getDocType($doc_string)
+    public static function getDocType($docTag)
     {
-        $doctypes = static::getDoctypes();
-        if (isset($doctypes[$doc_string])) {
-            return $doctypes[$doc_string];
+        $docTypes = static::getDocTypes();
+
+        $return = null;
+
+        if (array_key_exists($docTag, $docTypes)) {
+            $return = $docTypes[$docTag];
         }
 
-        return null;
+        return $return;
     }
 
     /**
+     * Получаем типы документов со статусами
+     *
      * @return static[] array of doc types
      */
     public static function getDocTypes()
     {
-        if (empty(static::$_doctypes)) {
-            static::$_doctypes = static::findDocTypes()->with(['statuses'])->all();
+        if (count(static::$docTypes) < 1) {
+            static::$docTypes = static::findDocTypes()
+                ->with(['statuses'])
+                ->all();
         }
 
-        return static::$_doctypes;
+        return static::$docTypes;
     }
 
     /**
@@ -139,7 +163,9 @@ class DocTypes extends DocFlowBase
     }
 
     /**
-     * @return \yii\db\ActiveQuery
+     * Получаем типы документов
+     *
+     * @return ActiveQuery
      */
     public static function findDocTypes()
     {
@@ -148,7 +174,8 @@ class DocTypes extends DocFlowBase
 
     /**
      * List of all statuses related to the doctype
-     * @return \yii\db\ActiveQuery
+     *
+     * @return ActiveQuery
      */
     public function getStatuses()
     {
@@ -162,17 +189,26 @@ class DocTypes extends DocFlowBase
 
     /**
      * List of all statuses related to the doctype
-     * @return \yii\db\ActiveQuery
+     *
+     * @return ActiveQuery
      */
     public function getStatusesTop()
     {
-        return $this->getStatuses()->joinWith(['linksStructureFrom'])->andWhere(['l_from.status_from' => null]);
+        return $this->getStatuses()
+            ->joinWith(['linksStructureFrom'])
+            ->andWhere(['l_from.status_from' => null]);
     }
 
+    /**
+     * Получаем структуру статусов
+     *
+     * @return array
+     */
     public function getStatusesStructure()
     {
         $statuses = $this->statuses;
         $tree = [];
+
         foreach ($statuses as $status) {
             if ($status->statusParent === null) {
                 $tree[] = $status;
@@ -182,11 +218,23 @@ class DocTypes extends DocFlowBase
         return $tree;
     }
 
+    /**
+     * Устанавливаем тэг статуса
+     *
+     * @param string $tag - тэг
+     *
+     * @return void
+     */
     public function setStatusTag($tag)
     {
         $this->status = $tag;
     }
 
+    /**
+     * Получаем тэг статуса
+     *
+     * @return mixed
+     */
     public function getStatusTag()
     {
         return $this->status->tag;

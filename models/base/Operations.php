@@ -8,6 +8,7 @@
 
 namespace docflow\models\base;
 
+use docflow\behaviors\LogMultiple;
 use yii\base\ErrorException;
 use yii\db\Connection;
 
@@ -49,6 +50,67 @@ abstract class Operations extends OperationBase
     public static function tableName()
     {
         return '{{%operations}}';
+    }
+
+    /**
+     * {inheritdoc}
+     *
+     * @return array
+     */
+    public function behaviors()
+    {
+        return array_map(
+            parent::behaviors(),
+            [
+                'log' => [
+                    'class' => LogMultiple::className(),
+                    'logAttributes' => [
+                        'id',
+                        'operation_type',
+                        'status_id',
+                        'unit_real_id',
+                        'unit_resp_id',
+                        'field',
+                        'comment',
+                        'atime'
+                    ],
+                    'timeField' => 'atime',
+                    'logClass' => OperationsLog::className(),
+                    'changedAttributesField' => 'changed_attributes',
+                    'versionField' => 'version',
+                ],
+            ]
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return array
+     */
+    public function rules()
+    {
+        return array_merge(
+            parent::rules(),
+            [
+                [['version'], 'safe']
+            ]
+        );
+    }
+
+    /**
+     * {@inheritdoc}
+     *
+     * @return array
+     */
+    public function attributeLabels()
+    {
+        return array_merge(
+            parent::attributeLabels(),
+            [
+                'version' => 'Версия'
+            ]
+        );
     }
 
     /**

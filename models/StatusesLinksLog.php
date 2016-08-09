@@ -8,10 +8,11 @@
 
 namespace docflow\models;
 
+use docflow\models\base\Document;
 use docflow\models\base\Operations;
 use yii;
 
-class StatusesLinksLog extends StatusesLinks
+class StatusesLinksLog extends Document
 {
     /**
      * {@inheritdoc}
@@ -47,11 +48,6 @@ class StatusesLinksLog extends StatusesLinks
                 'targetAttribute' => 'id'
             ],
             [
-                ['changed_by'],
-                'exist',
-                'targetAttribute' => '"user".id'
-            ],
-            [
                 ['operation_log_id'],
                 'exist',
                 'targetClass' => Operations::className(),
@@ -78,5 +74,38 @@ class StatusesLinksLog extends StatusesLinks
             'changed_by' => 'Изменено',
             'operation_log_id' => 'Операция в логе'
         ];
+    }
+
+    /**
+     * This function returns the document tag. This tag is used to get
+     * all information about the document type from the database.
+     *
+     * @return string Document tag
+     */
+    static public function docTag()
+    {
+        return '';
+    }
+
+    /**
+     * Return field name which use how Document `name`
+     *
+     * @return string Document name
+     */
+    public function getDocName()
+    {
+        return '';
+    }
+
+    /**
+     * Получаем документ по его идентификатору
+     *
+     * @param integer $nodeId - id документа
+     *
+     * @return mixed
+     */
+    public static function getDocumentByNodeId($nodeId)
+    {
+        return '';
     }
 }

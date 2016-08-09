@@ -46,11 +46,6 @@ class StatusesLog extends Document
                 'targetAttribute' => 'id'
             ],
             [
-                ['changed_by'],
-                'exist',
-                'targetAttribute' => '"user".id'
-            ],
-            [
                 ['operation_log_id'],
                 'exist',
                 'targetClass' => Operations::className(),

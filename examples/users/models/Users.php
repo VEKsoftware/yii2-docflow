@@ -12,7 +12,7 @@ use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
 use docflow\behaviors\StatusBehavior;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use yii;
 use yii\db\ActiveQuery;
 

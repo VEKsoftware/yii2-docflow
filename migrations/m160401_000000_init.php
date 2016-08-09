@@ -154,87 +154,6 @@ class m160401_000000_init extends Migration
 
 
         $this->createTable(
-            '{{%doc_statuses_log}}',
-            [
-                'id' => $this->primaryKey(),
-                'doc_type_id' => $this->integer()->notNull(),
-                'tag' => $this->string(128)->notNull(),
-                'name' => $this->string(128)->notNull(),
-                'description' => $this->string(512),
-                'order_idx' => 'serial NOT NULL',
-                'operations_ids' => $this->integer() . '[]',
-                'changed_attributes' => $this->string(255) . '[]',
-                'doc_id' => $this->integer()->notNull(),
-                'changed_by' => $this->string()->notNull(),
-                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
-            ]
-        );
-
-
-        $this->createIndex(
-            'ix_doc_statuses_log__doc_type_id',
-            '{{%doc_statuses_log}}',
-            'doc_type_id'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__doc_id',
-            '{{%doc_statuses_log}}',
-            'doc_id'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__changed_by',
-            '{{%doc_statuses_log}}',
-            'changed_by'
-        );
-        $this->createIndex(
-            'ux_doc_statuses_log__tag',
-            '{{%doc_statuses_log}}',
-            'tag',
-            true
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__name',
-            '{{%doc_statuses_log}}',
-            'name'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__description',
-            '{{%doc_statuses_log}}',
-            'description'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__order_idx',
-            '{{%doc_statuses_log}}',
-            'order_idx'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_log__atime',
-            '{{%doc_statuses_log}}',
-            'atime'
-        );
-
-        /* Индекс для полнотекстового поиска */
-        $this->getDb()
-            ->createCommand('CREATE INDEX "ix_doc_statuses_log__operations_ids" ON "doc_statuses_log" USING gin ("operations_ids");')
-            ->execute();
-
-        /* Индекс для полнотекстового поиска */
-        $this->getDb()
-            ->createCommand('CREATE INDEX "ix_doc_statuses_log__changed_attributes" ON "doc_statuses_log" USING gin ("changed_attributes");')
-            ->execute();
-
-        $this->addForeignKey(
-            'fk_doc_statuses_log__doc_type_id-doc_types__id',
-            '{{%doc_statuses_log}}',
-            'doc_type_id',
-            '{{%doc_types}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-
-
-        $this->createTable(
             '{{%doc_statuses_links}}',
             [
                 'id' => $this->primaryKey(),
@@ -247,7 +166,7 @@ class m160401_000000_init extends Migration
                 'atime' => $this->timestamp() . ' default current_timestamp'
             ]
         );
-        
+
         $this->createIndex(
             'ix_doc_statuses_links__from',
             '{{%doc_statuses_links}}',
@@ -295,88 +214,6 @@ class m160401_000000_init extends Migration
         $this->addForeignKey(
             'fk_doc_statuses_links__status_to-doc_statuses__id',
             '{{%doc_statuses_links}}',
-            'status_to',
-            '{{%doc_statuses}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-
-
-        $this->createTable(
-            '{{%doc_statuses_links_log}}',
-            [
-                'id' => $this->primaryKey(),
-                'status_from' => $this->integer()->notNull(),
-                'status_to' => $this->integer()->notNull(),
-                'right_tag' => $this->string(128),
-                'type' => 'link_types DEFAULT \'simple\'::link_types',
-                'level' => $this->integer(),
-                'changed_attributes' => $this->string(255) . '[]',
-                'doc_id' => $this->integer()->notNull(),
-                'changed_by' => $this->string()->notNull(),
-                'atime' => $this->timestamp() . ' default current_timestamp'
-            ]
-        );
-
-        $this->createIndex(
-            'ix_doc_statuses_links_log__doc_id',
-            '{{%doc_statuses_links_log}}',
-            'doc_id'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__changed_by',
-            '{{%doc_statuses_links_log}}',
-            'changed_by'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__from',
-            '{{%doc_statuses_links_log}}',
-            'status_from'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__to',
-            '{{%doc_statuses_links_log}}',
-            'status_to'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__atime',
-            '{{%doc_statuses_links_log}}',
-            'atime'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__right_tag',
-            '{{%doc_statuses_links_log}}',
-            'right_tag'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__type',
-            '{{%doc_statuses_links_log}}',
-            'type'
-        );
-        $this->createIndex(
-            'ix_doc_statuses_links_log__level',
-            '{{%doc_statuses_links_log}}',
-            'level'
-        );
-
-        /* Индекс для полнотекстового поиска */
-        $this->getDb()
-            ->createCommand('CREATE INDEX "ix_doc_statuses_links_log__changed_attributes" ON "doc_statuses_links_log" USING gin ("changed_attributes");')
-            ->execute();
-
-        $this->addForeignKey(
-            'fk_doc_statuses_links_log__status_from-doc_statuses__id',
-            '{{%doc_statuses_links_log}}',
-            'status_from',
-            '{{%doc_statuses}}',
-            'id',
-            'CASCADE',
-            'CASCADE'
-        );
-        $this->addForeignKey(
-            'fk_doc_statuses_links_log__status_to-doc_statuses__id',
-            '{{%doc_statuses_links_log}}',
             'status_to',
             '{{%doc_statuses}}',
             'id',
@@ -472,7 +309,7 @@ class m160401_000000_init extends Migration
                 'comment' => $this->text(),
                 'changed_attributes' => $this->string(255) . '[]',
                 'doc_id' => $this->integer()->notNull(),
-                'changed_by' => $this->string()->notNull(),
+                'changed_by' => $this->integer()->notNull(),
                 'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
             ]
         );
@@ -531,6 +368,190 @@ class m160401_000000_init extends Migration
             'CASCADE',
             'CASCADE'
         );
+
+
+        $this->createTable(
+            '{{%doc_statuses_log}}',
+            [
+                'id' => $this->primaryKey(),
+                'doc_type_id' => $this->integer()->notNull(),
+                'tag' => $this->string(128)->notNull(),
+                'name' => $this->string(128)->notNull(),
+                'description' => $this->string(512),
+                'order_idx' => $this->integer(),
+                'operations_ids' => $this->integer() . '[]',
+                'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->integer()->notNull(),
+                'operation_log_id' => $this->integer(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_type_id',
+            '{{%doc_statuses_log}}',
+            'doc_type_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__doc_id',
+            '{{%doc_statuses_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__changed_by',
+            '{{%doc_statuses_log}}',
+            'changed_by'
+        );
+        $this->createIndex(
+            'ux_doc_statuses_log__tag',
+            '{{%doc_statuses_log}}',
+            'tag',
+            true
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__name',
+            '{{%doc_statuses_log}}',
+            'name'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__description',
+            '{{%doc_statuses_log}}',
+            'description'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__order_idx',
+            '{{%doc_statuses_log}}',
+            'order_idx'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_log__atime',
+            '{{%doc_statuses_log}}',
+            'atime'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_log__operations_ids" ON "doc_statuses_log" USING gin ("operations_ids");')
+            ->execute();
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_log__changed_attributes" ON "doc_statuses_log" USING gin ("changed_attributes");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_doc_statuses_log__doc_type_id-doc_types__id',
+            '{{%doc_statuses_log}}',
+            'doc_type_id',
+            '{{%doc_types}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+        $this->addForeignKey(
+            'fk_doc_statuses_log__operation_log_id-operations__id',
+            '{{%doc_statuses_log}}',
+            'operation_log_id',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
+        $this->createTable(
+            '{{%doc_statuses_links_log}}',
+            [
+                'id' => $this->primaryKey(),
+                'status_from' => $this->integer()->notNull(),
+                'status_to' => $this->integer()->notNull(),
+                'right_tag' => $this->string(128),
+                'type' => 'link_types DEFAULT \'simple\'::link_types',
+                'level' => $this->integer(),
+                'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->integer()->notNull(),
+                'operation_log_id' => $this->integer(),
+                'atime' => $this->timestamp() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_doc_statuses_links_log__doc_id',
+            '{{%doc_statuses_links_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__changed_by',
+            '{{%doc_statuses_links_log}}',
+            'changed_by'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__from',
+            '{{%doc_statuses_links_log}}',
+            'status_from'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__to',
+            '{{%doc_statuses_links_log}}',
+            'status_to'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__atime',
+            '{{%doc_statuses_links_log}}',
+            'atime'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__right_tag',
+            '{{%doc_statuses_links_log}}',
+            'right_tag'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__type',
+            '{{%doc_statuses_links_log}}',
+            'type'
+        );
+        $this->createIndex(
+            'ix_doc_statuses_links_log__level',
+            '{{%doc_statuses_links_log}}',
+            'level'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_doc_statuses_links_log__changed_attributes" ON "doc_statuses_links_log" USING gin ("changed_attributes");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_doc_statuses_links_log__status_from-doc_statuses__id',
+            '{{%doc_statuses_links_log}}',
+            'status_from',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_doc_statuses_links_log__status_to-doc_statuses__id',
+            '{{%doc_statuses_links_log}}',
+            'status_to',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_doc_statuses_links_log__operation_log_id-operations__id',
+            '{{%doc_statuses_links_log}}',
+            'operation_log_id',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
     }
 
     /**
@@ -540,12 +561,12 @@ class m160401_000000_init extends Migration
      */
     public function safeDown()
     {
-        $this->dropTable('{{%operations}}');
         $this->dropTable('{{%operations_log}}');
-        $this->dropTable('{{%doc_statuses_links}}');
         $this->dropTable('{{%doc_statuses_links_log}}');
-        $this->dropTable('{{%doc_statuses}}');
         $this->dropTable('{{%doc_statuses_log}}');
+        $this->dropTable('{{%operations}}');
+        $this->dropTable('{{%doc_statuses_links}}');
+        $this->dropTable('{{%doc_statuses}}');
         $this->dropTable('{{%doc_types}}');
     }
 }

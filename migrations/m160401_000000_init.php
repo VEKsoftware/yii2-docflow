@@ -295,6 +295,90 @@ class m160401_000000_init extends Migration
         );
 
 
+        $this->getDb()
+            ->createCommand('DROP TYPE IF EXISTS operation_relation_types')
+            ->execute();
+
+        $this->getDb()
+            ->createCommand('CREATE TYPE operation_relation_types as ENUM (\'Nope\')')
+            ->execute();
+
+        $this->createTable(
+            '{{%operations_links}}',
+            [
+                'id' => $this->primaryKey()->notNull(),
+                'from' => $this->integer()->notNull(),
+                'to' => $this->integer()->notNull(),
+                'tp' => 'link_types DEFAULT \'simple\'::link_types',
+                'rtp' => 'operation_relation_types',
+                'lvl' => $this->integer(),
+                'version' => $this->bigInteger(),
+                'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_operations_links__version',
+            '{{%operations_links}}',
+            'version'
+        );
+        $this->createIndex(
+            'ix_operations_links__atime',
+            '{{%operations_links}}',
+            'atime'
+        );
+        $this->createIndex(
+            'ux_operations_links__from__to__rtp',
+            '{{%operations_links}}',
+            ['from', 'to', 'rtp'],
+            true
+        );
+        $this->createIndex(
+            'ix_operations_links__from',
+            '{{%operations_links}}',
+            'from'
+        );
+        $this->createIndex(
+            'ix_operations_links__to',
+            '{{%operations_links}}',
+            'to'
+        );
+        $this->createIndex(
+            'ix_operations_links__type',
+            '{{%operations_links}}',
+            'tp'
+        );
+        $this->createIndex(
+            'ix_operations_links__relation_type',
+            '{{%operations_links}}',
+            'rtp'
+        );
+        $this->createIndex(
+            'ix_operations_links__level',
+            '{{%operations_links}}',
+            'lvl'
+        );
+
+        $this->addForeignKey(
+            'fk_operations_links__from-operations__id',
+            '{{%operations_links}}',
+            'from',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_operations_links__to-operations__id',
+            '{{%operations_links}}',
+            'to',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+
+
         /* Таблица операций */
         $this->createTable(
             '{{%operations_log}}',
@@ -303,8 +387,8 @@ class m160401_000000_init extends Migration
                 'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
                 'status_id' => $this->integer()->notNull(),
                 /* Связь с контр агнетами */
-                'unit_real_id' => $this->integer(),
-                'unit_resp_id' => $this->integer(),
+                'unit_real_id' => $this->integer()->notNull(),
+                'unit_resp_id' => $this->integer()->notNull(),
                 'field' => 'jsonb',
                 'comment' => $this->text(),
                 'changed_attributes' => $this->string(255) . '[]',
@@ -552,6 +636,88 @@ class m160401_000000_init extends Migration
             'CASCADE',
             'CASCADE'
         );
+
+
+        $this->createTable(
+            '{{%operations_links_log}}',
+            [
+                'id' => $this->primaryKey()->notNull(),
+                'from' => $this->integer()->notNull(),
+                'to' => $this->integer()->notNull(),
+                'tp' => 'link_types DEFAULT \'simple\'::link_types',
+                'rtp' => 'operation_relation_types',
+                'lvl' => $this->integer(),
+                'changed_attributes' => $this->string(255) . '[]',
+                'doc_id' => $this->integer()->notNull(),
+                'changed_by' => $this->integer()->notNull(),
+                'atime' => $this->timestamp() . ' default current_timestamp'
+            ]
+        );
+
+        $this->createIndex(
+            'ix_operations_links_log__doc_id',
+            '{{%operations_links_log}}',
+            'doc_id'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__changed_by',
+            '{{%operations_links_log}}',
+            'changed_by'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__from',
+            '{{%operations_links_log}}',
+            'from'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__to',
+            '{{%operations_links_log}}',
+            'to'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__atime',
+            '{{%operations_links_log}}',
+            'atime'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__relation_type',
+            '{{%operations_links_log}}',
+            'rtp'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__type',
+            '{{%operations_links_log}}',
+            'tp'
+        );
+        $this->createIndex(
+            'ix_operations_links_log__level',
+            '{{%operations_links_log}}',
+            'lvl'
+        );
+
+        /* Индекс для полнотекстового поиска */
+        $this->getDb()
+            ->createCommand('CREATE INDEX "ix_operations_links_log__changed_attributes" ON "operations_links_log" USING gin ("changed_attributes");')
+            ->execute();
+
+        $this->addForeignKey(
+            'fk_operations_links_log__from-doc_operations__id',
+            '{{%operations_links_log}}',
+            'from',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_operations_links_log__to-operations__id',
+            '{{%operations_links_log}}',
+            'to',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
     }
 
     /**
@@ -561,9 +727,11 @@ class m160401_000000_init extends Migration
      */
     public function safeDown()
     {
+        $this->dropTable('{{%operations_links_log}}');
         $this->dropTable('{{%operations_log}}');
         $this->dropTable('{{%doc_statuses_links_log}}');
         $this->dropTable('{{%doc_statuses_log}}');
+        $this->dropTable('{{%operations_links}}');
         $this->dropTable('{{%operations}}');
         $this->dropTable('{{%doc_statuses_links}}');
         $this->dropTable('{{%doc_statuses}}');

@@ -4,7 +4,7 @@ namespace docflow\examples\users\models;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use yii;
 use yii\data\ActiveDataProvider;
 

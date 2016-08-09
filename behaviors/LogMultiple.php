@@ -24,7 +24,10 @@ use yii\helpers\ArrayHelper;
  */
 class LogMultiple extends Log
 {
-    protected static $_eventSwitched = false;
+    /**
+     * @var array Список классов которые подписали на события VekActiveRecord::EVENT_TO_SAVE_MULTIPLE, VekActiveRecord::EVENT_SAVED_MULTIPLE
+     */
+    protected static $_attachedClasses = [];
 
     /**
      * @inherit
@@ -49,10 +52,10 @@ class LogMultiple extends Log
      */
     public function attach($owner)
     {
-        if (!self::$_eventSwitched) {
+        if (!in_array($owner->className(), self::$_attachedClasses)) {
             Event::on($owner->className(), VekActiveRecord::EVENT_TO_SAVE_MULTIPLE, [self::className(), 'logToSaveMultiple']);
             Event::on($owner->className(), VekActiveRecord::EVENT_SAVED_MULTIPLE, [self::className(), 'logSavedMultiple']);
-            self::$_eventSwitched = true;
+            self::$_attachedClasses[] = $owner->className();
         }
         parent::attach($owner);
     }

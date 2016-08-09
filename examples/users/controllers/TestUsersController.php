@@ -12,7 +12,7 @@ use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\examples\users\models\Users;
 use docflow\examples\users\models\UsersTreeSearch;
-use docflow\models\Document;
+use docflow\models\base\Document;
 use docflow\widgets\FlTreeWidgetWithLeaf;
 use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;

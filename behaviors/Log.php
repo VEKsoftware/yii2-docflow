@@ -32,6 +32,17 @@ class Log extends Behavior
 
     /**
      * array A list of all attributes to be saved in the log table.
+     * ```php
+     * 'logAttributes' => [
+     *    'id', 'name', 'field1', // attributes from base model
+     *    'static_field' => 'value', // static value to save in log table.
+     *                               // If static_field exists in base table it will be overwritten by value
+     *    'synamic_field' => function($owner) { // dynamic field will be computed before saving in log table.
+     *                                          // If base table containes that attribute, the computed value will be used
+     *          return md5($owner->id);
+     *    },
+     * ],
+     * ```
      */
     public $logAttributes;
 
@@ -47,13 +58,15 @@ class Log extends Behavior
     public $docId = 'doc_id';
 
     /**
-     * Field to store changed attributes
+     * Field to store list of attributes changed in the current save of the base table
      * Default: 'changed_attributes'.
      */
     public $changedAttributesField = 'changed_attributes';
 
     /**
      * Field for version lock data. It is used to forbid save if other process had changed the record before.
+     * This dublicated the standard optimistic lock mechanism, but differs by a random chioce of the version field.
+     * Such a choice prvents predictibility of the version and possible hacker attacs.
      * Default: 'version'.
      */
     public $versionField;
@@ -67,6 +80,9 @@ class Log extends Behavior
     protected $_to_save_log = false;
     protected $_changed_attributes = [];
     protected $_to_save_attributes = [];
+    
+    protected $_beforeLogAttributes = [];
+    protected $_closureLogAttributes = [];
 
     /**
      * @inherit
@@ -108,7 +124,7 @@ class Log extends Behavior
     }
 
     /**
-     * Return logged records with certain changed attributes
+     * Saves a record to the log table.
      *
      * @param null $attributes
      *

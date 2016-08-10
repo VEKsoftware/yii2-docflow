@@ -46,6 +46,7 @@ namespace docflow\behaviors;
 use docflow\base\ActivePropertiesBehavior;
 use docflow\messages\behaviors\BehaviorsMessages;
 
+use docflow\models\base\DocFlowBase;
 use yii;
 use yii\db\ActiveQuery;
 use yii\base\ErrorException;
@@ -98,7 +99,7 @@ class StatusBehavior extends ActivePropertiesBehavior
     {
         parent::attach($owner);
 
-        if (!$owner instanceof Document) {
+        if (!$owner instanceof DocFlowBase) {
             throw new ErrorException(BehaviorsMessages::STAT_STATUS_OWNER_NOT_INSTANCEOF_DOCUMENT);
         }
 

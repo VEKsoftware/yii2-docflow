@@ -48,6 +48,7 @@
 namespace docflow\behaviors;
 
 use docflow\messages\behaviors\BehaviorsMessages;
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\models\base\Link;
 use docflow\models\Statuses;
@@ -147,7 +148,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
-        if (!($documentObj instanceof Document)) {
+        if (!($documentObj instanceof DocFlowBase)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NOT_INSTANCEOF_DOCUMENT);
         }
 
@@ -246,7 +247,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
-        if (!($documentObj instanceof Document)) {
+        if (!($documentObj instanceof DocFlowBase)) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NOT_INSTANCEOF_DOCUMENT);
         }
 

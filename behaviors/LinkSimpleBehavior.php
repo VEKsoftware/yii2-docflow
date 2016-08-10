@@ -49,6 +49,7 @@ namespace docflow\behaviors;
 
 use docflow\Docflow;
 use docflow\messages\behaviors\BehaviorsMessages;
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\models\base\Link;
 use docflow\models\Statuses;
@@ -152,7 +153,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
     protected function checkDocumentsArray(array $documentsArray)
     {
         foreach ($documentsArray as $value) {
-            if (!($value instanceof Document)) {
+            if (!($value instanceof DocFlowBase)) {
                 throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_INSTANCEOF_DOCUMENT);
             }
 
@@ -190,7 +191,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_SET_NOT_HAS_AVAILABLE);
         }
 
-        if (!($documentObj instanceof Document)) {
+        if (!($documentObj instanceof DocFlowBase)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_SET_NOT_INSTANCEOF_DOCUMENT);
         }
 
@@ -289,7 +290,7 @@ class LinkSimpleBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_FROM_DEL_NOT_HAS_AVAILABLE);
         }
 
-        if (!($documentObj instanceof Document)) {
+        if (!($documentObj instanceof DocFlowBase)) {
             throw new ErrorException(BehaviorsMessages::SL_DOCUMENT_TO_DEL_NOT_INSTANCEOF_DOCUMENT);
         }
 

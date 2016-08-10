@@ -15,6 +15,7 @@ namespace docflow\behaviors;
 use Closure;
 use docflow\base\ActivePropertiesBehavior;
 use docflow\messages\behaviors\BehaviorsMessages;
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\models\Statuses;
 use yii\base\ErrorException;
@@ -85,7 +86,7 @@ class LinkBaseBehavior extends ActivePropertiesBehavior
 
         $this->setLinkFieldsArray();
 
-        if (!($owner instanceof Document)) {
+        if (!($owner instanceof DocFlowBase)) {
             throw new ErrorException(BehaviorsMessages::B_OWNER_NOT_DOCUMENT);
         }
 

@@ -8,6 +8,7 @@
 
 namespace docflow\models\base;
 
+use docflow\base\JsonB;
 use docflow\behaviors\LogMultiple;
 use yii\base\ErrorException;
 use yii\db\Connection;
@@ -16,6 +17,12 @@ use yii\db\Connection;
  * Class Operations
  *
  * @property integer $id
+ * @property string  $operation_type
+ * @property integer $status_id
+ * @property integer $unit_real_id
+ * @property integer $unit_resp_id
+ * @property JsonB   $field
+ * @property string  $comment
  *
  * @package Docflow\Models
  */

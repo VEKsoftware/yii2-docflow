@@ -3,16 +3,16 @@
  * Created by PhpStorm.
  * User: dolgikh
  * Date: 09.08.16
- * Time: 12:14
+ * Time: 10:39
  */
 
-namespace docflow\models;
+namespace docflow\models\statuses;
 
 use docflow\models\base\Document;
 use docflow\models\base\operations\Operations;
 use yii;
 
-class StatusesLinksLog extends Document
+class StatusesLog extends Document
 {
     /**
      * {@inheritdoc}
@@ -21,7 +21,7 @@ class StatusesLinksLog extends Document
      */
     public static function tableName()
     {
-        return '{{%doc_statuses_links_log}}';
+        return '{{%doc_statuses_log}}';
     }
 
     /**
@@ -32,19 +32,17 @@ class StatusesLinksLog extends Document
     public function rules()
     {
         return [
-            [['status_from', 'status_to', 'level', 'operation_log_id', 'changed_by', 'doc_id'], 'integer'],
-            [['right_tag', 'type', 'changed_attributes'], 'string'],
-            ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
-            [
-                ['status_from', 'status_to'],
-                'exist',
-                'targetClass' => Statuses::className(),
-                'targetAttribute' => 'id'
-            ],
+            [['doc_type_id', 'name', 'tag', 'changed_attributes', 'doc_id', 'changed_by'], 'required'],
+            [['doc_type_id', 'order_idx', 'doc_id', 'changed_by', 'operation_log_id'], 'integer'],
+            [['name', 'tag'], 'string', 'max' => 128],
+            [['description'], 'string', 'max' => 512],
+            ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
+            ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
+            [['operations_ids', 'changed_attributes'], 'string'],
             [
                 ['doc_id'],
                 'exist',
-                'targetClass' => StatusesLinks::className(),
+                'targetClass' => Statuses::className(),
                 'targetAttribute' => 'id'
             ],
             [
@@ -64,15 +62,18 @@ class StatusesLinksLog extends Document
     public function attributeLabels()
     {
         return [
-            'status_from' => Yii::t('docflow', 'Source Status'),
-            'status_to' => Yii::t('docflow', 'Destination Status'),
-            'right_tag' => Yii::t('docflow', 'Access Right Tag'),
-            'level' => Yii::t('docflow', 'Link Level'),
-            'type' => Yii::t('docflow', 'Link Type'),
+            'id' => Yii::t('docflow', 'ID'),
+            'doc_type_id' => Yii::t('docflow', 'Document Type'),
+            'name' => Yii::t('docflow', 'Status Name'),
+            'description' => Yii::t('docflow', 'Status Description'),
+            'tag' => Yii::t('docflow', 'Status Tag'),
+            'order_idx' => 'Сортировка',
+            'operations_ids' => 'Текущие операции',
+            'changed_attributes' => 'Измененные аттрибуты',
             'atime' => 'Штамп времени',
-            'doc_id' => 'Документ',
             'changed_by' => 'Изменено',
-            'operation_log_id' => 'Операция в логе'
+            'operation_log_id' => 'Операция в логе',
+            'doc_id' => 'Документ'
         ];
     }
 

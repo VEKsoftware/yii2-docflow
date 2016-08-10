@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\statuses\links;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
@@ -15,6 +15,8 @@ class StatusesLinksSearch extends StatusesLinks
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function rules()
     {
@@ -26,6 +28,8 @@ class StatusesLinksSearch extends StatusesLinks
 
     /**
      * {@inheritdoc}
+     *
+     * @return array
      */
     public function scenarios()
     {
@@ -36,9 +40,12 @@ class StatusesLinksSearch extends StatusesLinks
     /**
      * Creates data provider instance with search query applied.
      *
-     * @param $statusesId
-     * @param array $params
+     * @param integer $statusesId - id статуса
+     * @param array   $params     - параметры
+     *
      * @return ActiveDataProvider
+     *
+     * @throws \yii\base\InvalidParamException
      */
     public function search($statusesId, $params)
     {
@@ -47,7 +54,7 @@ class StatusesLinksSearch extends StatusesLinks
             ->where(['status_from' => $statusesId]);
 
         $dataProvider = new ActiveDataProvider([
-            'query' => $query,
+            'query' => $query
         ]);
 
         $this->load($params);
@@ -57,7 +64,7 @@ class StatusesLinksSearch extends StatusesLinks
         }
 
         /* TODO  здесь нужно создать условия для фильтрации элементов единиц StatusLink по именам связанных статусов и прав */
-/*
+        /*
         $query
             ->joinWith(['baseTo' => function ($query) {
                 $query->where([
@@ -69,26 +76,26 @@ class StatusesLinksSearch extends StatusesLinks
 //            ->joinWith(['right' => function ($query) {
 //                $query->where('"ref_rights"."name" LIKE ' . "'%" . $this->rightName . "%'");
 //            }]);
+        */
 
-*/
 
         $dataProvider->setSort([
             'attributes' => [
                 'statusName' => [
                     'asc' => [
-                        'doc_statuses.name' => SORT_ASC,
+                        'doc_statuses.name' => SORT_ASC
                     ],
                     'desc' => [
-                        'doc_statuses.name' => SORT_DESC,
+                        'doc_statuses.name' => SORT_DESC
                     ],
                     'default' => SORT_ASC,
                 ],
                 'right_tag' => [
                     'asc' => [
-                        'right_tag' => SORT_ASC,
+                        'right_tag' => SORT_ASC
                     ],
                     'desc' => [
-                        'right_tag' => SORT_DESC,
+                        'right_tag' => SORT_DESC
                     ],
                     'default' => SORT_ASC,
                 ],

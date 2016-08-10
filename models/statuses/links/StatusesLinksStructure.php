@@ -1,23 +1,27 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\statuses\links;
 
+use docflow\models\statuses\links\StatusesLinks;
+use docflow\models\statuses\Statuses;
 use yii;
 
 /**
  * This is the model class for table "statuses_links".
  * This model describes the tree structure of the statusesa allowing substatuses.
  *
- * @property int $status_from
- * @property int $status_to
- * @property string $right_tag
+ * @property int      $status_from
+ * @property int      $status_to
+ * @property string   $right_tag
  * @property Statuses $statusFrom
  * @property Statuses $statusTo
  */
 class StatusesLinksStructure extends StatusesLinks
 {
     /**
-     * @inheritdoc
+     * {@inheritdoc}
+     *
+     * @return array
      */
     public function extraWhere()
     {

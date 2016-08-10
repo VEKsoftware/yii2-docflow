@@ -1,12 +1,15 @@
 <?php
 
-namespace docflow\models;
+namespace docflow\models\statuses;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LogMultiple;
 use docflow\models\base\docType\DocTypes;
 use docflow\models\base\Document;
+use docflow\models\statuses\links\StatusesLinks;
+use docflow\models\statuses\links\StatusesLinksStructure;
+use docflow\models\statuses\links\StatusesLinksTransitions;
 use yii;
 
 use yii\db\ActiveQuery;

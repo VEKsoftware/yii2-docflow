@@ -444,6 +444,15 @@ class m160401_000000_init extends Migration
             ->execute();
 
         $this->addForeignKey(
+            'fk_operations_log__doc_id-operations__id',
+            '{{%operations_log}}',
+            'doc_id',
+            '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
             'fk_operations_log__status_id-doc_statuses__id',
             '{{%operations_log}}',
             'status_id',
@@ -534,7 +543,15 @@ class m160401_000000_init extends Migration
             'CASCADE',
             'CASCADE'
         );
-
+        $this->addForeignKey(
+            'fk_doc_statuses_log__doc_id-doc_statuses__id',
+            '{{%doc_statuses_log}}',
+            'doc_id',
+            '{{%doc_statuses}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
         $this->addForeignKey(
             'fk_doc_statuses_log__operation_log_id-operations__id',
             '{{%doc_statuses_log}}',
@@ -628,6 +645,15 @@ class m160401_000000_init extends Migration
             'CASCADE'
         );
         $this->addForeignKey(
+            'fk_doc_statuses_links_log__doc_id-doc_statuses-links__id',
+            '{{%doc_statuses_links_log}}',
+            'doc_id',
+            '{{%doc_statuses_links}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
             'fk_doc_statuses_links_log__operation_log_id-operations__id',
             '{{%doc_statuses_links_log}}',
             'operation_log_id',
@@ -714,6 +740,15 @@ class m160401_000000_init extends Migration
             '{{%operations_links_log}}',
             'to',
             '{{%operations}}',
+            'id',
+            'CASCADE',
+            'CASCADE'
+        );
+        $this->addForeignKey(
+            'fk_operations_links_log__doc_id-operations-links__id',
+            '{{%operations_links_log}}',
+            'doc_id',
+            '{{%operations_links}}',
             'id',
             'CASCADE',
             'CASCADE'

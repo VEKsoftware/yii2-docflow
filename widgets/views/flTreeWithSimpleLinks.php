@@ -75,7 +75,7 @@ if ($buttonsExist) {
                     <?php if ($buttonLeftExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            '',
+                            $buttons['treeLeft']['name'],
                             [
                                 'name' => 'left-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeLeft']['url']),
@@ -88,7 +88,7 @@ if ($buttonsExist) {
                     <?php if ($buttonUpExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            '',
+                            $buttons['treeUp']['name'],
                             [
                                 'name' => 'up-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeUp']['url']),
@@ -101,7 +101,7 @@ if ($buttonsExist) {
                     <?php if ($buttonDownExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            '',
+                            $buttons['treeDown']['name'],
                             [
                                 'name' => 'down-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeDown']['url']),
@@ -114,7 +114,7 @@ if ($buttonsExist) {
                     <?php if ($buttonRightExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            '',
+                            $buttons['treeRight']['name'],
                             [
                                 'name' => 'right-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeRight']['url']),

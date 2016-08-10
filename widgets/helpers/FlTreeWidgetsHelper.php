@@ -187,10 +187,14 @@ class FlTreeWidgetsHelper extends BaseFlTreeWidgetsHelper
     {
         /* Формируем карту-путь, для определения места где в конфиге ошибка */
         $paramRouteButton = '=>' . $button;
+        $paramRouteButtonName = $paramRouteButton . '=>name';
         $paramRouteButtonUrl = $paramRouteButton . '=>url';
 
         static::checkParamIsExistInArray($buttons, $button, $paramRouteButton);
         static::checkParamIsNotEmptyAndArray($buttons[$button], $paramRouteButton);
+
+        static::checkParamIsExistInArray($buttons[$button], 'name', $paramRouteButtonName);
+        static::checkParamIsString($buttons[$button]['name'], $paramRouteButtonName);
 
         static::checkParamIsExistInArray($buttons[$button], 'url', $paramRouteButtonUrl);
         static::checkParamIsNotEmptyAndArray($buttons[$button]['url'], $paramRouteButtonUrl);

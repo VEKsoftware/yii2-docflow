@@ -5,6 +5,7 @@
 
 namespace docflow\widgets;
 
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\widgets\helpers\FlTreeWidgetsHelper;
 use yii\base\ErrorException;
@@ -137,7 +138,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
      * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getMainPart(Document $value, array $config)
+    protected static function getMainPart(DocFlowBase $value, array $config)
     {
         return [
             'text' => $value->docName,
@@ -154,7 +155,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
      *
      * @return array
      */
-    protected static function getSimplePart(Document $value, array $config)
+    protected static function getSimplePart(DocFlowBase $value, array $config)
     {
         $simple = [];
 
@@ -175,7 +176,7 @@ class FlTreeWidgetWithSimpleLinks extends FlTreeWidget
      *
      * @return bool
      */
-    protected static function checkSimpleLink(Document $value, array $config)
+    protected static function checkSimpleLink(DocFlowBase $value, array $config)
     {
         $simpleLinksParentDoc = ArrayHelper::getColumn($config['simpleLinks'], $config['nodeIdField']);
 

@@ -33,7 +33,7 @@ class StatusesLinksLog extends Document
     public function rules()
     {
         return [
-            [['status_from', 'status_to', 'level', 'operation_log_id', 'changed_by', 'doc_id'], 'integer'],
+            [['status_from', 'status_to', 'level', 'operation_log_id', 'doc_id'], 'integer'],
             [['right_tag', 'type', 'changed_attributes'], 'string'],
             ['right_tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [
@@ -72,7 +72,6 @@ class StatusesLinksLog extends Document
             'type' => Yii::t('docflow', 'Link Type'),
             'atime' => 'Штамп времени',
             'doc_id' => 'Документ',
-            'changed_by' => 'Изменено',
             'operation_log_id' => 'Операция в логе'
         ];
     }

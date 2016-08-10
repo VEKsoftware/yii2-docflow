@@ -1,7 +1,8 @@
 <?php
 
-namespace docflow\models\base\DocType;
+namespace docflow\models\base\doc_type;
 
+use docflow\models\base\doc_type\DocTypes;
 use yii\base\InvalidParamException;
 use yii\data\ActiveDataProvider;
 

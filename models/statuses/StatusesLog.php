@@ -32,8 +32,8 @@ class StatusesLog extends Document
     public function rules()
     {
         return [
-            [['doc_type_id', 'name', 'tag', 'changed_attributes', 'doc_id', 'changed_by'], 'required'],
-            [['doc_type_id', 'order_idx', 'doc_id', 'changed_by', 'operation_log_id'], 'integer'],
+            [['doc_type_id', 'name', 'tag', 'changed_attributes', 'doc_id'], 'required'],
+            [['doc_type_id', 'order_idx', 'doc_id', 'operation_log_id'], 'integer'],
             [['name', 'tag'], 'string', 'max' => 128],
             [['description'], 'string', 'max' => 512],
             ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
@@ -71,7 +71,6 @@ class StatusesLog extends Document
             'operations_ids' => 'Текущие операции',
             'changed_attributes' => 'Измененные аттрибуты',
             'atime' => 'Штамп времени',
-            'changed_by' => 'Изменено',
             'operation_log_id' => 'Операция в логе',
             'doc_id' => 'Документ'
         ];

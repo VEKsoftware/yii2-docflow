@@ -8,6 +8,7 @@
 
 namespace docflow\widgets;
 
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\widgets\helpers\FlTreeWidgetsHelper;
 use yii\base\ErrorException;
@@ -70,7 +71,7 @@ class FlTreeWidgetWithLeaf extends FlTreeWidget
      * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getMainPart(Document $value, array $config)
+    protected static function getMainPart(DocFlowBase $value, array $config)
     {
         return [
             'text' => $value->docName,

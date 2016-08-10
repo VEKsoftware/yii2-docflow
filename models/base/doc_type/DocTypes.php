@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models\base\docType;
+namespace docflow\models\base\doc_type;
 
 use docflow\models\base\DocFlowBase;
 use docflow\models\statuses\Statuses;

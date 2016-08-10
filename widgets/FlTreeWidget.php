@@ -8,6 +8,7 @@
 
 namespace docflow\widgets;
 
+use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\widgets\helpers\FlTreeWidgetsHelper;
 use yii\base\ErrorException;
@@ -121,7 +122,7 @@ class FlTreeWidget extends Widget
     protected static function prepareMainStructure(ActiveDataProvider $docADP, array $config)
     {
         return array_map(
-            function (Document $value) use ($config) {
+            function (DocFlowBase $value) use ($config) {
                 return array_merge(
                     static::getMainPart($value, $config),
                     static::getChildPart($value, $config)
@@ -142,7 +143,7 @@ class FlTreeWidget extends Widget
      * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getMainPart(Document $value, array $config)
+    protected static function getMainPart(DocFlowBase $value, array $config)
     {
         return [
             'text' => $value->docName,
@@ -160,7 +161,7 @@ class FlTreeWidget extends Widget
      * @throws ErrorException
      * @throws InvalidParamException
      */
-    protected static function getChildPart(Document $value, array $config)
+    protected static function getChildPart(DocFlowBase $value, array $config)
     {
         $child = [];
 
@@ -312,7 +313,7 @@ class FlTreeWidget extends Widget
      *
      * @return bool
      */
-    protected static function checkChild(Document $document)
+    protected static function checkChild(DocFlowBase $document)
     {
         $haveChild = false;
 

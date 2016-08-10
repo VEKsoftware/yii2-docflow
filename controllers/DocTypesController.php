@@ -21,8 +21,8 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
-use docflow\models\base\docType\DocTypes;
-use docflow\models\base\DocType\DocTypesSearch;
+use docflow\models\base\doc_type\DocTypes;
+use docflow\models\base\doc_type\DocTypesSearch;
 use docflow\models\statuses\Statuses;
 use docflow\models\statuses\StatusesSearch;
 

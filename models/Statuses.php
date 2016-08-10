@@ -5,7 +5,7 @@ namespace docflow\models;
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LogMultiple;
-use docflow\models\base\DocTypes;
+use docflow\models\base\docType\DocTypes;
 use docflow\models\base\Document;
 use yii;
 

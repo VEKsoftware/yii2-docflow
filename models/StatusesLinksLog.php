@@ -9,7 +9,7 @@
 namespace docflow\models;
 
 use docflow\models\base\Document;
-use docflow\models\base\Operations;
+use docflow\models\base\operations\Operations;
 use yii;
 
 class StatusesLinksLog extends Document

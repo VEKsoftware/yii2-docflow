@@ -44,7 +44,7 @@ if ($buttonsExist) {
         <p>
         <div class="row">
             <?php if ($buttonsExist && $buttonUpdateExist): ?>
-                <div class="col-xs-2 text-left">
+                <div class="col-xs-3 text-left ">
                     <?php echo Html::a(
                         $buttons['update']['name'],
                         $buttons['update']['url'],
@@ -52,12 +52,30 @@ if ($buttonsExist) {
                     ) ?>
                 </div>
             <?php endif; ?>
+            <?php if ($buttonSetParentExist): ?>
+                <div class="col-xs-3 text-left ">
+                    <?php echo Html::button(
+                        $buttons['setParent']['name'],
+                        [
+                            'id' => 'set-parent-button',
+                            'class' => 'btn btn-primary',
+                            'data-toggle' => 'modal',
+                            'data-target' => $buttons['setParent']['modalId'],
+                            'data-render-tree-parent' => Url::toRoute($base['renderTree']),
+                            'data-render-tree-children' => Url::toRoute($base['renderTree']),
+                            'data-show-checkbox-parent' => $buttons['setParent']['parentShowCheckBox'],
+                            'data-show-checkbox-children' => $buttons['setParent']['childShowCheckBox'],
+                            'data-set-parent-url' => Url::toRoute($buttons['setParent']['setParentUrl'])
+                        ]
+                    ) ?>
+                </div>
+            <?php endif; ?>
             <?php if ($buttonsExist): ?>
-                <div class="col-xs-8 text-center" id="actions-tree-buttons">
+                <div class="col-xs-4 text-left" id="actions-tree-buttons">
                     <?php if ($buttonLeftExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            $buttons['treeLeft']['name'],
+                            '',
                             [
                                 'name' => 'left-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeLeft']['url']),
@@ -70,7 +88,7 @@ if ($buttonsExist) {
                     <?php if ($buttonUpExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            $buttons['treeUp']['name'],
+                            '',
                             [
                                 'name' => 'up-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeUp']['url']),
@@ -83,7 +101,7 @@ if ($buttonsExist) {
                     <?php if ($buttonDownExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            $buttons['treeDown']['name'],
+                            '',
                             [
                                 'name' => 'down-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeDown']['url']),
@@ -96,29 +114,13 @@ if ($buttonsExist) {
                     <?php if ($buttonRightExist): ?>
                         <?php echo Html::tag(
                             'div',
-                            $buttons['treeRight']['name'],
+                            '',
                             [
                                 'name' => 'right-in-tree',
                                 'data-href' => Url::toRoute($buttons['treeRight']['url']),
                                 'data-fl-tree-url' => Url::toRoute($base['renderTree']),
                                 'data-name' => $base['nodeName'],
                                 'class' => 'btn btn-primary glyphicon glyphicon-arrow-right'
-                            ]
-                        ) ?>
-                    <?php endif; ?>
-                    <?php if ($buttonSetParentExist): ?>
-                        <?php echo Html::button(
-                            $buttons['setParent']['name'],
-                            [
-                                'id' => 'set-parent-button',
-                                'class' => 'btn btn-primary',
-                                'data-toggle' => 'modal',
-                                'data-target' => $buttons['setParent']['modalId'],
-                                'data-render-tree-parent' => Url::toRoute($base['renderTree']),
-                                'data-render-tree-children' => Url::toRoute($base['renderTree']),
-                                'data-show-checkbox-parent' => $buttons['setParent']['parentShowCheckBox'],
-                                'data-show-checkbox-children' => $buttons['setParent']['childShowCheckBox'],
-                                'data-set-parent-url' => Url::toRoute($buttons['setParent']['setParentUrl'])
                             ]
                         ) ?>
                     <?php endif; ?>

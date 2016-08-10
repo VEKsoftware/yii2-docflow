@@ -2,6 +2,7 @@
 
 namespace docflow\models\base;
 
+use docflow\models\base\docType\DocTypes;
 use yii;
 
 /**

@@ -5,7 +5,7 @@ namespace docflow\controllers;
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\models\base\Document;
-use docflow\models\StatusesTreeSearch;
+use docflow\models\statuses\StatusesTreeSearch;
 use docflow\widgets\FlTreeWidgetWithLeaf;
 use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 use yii;
@@ -21,10 +21,10 @@ use yii\web\Controller;
 use yii\web\ForbiddenHttpException;
 use yii\web\NotFoundHttpException;
 
-use docflow\models\base\DocTypes;
-use docflow\models\base\DocTypesSearch;
-use docflow\models\Statuses;
-use docflow\models\StatusesSearch;
+use docflow\models\base\docType\DocTypes;
+use docflow\models\base\DocType\DocTypesSearch;
+use docflow\models\statuses\Statuses;
+use docflow\models\statuses\StatusesSearch;
 
 use yii\web\Response;
 

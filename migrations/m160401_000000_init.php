@@ -3,7 +3,7 @@
 use yii\db\Migration;
 use docflow\Docflow;
 
-use docflow\models\Statuses;
+use docflow\models\statuses\Statuses;
 
 class m160401_000000_init extends Migration
 {

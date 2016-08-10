@@ -9,7 +9,7 @@
 namespace docflow\models\base;
 
 use docflow\base\JsonB;
-use docflow\models\Statuses;
+use docflow\models\statuses\Statuses;
 
 abstract class OperationBase extends DocFlowBase
 {

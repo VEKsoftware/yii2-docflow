@@ -1,6 +1,6 @@
 <?php
 
-use docflow\models\base\DocTypesSearch;
+use docflow\models\base\DocType\DocTypesSearch;
 use yii\helpers\Html;
 use yii\web\View;
 use yii\widgets\ActiveForm;

@@ -1,11 +1,11 @@
 <?php
 /**
- * @var View     $this
- * @var DocTypes $model
- * @var array    $flTreeWidgetParam
+ * @var View                                  $this
+ * @var \docflow\models\base\docType\DocTypes $model
+ * @var array                                 $flTreeWidgetParam
  */
 
-use docflow\models\base\DocTypes;
+use docflow\models\base\docType\DocTypes;
 use docflow\widgets\FlTreeWidget;
 use docflow\widgets\FlTreeWidgetWithLeaf;
 use yii\bootstrap\Modal;

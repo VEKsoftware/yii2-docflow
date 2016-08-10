@@ -2,10 +2,10 @@
 
 namespace docflow\controllers;
 
-use docflow\models\Statuses;
-use docflow\models\StatusesLinks;
-use docflow\models\StatusesLinksSearch;
-use docflow\models\StatusesSearch;
+use docflow\models\statuses\Statuses;
+use docflow\models\statuses\links\StatusesLinks;
+use docflow\models\statuses\links\StatusesLinksSearch;
+use docflow\models\statuses\StatusesSearch;
 use Yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;

@@ -1,7 +1,7 @@
 <?php
 
-use docflow\models\base\DocTypes;
-use docflow\models\Statuses;
+use docflow\models\base\docType\DocTypes;
+use docflow\models\statuses\Statuses;
 use yii\helpers\Html;
 use yii\web\View;
 

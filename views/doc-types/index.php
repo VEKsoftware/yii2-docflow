@@ -1,6 +1,6 @@
 <?php
 
-use docflow\models\base\DocTypesSearch;
+use docflow\models\base\DocType\DocTypesSearch;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
 use yii\helpers\Url;

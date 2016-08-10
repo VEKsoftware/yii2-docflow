@@ -1,6 +1,6 @@
 <?php
 
-use docflow\models\base\DocTypes;
+use docflow\models\base\docType\DocTypes;
 use yii\helpers\Html;
 use yii\web\View;
 

@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\behaviors;
+namespace log\behaviors;
 
 use Yii;
 use yii\base\Behavior;
@@ -41,15 +41,10 @@ class Log extends Behavior
     public $logClass;
 
     /**
-     * Field of the table to store id of the user who changed the record
-     * Default: 'changed_by'.
+     * Field to save link to base model from the logged model
+     * Default: 'doc_id'.
      */
-    public $changedByField = 'changed_by';
-
-    /**
-     * Value for 'changedByField', needed in console mode of Yii2 application.
-     */
-    public $changedByValue;
+    public $docId = 'doc_id';
 
     /**
      * Field to store changed attributes
@@ -71,9 +66,10 @@ class Log extends Behavior
 
     protected $_to_save_log = false;
     protected $_changed_attributes = [];
+    protected $_to_save_attributes = [];
 
     /**
-     * @inheritdoc
+     * @inherit
      */
     public function events()
     {
@@ -112,7 +108,7 @@ class Log extends Behavior
     }
 
     /**
-     * Saves a record to the log table.
+     * Return logged records with certain changed attributes
      *
      * @param null $attributes
      *
@@ -170,17 +166,44 @@ class Log extends Behavior
      */
     public function logBeforeSave($event)
     {
-        // Computing attributes to save (diff)
-        $attributes = array_diff($this->logAttributes, [$this->timeField]);
-        $new = $this->owner->getDirtyAttributes($attributes);
-        $old = $this->owner->oldAttributes;
-        $diff = array_diff_assoc($new, $old);
-        $this->_changed_attributes = $diff;
-        if (count($diff) > 0) {
-            $this->owner->{$this->timeField} = date('Y-m-d H:i:sP');
-            $this->_to_save_log = true;
+        $logAttributes = $this->logAttributes;
+
+        $this->_to_save_log = false;
+        foreach($logAttributes as $key => $val) {
+            if(is_int($key)) {
+                // Значения - это имена атрибутов
+                $aName = $val;
+                $aValue = $this->owner->getAttribute($aName);
+            } elseif($val instanceof \Closure) {
+                // Ключ - имя атрибута, значение - вычисляемое
+                $aName = $key;
+                $aValue = call_user_func($val);
+            } else {
+                $aName = $key;
+                $aValue = $val;
+            }
+
+            if($this->owner->hasAttribute($aName)) {
+                if($aName === $this->timeField) {
+                    continue;
+                } elseif($this->owner->getOldAttribute($aName) != $aValue) {
+                    $this->_to_save_attributes[$aName] = $aValue;
+                    $this->_to_save_log = true;
+                    $this->_changed_attributes[] = $aName;
+                } else {
+                    $this->_to_save_attributes[$aName] = $aValue;
+                }
+            } else {
+                $this->_to_save_attributes[$aName] = $aValue;
+            }
+        }
+
+        if ($this->_to_save_log ) {
+            $time = static::returnTimeStamp();
+            $this->owner->{$this->timeField} = $time;
+            $this->_to_save_attributes[$this->timeField] = $time;
         } else {
-            $this->_to_save_log = false;
+            return true;
         }
 
         // Check current version of the record before update
@@ -193,6 +216,8 @@ class Log extends Behavior
             }
             $this->setNewVersion();
         }
+        $this->_to_save_attributes[$this->versionField] = $this->owner->{$this->versionField};
+        return true;
     }
 
     /**
@@ -214,25 +239,30 @@ class Log extends Behavior
             return;
         }
 
-        $attributes = $this->owner->getAttributes($this->logAttributes);
-        $attributes['doc_id'] = $attributes['id'];
-        unset($attributes['id']);
-        $attributes[$this->changedAttributesField] = '{'.implode(',', array_keys($this->_changed_attributes)).'}';
-
-        if ($this->changedByField) {
-            if (Yii::$app instanceof Application) {
-                $attributes[$this->changedByField] = null;
-            } else {
-                $attributes[$this->changedByField] = Yii::$app->user->isGuest ? null : Yii::$app->user->id;
-            }
-        }
-
+        $this->_to_save_attributes[$this->docId] = $this->owner->id;
+        unset($this->_to_save_attributes['id']);
+        $this->_to_save_attributes[$this->changedAttributesField] = '{'.implode(',', array_values($this->_changed_attributes)).'}';
+        
         $logClass = $this->logClass;
         /** @var ActiveRecord $log */
-        $log = new $logClass($attributes);
-
+        $log = new $logClass();
+        $log->setAttributes( array_intersect_key( $this->_to_save_attributes, $log->getAttributes() ) );
+        
         if (!$log->save()) {
             throw new ErrorException(print_r($log->errors, true));
         }
     }
+
+    /**
+     * получить текущую отметку времени в текстовом формате
+     */
+    public static function returnTimeStamp()
+    {
+        $t = microtime(true);
+        $micro = sprintf("%06d",($t - floor($t)) * 1000000);
+        
+        $date = new \DateTime( date('Y-m-d H:i:s.'.$micro, $t) );
+        return $date->format('Y-m-d H:i:s.uP');
+    }
+
 }

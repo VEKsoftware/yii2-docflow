@@ -49,28 +49,28 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             ],
         ],
         'treeUp' => [
-            'name' => Yii::t('docflow', 'Up'),
+            'name' => '',
             'url' => [
                 'ajax-up',
                 'nodeId' => $document->idx
             ]
         ],
         'treeDown' => [
-            'name' => Yii::t('docflow', 'Down'),
+            'name' => '',
             'url' => [
                 'ajax-down',
                 'nodeId' => $document->idx
             ]
         ],
         'treeRight' => [
-            'name' => Yii::t('docflow', 'In'),
+            'name' => '',
             'url' => [
                 'ajax-right',
                 'nodeId' => $document->idx
             ]
         ],
         'treeLeft' => [
-            'name' => Yii::t('docflow', 'Out'),
+            'name' => '',
             'url' => [
                 'ajax-left',
                 'nodeId' => $document->idx

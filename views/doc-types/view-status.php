@@ -61,7 +61,7 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             'url' => ['status-delete', 'doc' => $doc, 'status' => $model->tag],
         ],
         'treeUp' => [
-            'name' => Yii::t('docflow', 'Up'),
+            'name' => '',
             'url' => [
                 'ajax-status-tree-up',
                 'statusTag' => $model->tag,
@@ -70,7 +70,7 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             ]
         ],
         'treeDown' => [
-            'name' => Yii::t('docflow', 'Down'),
+            'name' => '',
             'url' => [
                 'ajax-status-tree-down',
                 'statusTag' => $model->tag,
@@ -79,7 +79,7 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             ]
         ],
         'treeRight' => [
-            'name' => Yii::t('docflow', 'In'),
+            'name' => '',
             'url' => [
                 'ajax-status-tree-right',
                 'statusTag' => $model->tag,
@@ -88,7 +88,7 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             ]
         ],
         'treeLeft' => [
-            'name' => Yii::t('docflow', 'Out'),
+            'name' => '',
             'url' => [
                 'ajax-status-tree-left',
                 'statusTag' => $model->tag,

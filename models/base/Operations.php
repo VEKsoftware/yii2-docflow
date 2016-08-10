@@ -59,7 +59,7 @@ abstract class Operations extends OperationBase
      */
     public function behaviors()
     {
-        return array_map(
+        return array_merge(
             parent::behaviors(),
             [
                 'log' => [

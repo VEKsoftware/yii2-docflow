@@ -138,8 +138,6 @@ class MultipleActiveRecord extends ActiveRecord
         }
 
         foreach (static::$_models as $model) {
-            $values = $model->attributes + $attributes_keyed;
-
             if ($runValidation && !$model->validate($attributes)) {
                 return false;
             }
@@ -147,6 +145,8 @@ class MultipleActiveRecord extends ActiveRecord
             if (!$model->beforeSaveMultiple($model->isNewRecord)) {
                 return false;
             }
+
+            $values = $model->attributes + $attributes_keyed;
 
             if ($model->isNewRecord) {
                 $inserts[] = array_diff_key($values, array_fill_keys($primary_keys, NULL));

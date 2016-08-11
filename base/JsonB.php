@@ -27,7 +27,7 @@ class JsonB extends Object
      *
      * @var array
      */
-    private $_attributes = [];
+    private $_attributes;
 
     /**
      * JsonB constructor.

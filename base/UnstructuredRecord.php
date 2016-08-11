@@ -85,28 +85,6 @@ class UnstructuredRecord extends MultipleActiveRecord
         }
     }
 
-    /**
-     * Подготавливаем скрытые аттрибуты для сохранения
-     *
-     * @param JsonB $jsonB - Объект JsonB
-     *
-     * @return array
-     */
-    protected function prepareSaveJsonB(JsonB $jsonB)
-    {
-        $return = [];
-
-        foreach ($jsonB->attributes as $key => $value) {
-            if ($value instanceof JsonB) {
-                $return[$key] = call_user_func([$this, 'prepareSaveJsonB'], $value);
-            } else {
-                $return[$key] = $value;
-            }
-        }
-
-        return $return;
-    }
-
 
     /**
      * Кодируем объект jsonB в json формат
@@ -159,8 +137,9 @@ class UnstructuredRecord extends MultipleActiveRecord
             if (array_key_exists($jsonBColumn, $this->_hiddenAttributes)) {
                 /* Проверяем на null значение аттрибутов JsonB (когда только создаем и можем не записать ничего) */
                 if ($this->_hiddenAttributes[$jsonBColumn]->attributes !== null) {
+                    /* @var JsonB $hiddenAttribute */
                     $hiddenAttribute = $this->_hiddenAttributes[$jsonBColumn];
-                    $prepareJsonB = $this->prepareSaveJsonB($hiddenAttribute);
+                    $prepareJsonB = $hiddenAttribute->prepareSaveJsonB();
                     $json = json_encode($prepareJsonB);
 
                     $this->setAttribute($jsonBColumn, $json);

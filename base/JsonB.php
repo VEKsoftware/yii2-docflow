@@ -13,6 +13,13 @@ use yii\base\Object;
 use yii\base\UnknownPropertyException;
 use yii\helpers\ArrayHelper;
 
+/**
+ * Class JsonB
+ *
+ * @package Docflow\Base
+ *
+ * @property array $attributes
+ */
 class JsonB extends Object
 {
     /**
@@ -20,7 +27,7 @@ class JsonB extends Object
      *
      * @var array
      */
-    private $_attributes;
+    private $_attributes = [];
 
     /**
      * JsonB constructor.
@@ -198,5 +205,35 @@ class JsonB extends Object
                 unset($this->_attributes[$attribute]);
             }
         }
+    }
+
+    /**
+     * При вызове объекта как строки
+     *
+     * @return string
+     */
+    public function __toString()
+    {
+        return json_encode($this->prepareSaveJsonB());
+    }
+
+    /**
+     * Подготавливаем скрытые аттрибуты для сохранения
+     *
+     * @return array
+     */
+    public function prepareSaveJsonB()
+    {
+        $return = [];
+
+        foreach ($this->_attributes as $key => $value) {
+            if ($value instanceof JsonB) {
+                $return[$key] = call_user_func([$value, 'prepareSaveJsonB']);
+            } else {
+                $return[$key] = $value;
+            }
+        }
+
+        return $return;
     }
 }

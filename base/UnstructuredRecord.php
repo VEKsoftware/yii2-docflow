@@ -219,6 +219,10 @@ class UnstructuredRecord extends MultipleActiveRecord
                 if (is_array($value)) {
                     $this->_hiddenAttributes[$explode[0]] = new JsonB($value);
                 }
+
+                if ($value instanceof JsonB) {
+                    $this->_hiddenAttributes[$explode[0]] = $value;
+                }
             } else {
                 DocFlowArrayHelper::setValues($this, $name, $value);
             }
@@ -234,7 +238,7 @@ class UnstructuredRecord extends MultipleActiveRecord
      *
      * @return bool
      */
-    protected function hasHiddenAttribute($name)
+    public function hasHiddenAttribute($name)
     {
         return isset($this->_hiddenAttributes[$name]) || in_array($name, static::jsonBFields(), true);
     }
@@ -247,6 +251,24 @@ class UnstructuredRecord extends MultipleActiveRecord
     public function getHiddenAttributes()
     {
         return $this->_hiddenAttributes;
+    }
+
+    /**
+     * Получаем скрытый аттрибут
+     *
+     * @param string $name - имя аттрибута
+     *
+     * @return JsonB|null
+     */
+    public function getHiddenAttribute($name)
+    {
+        $hAttribute = null;
+
+        if (array_key_exists($name, $this->_hiddenAttributes)) {
+            $hAttribute = $this->_hiddenAttributes[$name];
+        }
+
+        return $hAttribute;
     }
 
     /**

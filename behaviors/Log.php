@@ -2,11 +2,11 @@
 
 namespace docflow\behaviors;
 
-use Yii;
+use docflow\base\UnstructuredRecord;
+use yii;
 use yii\base\Behavior;
 use yii\base\ErrorException;
 use yii\base\Event;
-use Yii\console\Application;
 use yii\db\ActiveQueryInterface;
 use yii\db\ActiveRecord;
 use yii\db\AfterSaveEvent;
@@ -26,7 +26,7 @@ use yii\validators\Validator;
 class Log extends Behavior
 {
     /**
-     * @var ActiveRecord the owner of this behavior
+     * @var UnstructuredRecord the owner of this behavior
      */
     public $owner;
 
@@ -211,6 +211,20 @@ class Log extends Behavior
                 }
             } else {
                 $this->_to_save_attributes[$aName] = $aValue;
+            }
+
+            if ($this->owner->hasHiddenAttribute($aName)) {
+                $ahValue = $this->owner->getHiddenAttribute($aName);
+
+                if ($aName === $this->timeField) {
+                    continue;
+                } elseif ($this->owner->getOldAttribute($aName) != $ahValue) {
+                    $this->_to_save_attributes[$aName] = $ahValue;
+                    $this->_to_save_log = true;
+                    $this->_changed_attributes[] = $aName;
+                } else {
+                    $this->_to_save_attributes[$aName] = $ahValue;
+                }
             }
         }
 

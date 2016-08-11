@@ -11,7 +11,6 @@ namespace docflow\models\base\operations;
 use docflow\base\JsonB;
 use docflow\behaviors\LogMultiple;
 use docflow\models\base\OperationBase;
-use docflow\models\base\operations\OperationsLog;
 use yii\base\ErrorException;
 use yii\db\Connection;
 

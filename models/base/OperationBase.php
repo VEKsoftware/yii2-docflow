@@ -75,7 +75,7 @@ abstract class OperationBase extends DocFlowBase
     }
 
     /**
-     * Описание связи составтусами
+     * Описание связи со статусами
      *
      * @return \yii\db\ActiveQuery
      */

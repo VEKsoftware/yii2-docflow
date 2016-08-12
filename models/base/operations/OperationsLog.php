@@ -9,7 +9,6 @@
 namespace docflow\models\base\operations;
 
 use docflow\models\base\OperationBase;
-use docflow\models\base\operations\Operations;
 
 class OperationsLog extends OperationBase
 {
@@ -60,5 +59,22 @@ class OperationsLog extends OperationBase
                 'doc_id' => 'Документ',
             ]
         );
+    }
+
+    /**
+     * Перед массовым сохранением
+     *
+     * @param bool $insert - true - добавляем, false - обновляем записи
+     *
+     * @return bool
+     *
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\ErrorException
+     */
+    public function beforeSaveMultiple($insert)
+    {
+        $this->beforeSave($insert);
+
+        return parent::beforeSaveMultiple($insert);
     }
 }

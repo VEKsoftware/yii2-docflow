@@ -11,6 +11,7 @@ namespace docflow\models\base\operations;
 use docflow\base\JsonB;
 use docflow\behaviors\LogMultiple;
 use docflow\models\base\OperationBase;
+use yii;
 use yii\base\ErrorException;
 use yii\db\Connection;
 
@@ -276,5 +277,87 @@ abstract class Operations extends OperationBase
     {
         $this->documents = [];
         static::deleteAll(['invoice_id' => $this->id]);
+    }
+
+    /**
+     * Перед массовым сохранением
+     *
+     * @param bool $insert - true - добавляем, false - обновляем записи
+     *
+     * @return bool
+     *
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\ErrorException
+     */
+    public function beforeSaveMultiple($insert)
+    {
+        $this->unit_real_id = $this->getUnitRealId();
+        $this->unit_resp_id = $this->getUnitRespId();
+        $this->beforeSave($insert);
+
+        return parent::beforeSaveMultiple($insert);
+    }
+
+    /**
+     * Перед сохранением
+     *
+     * @param bool $insert - true - добавляем, false - обновляем записи
+     *
+     * @return bool
+     *
+     * @throws \yii\base\InvalidParamException
+     * @throws \yii\base\ErrorException
+     */
+    public function beforeSave($insert)
+    {
+        if (!parent::beforeSave($insert)) {
+            return false;
+        }
+
+        $this->unit_real_id = $this->getUnitRealId();
+        $this->unit_resp_id = $this->getUnitRespId();
+
+        return true;
+    }
+
+
+    /**
+     * Перед валидацией
+     *
+     * @return bool
+     */
+    public function beforeValidate()
+    {
+        $this->unit_real_id = $this->getUnitRealId();
+        $this->unit_resp_id = $this->getUnitRespId();
+
+        return parent::beforeValidate();
+    }
+
+    /**
+     * Получаем id реального пользователя
+     *
+     * @return int|string
+     */
+    protected function getUnitRealId()
+    {
+        return Yii::$app->user->id;
+    }
+
+    /**
+     * Получаем id пользователя, от лица которого действуем
+     *
+     * @return int|null|string
+     */
+    protected function getUnitRespId()
+    {
+        $unitRespId = null;
+        if (Yii::$app->user->identity->hasProperty('respId')) {
+            $unitRespId = Yii::$app->user->identity->respId;
+        } else {
+            $unitRespId = Yii::$app->user->id;
+        }
+
+        return $unitRespId;
     }
 }

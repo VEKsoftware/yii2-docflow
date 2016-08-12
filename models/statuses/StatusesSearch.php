@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models\base\statuses;
+namespace docflow\models\statuses;
 
 use yii\base\Model;
 use yii\data\ActiveDataProvider;

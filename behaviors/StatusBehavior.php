@@ -53,7 +53,7 @@ use yii\base\ErrorException;
 use yii\helpers\ArrayHelper;
 
 use docflow\models\base\Document;
-use docflow\models\base\statuses\Statuses;
+use docflow\models\statuses\Statuses;
 
 /**
  * Behavior class for checking access to set status field and setting it if accessed.

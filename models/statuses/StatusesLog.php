@@ -6,7 +6,7 @@
  * Time: 10:39
  */
 
-namespace docflow\models\base\statuses;
+namespace docflow\models\statuses;
 
 use docflow\models\base\Document;
 use docflow\models\base\operations\Operations;

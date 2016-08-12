@@ -47,7 +47,7 @@ namespace docflow\behaviors;
 
 use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\base\Document;
-use docflow\models\base\statuses\Statuses;
+use docflow\models\statuses\Statuses;
 use yii;
 use yii\base\ErrorException;
 use yii\base\InvalidConfigException;

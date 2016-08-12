@@ -1,8 +1,8 @@
 <?php
 
-namespace docflow\models\base\statuses\links;
+namespace docflow\models\statuses\links;
 
-use docflow\models\base\statuses\Statuses;
+use docflow\models\statuses\Statuses;
 use yii;
 
 /**

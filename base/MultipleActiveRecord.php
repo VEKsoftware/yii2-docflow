@@ -46,6 +46,11 @@ class MultipleActiveRecord extends ActiveRecord
     const EVENT_SAVED_MULTIPLE = 'savedMultiple';
 
     /**
+     * Максимальное число моделей в очереди на сохранение, при превышении вызывается saveMultiple
+     */
+    const MAX_QUEUED_MODELS = 100;
+
+    /**
      * @var MultipleActiveRecord[] All models to batch save are stored here
      */
     protected static $_models = [];
@@ -60,26 +65,40 @@ class MultipleActiveRecord extends ActiveRecord
      */
     protected static $_toUpdateModels = [];
 
+    public function __construct(array $config = [])
+    {
+        parent::__construct($config);
+
+        /* Инициируем очередь для сохраняемых моделей в случае её отсутствия */
+        if (!array_key_exists(static::className(), static::$_models)) {
+            static::$_models[static::className()] = [];
+        }
+    }
+
     /**
      * This method add one or set of models into the queue of [[saveMultiple()]]
-     * @param \log\base\MultipleActiveRecord|\log\base\MultipleActiveRecord[] $models models to save in a butch query
+     * @param \docflow\base\MultipleActiveRecord|\docflow\base\MultipleActiveRecord[] $models models to save in a butch query
      */
     public static function addSaveMultiple($models)
     {
         if (is_array($models)) {
-            static::$_models = array_merge(static::$_models, $models);
+            static::$_models[static::className()] = array_merge(static::$_models[static::className()], $models);
         } elseif ($models) {
-            array_push(static::$_models, $models);
+            array_push(static::$_models[static::className()], $models);
+        }
+
+        if (count(static::$_models[static::className()]) > static::MAX_QUEUED_MODELS) {
+            static::saveMultiple();
         }
     }
 
     /**
      * This method returns the list of models to be saved by [[saveMultiple()]] method
-     * @return \log\base\MultipleActiveRecord[] models to save in a butch query
+     * @return \docflow\base\MultipleActiveRecord[] models to save in a butch query
      */
     public static function getSaveMultiple()
     {
-        return static::$_models;
+        return static::$_models[static::className()];
     }
 
     /**
@@ -87,13 +106,13 @@ class MultipleActiveRecord extends ActiveRecord
      */
     public static function clearSaveMultiple()
     {
-        static::$_models = [];
+        static::$_models[static::className()] = [];
     }
 
     /**
      * This method saves a series of models in one batch query
-     * @param \log\base\MultipleActiveRecord|\log\base\MultipleActiveRecord[] $models models to save in a butch query
-     * @param boolean $runValidation whether to validate all models before save
+     * @param \docflow\base\MultipleActiveRecord|\docflow\base\MultipleActiveRecord[] $models        models to save in a butch query
+     * @param boolean                                                         $runValidation whether to validate all models before save
      * @return bool
      * @throws ErrorException
      * @throws \Exception
@@ -106,11 +125,16 @@ class MultipleActiveRecord extends ActiveRecord
             static::addSaveMultiple($models);
         }
 
+        /* Если массив моделей пуст, то выходим из метода */
+        if (count(static::getSaveMultiple()) === 0) {
+            return true;
+        }
+
         $attributes = [];
         $primary_keys = [];
 
         // Search for all attributes and checking all models
-        foreach (static::$_models as $model) {
+        foreach (static::getSaveMultiple() as $model) {
             /** @var MultipleActiveRecord $model */
             $attributes = array_merge($attributes, array_keys($model->attributes));
 
@@ -120,7 +144,7 @@ class MultipleActiveRecord extends ActiveRecord
         }
 
         $attributes = array_unique($attributes);
-        $attributes_keyed = array_fill_keys($attributes, NULL);
+        $attributes_keyed = array_fill_keys($attributes, null);
 
         /** @var MultipleActiveRecord[] $inserts */
         $inserts = [];
@@ -137,7 +161,7 @@ class MultipleActiveRecord extends ActiveRecord
             return false;
         }
 
-        foreach (static::$_models as $model) {
+        foreach (static::getSaveMultiple() as $model) {
             if ($runValidation && !$model->validate($attributes)) {
                 return false;
             }
@@ -149,7 +173,7 @@ class MultipleActiveRecord extends ActiveRecord
             $values = $model->attributes + $attributes_keyed;
 
             if ($model->isNewRecord) {
-                $inserts[] = array_diff_key($values, array_fill_keys($primary_keys, NULL));
+                $inserts[] = array_diff_key($values, array_fill_keys($primary_keys, null));
                 static::$_toInsertModels[] = $model;
             } else {
                 // prepare a list of values for SQL UPDATE operation
@@ -170,7 +194,8 @@ class MultipleActiveRecord extends ActiveRecord
         if (!empty($inserts)) {
             $insertAttributes = array_diff($attributes, $primary_keys);
 
-            $affectedRowsCount = (int)$db->createCommand()->batchInsert(static::tableName(), $insertAttributes, $inserts)->execute();
+            $affectedRowsCount = (int)$db->createCommand()->batchInsert(static::tableName(), $insertAttributes,
+                $inserts)->execute();
             $lastId = (int)$db->getLastInsertID($db->getTableSchema(static::tableName())->sequenceName);
             $firstID = $lastId - $affectedRowsCount + 1;
             $currentID = $firstID;
@@ -222,7 +247,7 @@ class MultipleActiveRecord extends ActiveRecord
         }
 
 
-        foreach (static::$_models as $model) {
+        foreach (static::getSaveMultiple() as $model) {
             $values = $model->getDirtyAttributes();
             $changedAttributes = [];
             foreach ($values as $name => $value) {
@@ -233,6 +258,7 @@ class MultipleActiveRecord extends ActiveRecord
             $model->afterSaveMultiple(false, $changedAttributes);
         }
         static::savedMultiple();
+
         return true;
     }
 
@@ -247,6 +273,7 @@ class MultipleActiveRecord extends ActiveRecord
     {
         $event = new ModelEvent(['sender' => static::className()]);
         Event::trigger(static::className(), self::EVENT_TO_SAVE_MULTIPLE, $event);
+
         return $event->isValid;
     }
 
@@ -269,9 +296,9 @@ class MultipleActiveRecord extends ActiveRecord
      * ```
      *
      * @param boolean $insert whether this method called while inserting a record.
-     * If false, it means the method is called while updating a record.
+     *                        If false, it means the method is called while updating a record.
      * @return boolean whether the insertion or updating should continue.
-     * If false, the insertion or updating will be cancelled.
+     *                        If false, the insertion or updating will be cancelled.
      */
     public function beforeSaveMultiple($insert)
     {
@@ -287,19 +314,20 @@ class MultipleActiveRecord extends ActiveRecord
      * or an [[EVENT_AFTER_UPDATE_MULTIPLE]] event if `$insert` is false. The event class used is [[AfterSaveEvent]].
      * When overriding this method, make sure you call the parent implementation so that
      * the event is triggered.
-     * @param boolean $insert whether this method called while inserting a record.
-     * If false, it means the method is called while updating a record.
-     * @param array $changedAttributes The old values of attributes that had changed and were saved.
-     * You can use this parameter to take action based on the changes made for example send an email
-     * when the password had changed or implement audit trail that tracks all the changes.
-     * `$changedAttributes` gives you the old attribute values while the active record (`$this`) has
-     * already the new, updated values.
+     * @param boolean $insert            whether this method called while inserting a record.
+     *                                   If false, it means the method is called while updating a record.
+     * @param array   $changedAttributes The old values of attributes that had changed and were saved.
+     *                                   You can use this parameter to take action based on the changes made for example send an email
+     *                                   when the password had changed or implement audit trail that tracks all the changes.
+     *                                   `$changedAttributes` gives you the old attribute values while the active record (`$this`) has
+     *                                   already the new, updated values.
      */
     public function afterSaveMultiple($insert, $changedAttributes)
     {
-        $this->trigger($insert ? self::EVENT_AFTER_INSERT_MULTIPLE : self::EVENT_AFTER_UPDATE_MULTIPLE, new AfterSaveEvent([
-            'changedAttributes' => $changedAttributes
-        ]));
+        $this->trigger($insert ? self::EVENT_AFTER_INSERT_MULTIPLE : self::EVENT_AFTER_UPDATE_MULTIPLE,
+            new AfterSaveEvent([
+                'changedAttributes' => $changedAttributes
+            ]));
     }
 
     /**

@@ -223,6 +223,15 @@ class UnstructuredRecord extends MultipleActiveRecord
                 if ($value instanceof JsonB) {
                     $this->_hiddenAttributes[$explode[0]] = $value;
                 }
+
+                /* Если строка, то декодируем из json и пытаемся сформировать JsonB */
+                if (is_string($value)) {
+                    $fields = $this->jsonBDecode($value);
+
+                    if (is_array($fields)) {
+                        $this->_hiddenAttributes[$explode[0]] = new JsonB($fields);
+                    }
+                }
             } else {
                 DocFlowArrayHelper::setValues($this, $name, $value);
             }

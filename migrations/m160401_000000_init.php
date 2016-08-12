@@ -383,7 +383,7 @@ class m160401_000000_init extends Migration
         $this->createTable(
             '{{%operations_log}}',
             [
-                'id' => $this->primaryKey()->notNull(),
+                'id' => $this->bigPrimaryKey()->notNull(),
                 'operation_type' => 'operation_types DEFAULT \'Nope\'::operation_types',
                 'status_id' => $this->integer()->notNull(),
                 /* Связь с контр агнетами */
@@ -460,7 +460,7 @@ class m160401_000000_init extends Migration
         $this->createTable(
             '{{%doc_statuses_log}}',
             [
-                'id' => $this->primaryKey(),
+                'id' => $this->bigPrimaryKey(),
                 'doc_type_id' => $this->integer()->notNull(),
                 'tag' => $this->string(128)->notNull(),
                 'name' => $this->string(128)->notNull(),
@@ -469,7 +469,7 @@ class m160401_000000_init extends Migration
                 'operations_ids' => $this->integer() . '[]',
                 'changed_attributes' => $this->string(255) . '[]',
                 'doc_id' => $this->integer()->notNull(),
-                'operation_log_id' => $this->integer(),
+                'operation_log_id' => $this->bigInteger(),
                 'atime' => $this->timestamp()->notNull() . ' default current_timestamp'
             ]
         );
@@ -554,7 +554,7 @@ class m160401_000000_init extends Migration
         $this->createTable(
             '{{%doc_statuses_links_log}}',
             [
-                'id' => $this->primaryKey(),
+                'id' => $this->bigPrimaryKey(),
                 'status_from' => $this->integer()->notNull(),
                 'status_to' => $this->integer()->notNull(),
                 'right_tag' => $this->string(128),
@@ -562,7 +562,7 @@ class m160401_000000_init extends Migration
                 'level' => $this->integer(),
                 'changed_attributes' => $this->string(255) . '[]',
                 'doc_id' => $this->integer()->notNull(),
-                'operation_log_id' => $this->integer(),
+                'operation_log_id' => $this->bigInteger(),
                 'atime' => $this->timestamp() . ' default current_timestamp'
             ]
         );
@@ -649,7 +649,7 @@ class m160401_000000_init extends Migration
         $this->createTable(
             '{{%operations_links_log}}',
             [
-                'id' => $this->primaryKey()->notNull(),
+                'id' => $this->bigPrimaryKey()->notNull(),
                 'from' => $this->integer()->notNull(),
                 'to' => $this->integer()->notNull(),
                 'tp' => 'link_types DEFAULT \'simple\'::link_types',

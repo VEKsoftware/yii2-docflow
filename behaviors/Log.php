@@ -216,9 +216,13 @@ class Log extends Behavior
             if ($this->owner->hasHiddenAttribute($aName)) {
                 $ahValue = $this->owner->getHiddenAttribute($aName);
 
+                ($ahValue === null)
+                    ? $ahoValue = null
+                    : $ahoValue = json_encode($this->owner->getHiddenAttribute($aName)->prepareSaveJsonB());
+
                 if ($aName === $this->timeField) {
                     continue;
-                } elseif ($this->owner->getOldAttribute($aName) != $ahValue) {
+                } elseif ($this->owner->getOldAttribute($aName) != $ahoValue) {
                     $this->_to_save_attributes[$aName] = $ahValue;
                     $this->_to_save_log = true;
                     $this->_changed_attributes[] = $aName;

@@ -1,6 +1,6 @@
 <?php
 
-namespace docflow\models\statuses;
+namespace docflow\models\base\statuses;
 
 use docflow\behaviors\LinkOrderedBehavior;
 use docflow\behaviors\LinkStructuredBehavior;

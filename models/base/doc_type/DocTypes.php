@@ -3,7 +3,7 @@
 namespace docflow\models\base\doc_type;
 
 use docflow\models\base\DocFlowBase;
-use docflow\models\statuses\Statuses;
+use docflow\models\base\statuses\Statuses;
 use yii;
 use docflow\Docflow;
 use yii\base\ErrorException;

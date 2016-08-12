@@ -51,7 +51,7 @@ use docflow\messages\behaviors\BehaviorsMessages;
 use docflow\models\base\DocFlowBase;
 use docflow\models\base\Document;
 use docflow\models\base\Link;
-use docflow\models\statuses\Statuses;
+use docflow\models\base\statuses\Statuses;
 
 use Exception;
 

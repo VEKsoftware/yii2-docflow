@@ -2,11 +2,11 @@
 
 namespace docflow\controllers;
 
-use docflow\models\statuses\Statuses;
-use docflow\models\statuses\links\StatusesLinks;
-use docflow\models\statuses\links\StatusesLinksSearch;
-use docflow\models\statuses\StatusesSearch;
-use Yii;
+use docflow\models\base\statuses\Statuses;
+use docflow\models\base\statuses\links\StatusesLinks;
+use docflow\models\base\statuses\links\StatusesLinksSearch;
+use docflow\models\base\statuses\StatusesSearch;
+use yii;
 use yii\filters\AccessControl;
 use yii\filters\VerbFilter;
 use yii\web\Controller;

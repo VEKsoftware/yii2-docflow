@@ -1,10 +1,10 @@
 <?php
 
-namespace docflow\models\statuses\links;
+namespace docflow\models\base\statuses\links;
 
 use docflow\behaviors\LogMultiple;
 use docflow\models\base\Link;
-use docflow\models\statuses\Statuses;
+use docflow\models\base\statuses\Statuses;
 use yii;
 
 use docflow\Docflow;

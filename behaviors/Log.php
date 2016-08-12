@@ -216,7 +216,7 @@ class Log extends Behavior
             if ($this->owner->hasHiddenAttribute($aName)) {
                 $ahValue = $this->owner->getHiddenAttribute($aName);
 
-                ($ahValue === null)
+                ($ahValue->getAttributes() === null)
                     ? $ahoValue = null
                     : $ahoValue = json_encode($this->owner->getHiddenAttribute($aName)->prepareSaveJsonB());
 

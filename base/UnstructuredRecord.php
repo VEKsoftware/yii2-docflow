@@ -70,7 +70,7 @@ class UnstructuredRecord extends MultipleActiveRecord
      */
     protected function setHiddenAttributesInEvents($jsonBColumn)
     {
-        $property = $this->{$jsonBColumn};
+        $property = $this->getAttribute($jsonBColumn);
 
         if (!empty($property)) {
             if (!is_string($property)) {

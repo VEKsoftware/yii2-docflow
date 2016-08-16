@@ -486,12 +486,6 @@ class m160401_000000_init extends Migration
             'doc_id'
         );
         $this->createIndex(
-            'ux_doc_statuses_log__tag',
-            '{{%doc_statuses_log}}',
-            'tag',
-            true
-        );
-        $this->createIndex(
             'ix_doc_statuses_log__name',
             '{{%doc_statuses_log}}',
             'name'

@@ -36,7 +36,6 @@ class StatusesLog extends Document
             [['doc_type_id', 'order_idx', 'doc_id', 'operation_log_id'], 'integer'],
             [['name', 'tag'], 'string', 'max' => 128],
             [['description'], 'string', 'max' => 512],
-            ['tag', 'unique', 'targetAttribute' => ['doc_type_id', 'tag']],
             ['tag', 'match', 'pattern' => '/^[a-zA-Z0-9-_\.]+$/'],
             [['operations_ids', 'changed_attributes'], 'string'],
             [

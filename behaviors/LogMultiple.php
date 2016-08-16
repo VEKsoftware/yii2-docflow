@@ -24,7 +24,10 @@ use yii\helpers\ArrayHelper;
  */
 class LogMultiple extends Log
 {
-    protected static $_eventSwitched = false;
+    /**
+     * @var array Список классов которые подписали на события VekActiveRecord::EVENT_TO_SAVE_MULTIPLE, VekActiveRecord::EVENT_SAVED_MULTIPLE
+     */
+    protected static $_attachedClasses = [];
 
     /**
      * @inherit
@@ -52,12 +55,12 @@ class LogMultiple extends Log
      */
     public function attach($owner)
     {
-        if (!self::$_eventSwitched) {
+        if (!in_array($owner->className(), self::$_attachedClasses)) {
             Event::on($owner->className(), UnstructuredRecord::EVENT_TO_SAVE_MULTIPLE,
                 [self::className(), 'logToSaveMultiple']);
             Event::on($owner->className(), UnstructuredRecord::EVENT_SAVED_MULTIPLE,
                 [self::className(), 'logSavedMultiple']);
-            self::$_eventSwitched = true;
+            self::$_attachedClasses[] = $owner->className();
         }
         parent::attach($owner);
     }
@@ -143,12 +146,12 @@ class LogMultiple extends Log
         $logAttributes = $this->logAttributes;
 
         $this->_to_save_log = false;
-        foreach($logAttributes as $key => $val) {
-            if(is_int($key)) {
+        foreach ($logAttributes as $key => $val) {
+            if (is_int($key)) {
                 // Значения - это имена атрибутов
                 $aName = $val;
                 $aValue = $this->owner->getAttribute($aName);
-            } elseif($val instanceof \Closure) {
+            } elseif ($val instanceof \Closure) {
                 // Ключ - имя атрибута, значение - вычисляемое
                 $aName = $key;
                 $aValue = call_user_func($val, $this->owner);
@@ -157,10 +160,10 @@ class LogMultiple extends Log
                 $aValue = $val;
             }
 
-            if($this->owner->hasAttribute($aName)) {
-                if($aName === $this->timeField) {
+            if ($this->owner->hasAttribute($aName)) {
+                if ($aName === $this->timeField) {
                     continue;
-                } elseif($this->owner->getOldAttribute($aName) != $aValue) {
+                } elseif ($this->owner->getOldAttribute($aName) != $aValue) {
                     $this->_to_save_attributes[$aName] = $aValue;
                     $this->_to_save_log = true;
                     $this->_changed_attributes[] = $aName;
@@ -172,7 +175,7 @@ class LogMultiple extends Log
             }
         }
 
-        if ($this->_to_save_log ) {
+        if ($this->_to_save_log) {
             $time = static::returnTimeStamp();
             $this->owner->{$this->timeField} = $time;
             $this->_to_save_attributes[$this->timeField] = $time;
@@ -211,11 +214,12 @@ class LogMultiple extends Log
 
         $this->_to_save_attributes[$this->docId] = $this->owner->id;
         unset($this->_to_save_attributes['id']);
-        $this->_to_save_attributes[$this->changedAttributesField] = '{'.implode(',', array_values($this->_changed_attributes)).'}';
+        $this->_to_save_attributes[$this->changedAttributesField] = '{' . implode(',',
+                array_values($this->_changed_attributes)) . '}';
 
         $logClass = $this->logClass;
         $log = new $logClass();
-        $log->setAttributes( array_intersect_key( $this->_to_save_attributes, $log->getAttributes() ) );
+        $log->setAttributes(array_intersect_key($this->_to_save_attributes, $log->getAttributes()));
 
         $logClass::addSaveMultiple($log);
 

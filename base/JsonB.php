@@ -64,10 +64,8 @@ class JsonB extends Object
         } else {
             try {
                 return parent::__get($name);
-            } catch (InvalidCallException $e) {
-                return null;
             } catch (UnknownPropertyException $e) {
-                return null;
+                return $this->_attributes[$name] = new JsonB([]);
             }
         }
     }
@@ -134,7 +132,7 @@ class JsonB extends Object
             } else {
                 $this->_attributes[$name] = $value;
             }
-        } elseif (is_scalar($value)) {
+        } elseif (is_scalar($value) || ($value instanceof JsonB)) {
             $this->_attributes[$name] = $value;
         }
     }
@@ -214,7 +212,13 @@ class JsonB extends Object
      */
     public function __toString()
     {
-        return json_encode($this->prepareSaveJsonB());
+        $return = '';
+
+        if (count($this->_attributes) > 0) {
+            $return = json_encode($this->prepareSaveJsonB());
+        }
+
+        return $return;
     }
 
     /**

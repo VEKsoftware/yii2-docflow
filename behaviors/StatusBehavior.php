@@ -127,7 +127,6 @@ class StatusBehavior extends ActivePropertiesBehavior
      */
     protected function findAndSetStatusRootObj()
     {
-        //TODO необходимо переделать получение статусов
         $statusesObj = $this->owner->doc->statuses;
 
         if (!array_key_exists($this->statusRootTag, $statusesObj)) {

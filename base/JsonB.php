@@ -30,12 +30,34 @@ class JsonB extends Object
     private $_attributes;
 
     /**
+     * Родительский объект
+     *
+     * @var JsonB|null
+     */
+    public $parentObject;
+
+    /**
+     * Ключ у родителя
+     *
+     * @var null|string
+     */
+    public $parentKey;
+
+    /**
      * JsonB constructor.
      *
-     * @param array $config - входная конфигурация
+     * @param array       $config       - входная конфигурация
+     * @param JsonB|null  $parentObject - родительский объект
+     * @param string|null $parentKey    - родительский ключ
      */
-    public function __construct(array $config)
+    public function __construct(array $config, &$parentObject = null, $parentKey = null)
     {
+        /* Записываем родительский объект */
+        $this->parentObject = $parentObject;
+
+        /* Записываем ключ, которы в родителе указываем на текущий объект */
+        $this->parentKey = $parentKey;
+
         $prepareConfig = $this->preparePopulateJsonB($config);
 
         foreach ($prepareConfig as $name => $value) {
@@ -65,7 +87,7 @@ class JsonB extends Object
             try {
                 return parent::__get($name);
             } catch (UnknownPropertyException $e) {
-                return $this->_attributes[$name] = new JsonB([]);
+                return new JsonB([], $this, $name);
             }
         }
     }
@@ -90,10 +112,11 @@ class JsonB extends Object
         } else {
             try {
                 parent::__set($name, $value);
-            } catch (InvalidCallException $e) {
-                $this->prepareSet($name, $value);
             } catch (UnknownPropertyException $e) {
                 $this->prepareSet($name, $value);
+
+                /* Создаем отсутствующий путь */
+                $this->createPath();
             }
         }
     }
@@ -239,5 +262,17 @@ class JsonB extends Object
         }
 
         return $return;
+    }
+
+    /**
+     * Создаем путь, если он отсутствует
+     *
+     * @return void
+     */
+    protected function createPath()
+    {
+        if (($this->parentObject !== null) && ($this->parentKey !== null)) {
+            $this->parentObject->{$this->parentKey} = $this;
+        }
     }
 }

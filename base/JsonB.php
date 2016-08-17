@@ -275,4 +275,22 @@ class JsonB extends Object
             $this->parentObject->{$this->parentKey} = $this;
         }
     }
+
+    /**
+     * Удаляем свойство
+     *
+     * @param string $name - имя свойства
+     *
+     * @return void
+     *
+     * @throws InvalidCallException
+     */
+    public function __unset($name)
+    {
+        if (array_key_exists($name, $this->_attributes)) {
+            unset($this->_attributes[$name]);
+        } else {
+            parent::__unset($name);
+        }
+    }
 }

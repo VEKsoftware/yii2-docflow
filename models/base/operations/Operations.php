@@ -181,7 +181,7 @@ abstract class Operations extends OperationBase
      *
      * @return operations
      */
-    public static function instantiate($attributes)
+    public static function instantiate(array $attributes)
     {
         $class = static::className();
         if (array_key_exists($attributes['operation_type'], static::$operationsList)) {
@@ -222,7 +222,7 @@ abstract class Operations extends OperationBase
      *
      * @throws ErrorException Вызывается если массовое добавление в БД не произошло (ошибка)
      */
-    public function addItems($items)
+    public function addDocuments(array $items)
     {
         $this->documents = array_merge($this->documents, $items);
 
@@ -244,7 +244,7 @@ abstract class Operations extends OperationBase
      *
      * @return mixed
      */
-    protected function batchInsertItems($items)
+    protected function batchInsertItems(array $items)
     {
         $columns = $this->getAttributes();
         unset($columns['id'], $columns['atime'], $columns['version']);

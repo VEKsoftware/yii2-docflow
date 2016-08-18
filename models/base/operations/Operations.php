@@ -176,15 +176,6 @@ abstract class Operations extends OperationBase
     /* abstract public function operationPermitted($operation); */
 
     /**
-     * Получае БД используемую в модуле
-     * Пример содержания:
-     *      return Docflow::getInstance->db
-     *
-     * @return Connection
-     */
-    abstract public static function getModuleDb();
-
-    /**
      * Получаем объект в зависимости от входящих аттрибутов
      *
      * @param array $attributes - аттрибуты

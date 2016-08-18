@@ -228,7 +228,7 @@ class m160401_000000_init extends Migration
             ->execute();
 
         $this->getDb()
-            ->createCommand('CREATE TYPE operation_types as ENUM (\'Nope\', \'Draft\', \'Created\', \'Processing\', \'Finished\', \'Canceled\', \'Failed\', \'Suspended\')')
+            ->createCommand('CREATE TYPE operation_types as ENUM (\'Nope\')')
             ->execute();
 
         /* Таблица операций */

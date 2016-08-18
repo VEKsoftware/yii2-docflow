@@ -13,7 +13,6 @@ use docflow\behaviors\LogMultiple;
 use docflow\models\base\OperationBase;
 use yii;
 use yii\base\ErrorException;
-use yii\db\Connection;
 
 /**
  * Class Operations
@@ -250,7 +249,9 @@ abstract class Operations extends OperationBase
         $columns = $this->getAttributes();
         unset($columns['id'], $columns['atime'], $columns['version']);
 
-        return \Yii::$app->{static::getModuleDb()}
+        /* TODO подумать над тем, как правильно указывать подключения в модулях, в данном случае подключение по компоненту db */
+
+        return \Yii::$app->db
             ->createCommand()
             ->batchInsert(
                 static::tableName(),

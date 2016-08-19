@@ -271,7 +271,7 @@ class UnstructuredRecord extends MultipleActiveRecord
      */
     public function getHiddenAttribute($name)
     {
-        $hAttribute = null;
+        $hAttribute = new JsonB([]);
 
         if (array_key_exists($name, $this->_hiddenAttributes)) {
             $hAttribute = $this->_hiddenAttributes[$name];

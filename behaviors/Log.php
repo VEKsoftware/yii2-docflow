@@ -80,7 +80,7 @@ class Log extends Behavior
     protected $_to_save_log = false;
     protected $_changed_attributes = [];
     protected $_to_save_attributes = [];
-    
+
     protected $_beforeLogAttributes = [];
     protected $_closureLogAttributes = [];
 
@@ -90,11 +90,11 @@ class Log extends Behavior
     public function events()
     {
         return [
-            ActiveRecord::EVENT_INIT          => 'logInit',
+            ActiveRecord::EVENT_INIT => 'logInit',
             ActiveRecord::EVENT_BEFORE_INSERT => 'logBeforeSave',
             ActiveRecord::EVENT_BEFORE_UPDATE => 'logBeforeSave',
-            ActiveRecord::EVENT_AFTER_INSERT  => 'logAfterSave',
-            ActiveRecord::EVENT_AFTER_UPDATE  => 'logAfterSave',
+            ActiveRecord::EVENT_AFTER_INSERT => 'logAfterSave',
+            ActiveRecord::EVENT_AFTER_UPDATE => 'logAfterSave',
         ];
     }
 
@@ -108,17 +108,18 @@ class Log extends Behavior
     public function attach($owner)
     {
         if (is_null($this->logClass)) {
-            $this->logClass = $owner->className().'Log';
+            $this->logClass = $owner->className() . 'Log';
         }
         if (!class_exists($this->logClass, false)) {
-            throw new ErrorException('Model for logging "'.$this->logClass.'" ');
+            throw new ErrorException('Model for logging "' . $this->logClass . '" ');
         }
 
         if (isset($this->versionField) && !$owner->isNewRecord) {
             // die('new: '.$owner->isNewRecord);
             $owner->validators[] = Validator::createValidator('required', $owner, $this->versionField, []);
             $owner->validators[] = Validator::createValidator('string', $owner, $this->versionField, ['max' => '50']);
-            $owner->validators[] = Validator::createValidator('match', $owner, $this->versionField, ['pattern' => '/^[0-9]+$/']);
+            $owner->validators[] = Validator::createValidator('match', $owner, $this->versionField,
+                ['pattern' => '/^[0-9]+$/']);
         }
         parent::attach($owner);
     }
@@ -142,7 +143,7 @@ class Log extends Behavior
         }
 
         if (count($attr) > 0) {
-            $array = '{'.implode(',', $attr).'}';
+            $array = '{' . implode(',', $attr) . '}';
         } else {
             $array = null;
         }
@@ -185,24 +186,24 @@ class Log extends Behavior
         $logAttributes = $this->logAttributes;
 
         $this->_to_save_log = false;
-        foreach($logAttributes as $key => $val) {
-            if(is_int($key)) {
+        foreach ($logAttributes as $key => $val) {
+            if (is_int($key)) {
                 // Значения - это имена атрибутов
                 $aName = $val;
                 $aValue = $this->owner->getAttribute($aName);
-            } elseif($val instanceof \Closure) {
+            } elseif ($val instanceof \Closure) {
                 // Ключ - имя атрибута, значение - вычисляемое
                 $aName = $key;
-                $aValue = call_user_func($val,$this->owner);
+                $aValue = call_user_func($val, $this->owner);
             } else {
                 $aName = $key;
                 $aValue = $val;
             }
 
-            if($this->owner->hasAttribute($aName)) {
-                if($aName === $this->timeField) {
+            if ($this->owner->hasAttribute($aName)) {
+                if ($aName === $this->timeField) {
                     continue;
-                } elseif($this->owner->getOldAttribute($aName) != $aValue) {
+                } elseif ($this->owner->getOldAttribute($aName) != $aValue) {
                     $this->_to_save_attributes[$aName] = $aValue;
                     $this->_to_save_log = true;
                     $this->_changed_attributes[] = $aName;
@@ -216,7 +217,7 @@ class Log extends Behavior
             if ($this->owner->hasHiddenAttribute($aName)) {
                 $ahValue = $this->owner->getHiddenAttribute($aName);
 
-                ($ahValue->getAttributes() === null)
+                (($ahValue === null) || ($ahValue->getAttributes() === null))
                     ? $ahoValue = null
                     : $ahoValue = json_encode($this->owner->getHiddenAttribute($aName)->prepareSaveJsonB());
 
@@ -232,7 +233,7 @@ class Log extends Behavior
             }
         }
 
-        if ($this->_to_save_log ) {
+        if ($this->_to_save_log) {
             $time = static::returnTimeStamp();
             $this->owner->{$this->timeField} = $time;
             $this->_to_save_attributes[$this->timeField] = $time;
@@ -244,13 +245,14 @@ class Log extends Behavior
         if (isset($this->versionField)) {
             if ($event->name === 'beforeUpdate') {
                 $row = $this->owner->find()->where($this->owner->getPrimaryKey(true))->select($this->versionField)->asArray()->one();
-                if (isset($row[$this->versionField]) && (string) $row[$this->versionField] !== (string) $this->owner->getAttribute($this->versionField)) {
+                if (isset($row[$this->versionField]) && (string)$row[$this->versionField] !== (string)$this->owner->getAttribute($this->versionField)) {
                     throw new StaleObjectException('The object being updated is outdated.');
                 }
             }
             $this->setNewVersion();
         }
         $this->_to_save_attributes[$this->versionField] = $this->owner->{$this->versionField};
+
         return true;
     }
 
@@ -275,13 +277,14 @@ class Log extends Behavior
 
         $this->_to_save_attributes[$this->docId] = $this->owner->id;
         unset($this->_to_save_attributes['id']);
-        $this->_to_save_attributes[$this->changedAttributesField] = '{'.implode(',', array_values($this->_changed_attributes)).'}';
-        
+        $this->_to_save_attributes[$this->changedAttributesField] = '{' . implode(',',
+                array_values($this->_changed_attributes)) . '}';
+
         $logClass = $this->logClass;
         /** @var ActiveRecord $log */
         $log = new $logClass();
-        $log->setAttributes( array_intersect_key( $this->_to_save_attributes, $log->getAttributes() ) );
-        
+        $log->setAttributes(array_intersect_key($this->_to_save_attributes, $log->getAttributes()));
+
         if (!$log->save()) {
             throw new ErrorException(print_r($log->errors, true));
         }
@@ -293,9 +296,10 @@ class Log extends Behavior
     public static function returnTimeStamp()
     {
         $t = microtime(true);
-        $micro = sprintf("%06d",($t - floor($t)) * 1000000);
-        
-        $date = new \DateTime( date('Y-m-d H:i:s.'.$micro, $t) );
+        $micro = sprintf("%06d", ($t - floor($t)) * 1000000);
+
+        $date = new \DateTime(date('Y-m-d H:i:s.' . $micro, $t));
+
         return $date->format('Y-m-d H:i:s.uP');
     }
 

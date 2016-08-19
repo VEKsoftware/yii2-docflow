@@ -380,6 +380,7 @@ abstract class Operations extends OperationBase
     /**
      * Метод для смены статуса
      * TODO проверить работоспособность
+     *
      * @param string $statusTag - тэг статуса, на котороый меняем
      *
      * @return bool

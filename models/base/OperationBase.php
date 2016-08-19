@@ -79,7 +79,7 @@ abstract class OperationBase extends DocFlowBase
      *
      * @return \yii\db\ActiveQuery
      */
-    public function getStatus()
+    public function getStatusLink()
     {
         return $this->hasOne(Statuses::className(), ['id' => 'status_id']);
     }

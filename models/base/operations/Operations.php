@@ -181,7 +181,7 @@ abstract class Operations extends OperationBase
      *
      * @return operations
      */
-    public static function instantiate(array $attributes)
+    public static function instantiate($attributes)
     {
         $class = static::className();
         if (array_key_exists($attributes['operation_type'], static::$operationsList)) {

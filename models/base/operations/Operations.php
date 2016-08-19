@@ -12,6 +12,7 @@ use docflow\base\JsonB;
 use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LogMultiple;
 use docflow\behaviors\StatusBehavior;
+use docflow\models\base\doc_type\DocTypes;
 use docflow\models\base\OperationBase;
 use docflow\models\base\operations\flTree\links\OperationsLinksSimpleNope;
 use docflow\models\statuses\Statuses;
@@ -66,6 +67,16 @@ abstract class Operations extends OperationBase
     public static function tableName()
     {
         return '{{%operations}}';
+    }
+
+    /**
+     * Return description of the type of current document
+     *
+     * @return DocTypes the object specifying the document type
+     */
+    public function getDoc()
+    {
+        return DocTypes::getDocType(static::docTag());
     }
 
     /**
@@ -153,7 +164,7 @@ abstract class Operations extends OperationBase
      */
     static public function docTag()
     {
-        return '';
+        return 'operations';
     }
 
     /**
@@ -311,6 +322,7 @@ abstract class Operations extends OperationBase
     {
         $this->unit_real_id = $this->getUnitRealId();
         $this->unit_resp_id = $this->getUnitRespId();
+        $this->operation_type = $this->operationType;
         $this->beforeSave($insert);
 
         return parent::beforeSaveMultiple($insert);
@@ -334,6 +346,7 @@ abstract class Operations extends OperationBase
 
         $this->unit_real_id = $this->getUnitRealId();
         $this->unit_resp_id = $this->getUnitRespId();
+        $this->operation_type = $this->operationType;
 
         return true;
     }
@@ -348,6 +361,7 @@ abstract class Operations extends OperationBase
     {
         $this->unit_real_id = $this->getUnitRealId();
         $this->unit_resp_id = $this->getUnitRespId();
+        $this->operation_type = $this->operationType;
 
         return parent::beforeValidate();
     }
@@ -408,7 +422,7 @@ abstract class Operations extends OperationBase
      *
      * @return bool
      */
-    protected function setStatus($statusTag)
+    protected function setStatuses($statusTag)
     {
         $status = $this->getStatusObj($statusTag);
 

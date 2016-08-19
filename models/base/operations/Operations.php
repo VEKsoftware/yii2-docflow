@@ -385,7 +385,7 @@ abstract class Operations extends OperationBase
      *
      * @return bool
      */
-    public function changeStatus(Statuses $statusObj)
+    protected function changeStatus(Statuses $statusObj)
     {
         /* Устанавливаем новый статус */
         try {
@@ -396,5 +396,110 @@ abstract class Operations extends OperationBase
         }
 
         return $return;
+    }
+
+    /**
+     * Устанавливаем стаус операции - черновик
+     *
+     * @return bool
+     */
+    protected function setStatusDraft()
+    {
+        /* @var Statuses $draftStatus */
+        $draftStatus = Statuses::find()
+            ->where(['tag' => 'draft'])
+            ->one();
+
+        return $this->changeStatus($draftStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - создана
+     *
+     * @return bool
+     */
+    protected function setStatusCreated()
+    {
+        /* @var Statuses $createdStatus */
+        $createdStatus = Statuses::find()
+            ->where(['tag' => 'created'])
+            ->one();
+
+        return $this->changeStatus($createdStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - выполняется
+     *
+     * @return bool
+     */
+    protected function setStatusProcessing()
+    {
+        /* @var Statuses $processingStatus */
+        $processingStatus = Statuses::find()
+            ->where(['tag' => 'processing'])
+            ->one();
+
+        return $this->changeStatus($processingStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - завершена
+     *
+     * @return bool
+     */
+    protected function setStatusFinished()
+    {
+        /* @var Statuses $finishedStatus */
+        $finishedStatus = Statuses::find()
+            ->where(['tag' => 'finished'])
+            ->one();
+
+        return $this->changeStatus($finishedStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - отменена
+     *
+     * @return bool
+     */
+    protected function setStatusCanceled()
+    {
+        /* @var Statuses $canceledStatus */
+        $canceledStatus = Statuses::find()
+            ->where(['tag' => 'canceled'])
+            ->one();
+
+        return $this->changeStatus($canceledStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - провалена
+     *
+     * @return bool
+     */
+    protected function setStatusFailed()
+    {
+        /* @var Statuses $failedStatus */
+        $failedStatus = Statuses::find()
+            ->where(['tag' => 'failed'])
+            ->one();
+
+        return $this->changeStatus($failedStatus);
+    }
+
+    /**
+     * Устанавливаем статус операции - приостановлена
+     *
+     * @return bool
+     */
+    protected function setStatusSuspended()
+    {
+        /* @var Statuses $suspendedStatus */
+        $suspendedStatus = Statuses::find()
+            ->where(['tag' => 'suspended'])
+            ->one();
+
+        return $this->changeStatus($suspendedStatus);
     }
 }

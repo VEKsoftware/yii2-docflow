@@ -37,7 +37,7 @@ use yii\db\ActiveQuery;
 abstract class Operations extends OperationBase
 {
     /**
-     * Хранилище итемов
+     * Хранилище документов
      *
      * @var array
      */
@@ -45,6 +45,7 @@ abstract class Operations extends OperationBase
 
     /**
      * Все сценарии.
+     * TODO вопрос
      *
      * @var array
      */
@@ -199,6 +200,7 @@ abstract class Operations extends OperationBase
 
     /**
      * Получаем объект в зависимости от входящих аттрибутов
+     * TODO вопрос
      *
      * @param array $attributes - аттрибуты
      *

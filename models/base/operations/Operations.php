@@ -381,20 +381,15 @@ abstract class Operations extends OperationBase
      * Метод для смены статуса
      * TODO проверить работоспособность
      *
-     * @param string $statusTag - тэг статуса, на котороый меняем
+     * @param Statuses $statusObj - объект статутса
      *
      * @return bool
      */
-    public function changeStatus($statusTag)
+    public function changeStatus(Statuses $statusObj)
     {
-        /* @var Statuses $newStatus */
-        $newStatus = Statuses::find()
-            ->where(['tag' => $statusTag])
-            ->one();
-
         /* Устанавливаем новый статус */
         try {
-            $this->setStatus($newStatus);
+            $this->setStatus($statusObj);
             $return = $this->owner->save();
         } catch (ErrorException $e) {
             $return = false;

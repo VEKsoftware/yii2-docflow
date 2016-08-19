@@ -395,7 +395,6 @@ abstract class Operations extends OperationBase
 
     /**
      * Метод для смены статуса
-     * TODO проверить работоспособность
      *
      * @param Statuses $statusObj - объект статутса
      *
@@ -416,13 +415,12 @@ abstract class Operations extends OperationBase
 
     /**
      * Устанавливаем стаус операции - черновик
-     * TODO проверить работоспособность
      *
      * @param string $statusTag - тэг статуса
      *
      * @return bool
      */
-    protected function setStatuses($statusTag)
+    public function setStatuses($statusTag)
     {
         $status = $this->getStatusObj($statusTag);
 
@@ -447,5 +445,91 @@ abstract class Operations extends OperationBase
         return Statuses::find()
             ->where(['tag' => $statusTag])
             ->one();
+    }
+
+
+    /**
+     * Создаем черновик
+     *
+     * @return bool
+     */
+    public function draft()
+    {
+        $draftStatus = $this->getStatusObj('draft');
+        $this->status_id = $draftStatus->id;
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "создана"
+     *
+     * @return bool
+     */
+    public function created()
+    {
+        $this->setStatuses('created');
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "выполняется"
+     *
+     * @return bool
+     */
+    public function processing()
+    {
+        $this->setStatuses('processing');
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "завершена"
+     *
+     * @return bool
+     */
+    public function finish()
+    {
+        $this->setStatuses('finished');
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "отменена"
+     *
+     * @return bool
+     */
+    public function canceled()
+    {
+        $this->setStatuses('canceled');
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "провалена"
+     *
+     * @return bool
+     */
+    public function failed()
+    {
+        $this->setStatuses('failed');
+
+        return $this->save();
+    }
+
+    /**
+     * Присваиваем статус операции "в простое"
+     *
+     * @return bool
+     */
+    public function suspended()
+    {
+        $this->setStatuses('suspended');
+
+        return $this->save();
     }
 }

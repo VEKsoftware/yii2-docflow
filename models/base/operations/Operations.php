@@ -9,10 +9,15 @@
 namespace docflow\models\base\operations;
 
 use docflow\base\JsonB;
+use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LogMultiple;
+use docflow\behaviors\StatusBehavior;
 use docflow\models\base\OperationBase;
+use docflow\models\base\operations\flTree\links\OperationsLinksSimpleNope;
+use docflow\models\statuses\Statuses;
 use yii;
 use yii\base\ErrorException;
+use yii\db\ActiveQuery;
 
 /**
  * Class Operations
@@ -26,6 +31,8 @@ use yii\base\ErrorException;
  * @property string  $comment
  *
  * @package Docflow\Models
+ *
+ * @mixin StatusBehavior
  */
 abstract class Operations extends OperationBase
 {
@@ -86,6 +93,22 @@ abstract class Operations extends OperationBase
                     'logClass' => OperationsLog::className(),
                     'changedAttributesField' => 'changed_attributes',
                     'versionField' => 'version',
+                ],
+                'status' => [
+                    'class' => StatusBehavior::className(),
+                    'statusIdField' => 'status_id',
+                    'statusRootTag' => 'operations'
+                ],
+                'simpleLink' => [
+                    'class' => LinkSimpleBehavior::className(),
+                    'linkClass' => OperationsLinksSimpleNope::className(),
+                    'documentQuery' => function (ActiveQuery $query) {
+                        /* True - конечный результат будет All(); null, false - one() */
+                        $query->multiple = true;
+
+                        return $query;
+                    },
+                    'indexBy' => 'id'
                 ],
             ]
         );
@@ -268,6 +291,7 @@ abstract class Operations extends OperationBase
     public function deleteItems()
     {
         $this->documents = [];
+        /* TODO Косяк, надо продумать */
         static::deleteAll(['invoice_id' => $this->id]);
     }
 
@@ -351,5 +375,30 @@ abstract class Operations extends OperationBase
         }
 
         return $unitRespId;
+    }
+
+    /**
+     * Метод для смены статуса
+     * TODO проверить работоспособность
+     * @param string $statusTag - тэг статуса, на котороый меняем
+     *
+     * @return bool
+     */
+    public function changeStatus($statusTag)
+    {
+        /* @var Statuses $newStatus */
+        $newStatus = Statuses::find()
+            ->where(['tag' => $statusTag])
+            ->one();
+
+        /* Устанавливаем новый статус */
+        try {
+            $this->setStatus($newStatus);
+            $return = $this->owner->save();
+        } catch (ErrorException $e) {
+            $return = false;
+        }
+
+        return $return;
     }
 }

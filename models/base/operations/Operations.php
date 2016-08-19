@@ -202,18 +202,18 @@ abstract class Operations extends OperationBase
      * Получаем объект в зависимости от входящих аттрибутов
      * TODO вопрос
      *
-     * @param array $attributes - аттрибуты
+     * @param string $operationType - типо операции
      *
      * @return operations
      */
-    public static function instantiate($attributes)
+    public static function instantiate($operationType)
     {
         $class = static::className();
-        if (array_key_exists($attributes['operation_type'], static::$operationsList)) {
-            $class = static::$operationsList[$attributes['operation_type']];
+        if (array_key_exists($operationType, static::$operationsList)) {
+            $class = static::$operationsList[$operationType];
         }
 
-        return new $class($attributes);
+        return new $class();
     }
 
     /**
@@ -392,12 +392,12 @@ abstract class Operations extends OperationBase
         /* Устанавливаем новый статус */
         try {
             $this->setStatus($statusObj);
-            $return = $this->owner->save();
+            $isChanged = true;
         } catch (ErrorException $e) {
-            $return = false;
+            $isChanged = false;
         }
 
-        return $return;
+        return $isChanged;
     }
 
     /**

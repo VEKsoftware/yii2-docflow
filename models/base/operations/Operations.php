@@ -60,6 +60,13 @@ abstract class Operations extends OperationBase
     public static $operationsList = [];
 
     /**
+     * Тип операции
+     *
+     * @var string
+     */
+    public $operationType;
+
+    /**
      * Имя таблицы
      *
      * @return string
@@ -213,15 +220,15 @@ abstract class Operations extends OperationBase
      * Получаем объект в зависимости от входящих аттрибутов
      * TODO вопрос
      *
-     * @param string $operationType - типо операции
+     * @param array $operation - массив с данными по операции
      *
      * @return operations
      */
-    public static function instantiate($operationType)
+    public static function instantiate($operation)
     {
         $class = static::className();
-        if (array_key_exists($operationType, static::$operationsList)) {
-            $class = static::$operationsList[$operationType];
+        if (array_key_exists($operation['operation_type'], static::$operationsList)) {
+            $class = static::$operationsList[$operation['operation_type']];
         }
 
         return new $class();

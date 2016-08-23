@@ -36,7 +36,7 @@ class OperationsController extends Controller
     {
         $operation = new OperationsFlTree();
 
-        $operation->operation_type = 'Nope';
+        $operation->operationType = 'Nope';
         $operation->status_id = 2;
         $operation->unit_real_id = 1;
         $operation->unit_resp_id = 1;
@@ -46,7 +46,7 @@ class OperationsController extends Controller
 
         $operation1 = new OperationsFlTree();
 
-        $operation1->operation_type = 'Nope';
+        $operation1->operationType = 'Nope';
         $operation1->status_id = 3;
         $operation1->unit_real_id = 1;
         $operation1->unit_resp_id = 1;
@@ -55,7 +55,7 @@ class OperationsController extends Controller
 
         $operation2 = new OperationsFlTree();
 
-        $operation2->operation_type = 'Nope';
+        $operation2->operationType = 'Nope';
         $operation2->status_id = 4;
         $operation2->unit_real_id = 1;
         $operation2->unit_resp_id = 2;
@@ -64,7 +64,7 @@ class OperationsController extends Controller
 
         $operation3 = new OperationsFlTree();
 
-        $operation3->operation_type = 'Nope';
+        $operation3->operationType = 'Nope';
         $operation3->status_id = 5;
         $operation3->unit_real_id = 1;
         $operation3->unit_resp_id = 2;

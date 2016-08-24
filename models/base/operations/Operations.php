@@ -45,12 +45,11 @@ abstract class Operations extends OperationBase
     protected $documents = [];
 
     /**
-     * Все сценарии.
-     * TODO вопрос
+     * Массив подопераций
      *
      * @var array
      */
-    public static $allScenarios = [];
+    public static $subOperations = [];
 
     /**
      * Список операций, где ключ - имя операции, значение - имя класса выполняющего операцию
@@ -218,7 +217,7 @@ abstract class Operations extends OperationBase
 
     /**
      * Получаем объект в зависимости от входящих аттрибутов
-     * TODO вопрос
+     * TODO не понимаю, зачем нужно в такой форме ? чтобы при вызове в activerecord сразу создавать необходимый класс
      *
      * @param array $operation - массив с данными по операции
      *
@@ -329,7 +328,11 @@ abstract class Operations extends OperationBase
     {
         $this->unit_real_id = $this->getUnitRealId();
         $this->unit_resp_id = $this->getUnitRespId();
-        $this->operation_type = $this->operationType;
+
+        if (!empty($this->operationType)) {
+            $this->operation_type = $this->operationType;
+        }
+
         $this->beforeSave($insert);
 
         return parent::beforeSaveMultiple($insert);
@@ -355,6 +358,10 @@ abstract class Operations extends OperationBase
         $this->unit_resp_id = $this->getUnitRespId();
         $this->operation_type = $this->operationType;
 
+        if (!empty($this->operationType)) {
+            $this->operation_type = $this->operationType;
+        }
+
         return true;
     }
 
@@ -368,7 +375,10 @@ abstract class Operations extends OperationBase
     {
         $this->unit_real_id = $this->getUnitRealId();
         $this->unit_resp_id = $this->getUnitRespId();
-        $this->operation_type = $this->operationType;
+
+        if (!empty($this->operationType)) {
+            $this->operation_type = $this->operationType;
+        }
 
         return parent::beforeValidate();
     }
@@ -391,6 +401,7 @@ abstract class Operations extends OperationBase
     protected function getUnitRespId()
     {
         $unitRespId = null;
+
         if (Yii::$app->user->identity->hasProperty('respId')) {
             $unitRespId = Yii::$app->user->identity->respId;
         } else {

@@ -555,9 +555,9 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "выполняется"
      *
-     * @param bool $safe          - устанавливаем статус безопасно,
-     *                            false - проверяем на возможность установки статуса,
-     *                            true - устанавливаем без проверок
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
      *
      * @return bool
      */
@@ -571,9 +571,9 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "завершена"
      *
-     * @param bool $safe          - устанавливаем статус безопасно,
-     *                            false - проверяем на возможность установки статуса,
-     *                            true - устанавливаем без проверок
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
      *
      * @return bool
      */
@@ -587,9 +587,9 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "отменена"
      *
-     * @param bool $safe          - устанавливаем статус безопасно,
-     *                            false - проверяем на возможность установки статуса,
-     *                            true - устанавливаем без проверок
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
      *
      * @return bool
      */
@@ -603,9 +603,9 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "провалена"
      *
-     * @param bool $safe          - устанавливаем статус безопасно,
-     *                            false - проверяем на возможность установки статуса,
-     *                            true - устанавливаем без проверок
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
      *
      * @return bool
      */
@@ -619,9 +619,9 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "в простое"
      *
-     * @param bool $safe          - устанавливаем статус безопасно,
-     *                            false - проверяем на возможность установки статуса,
-     *                            true - устанавливаем без проверок
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
      *
      * @return bool
      */
@@ -647,9 +647,11 @@ abstract class Operations extends OperationBase
         $operationsId = [];
 
         /* Создаем операцию */
-        $operation = new static;
-        $operation->setStatuses(static::STATUS_CREATED, true);
-        $operation->save();
+        $operation = static::createOperation(true);
+
+        if ($operation === null) {
+            throw new ErrorException('Операция ' . static::className() . ' не создалась');
+        }
 
         /* Массив с id операций */
         $operationsId[] = $operation->id;
@@ -667,5 +669,36 @@ abstract class Operations extends OperationBase
         }
 
         return $operationsId;
+    }
+
+    /**
+     * Создаем операцию (запись в базе)
+     *
+     * @param bool $created - true - статус "создано", false - статус "черновик"
+     *
+     * @return null|Operations
+     */
+    protected static function createOperation($created = true)
+    {
+        /* Выбираем статус */
+        $status = ($created === true)
+            ? static::STATUS_CREATED
+            : static::STATUS_DRAFT;
+
+        $operation = new static;
+
+        /* Устанавливаем статус */
+        $operation->setStatuses($status, true);
+
+        /* Сохраняем в БД */
+        $isCreated = $operation->save();
+
+        $return = null;
+
+        if ($isCreated === true) {
+            $return = $operation;
+        }
+
+        return $return;
     }
 }

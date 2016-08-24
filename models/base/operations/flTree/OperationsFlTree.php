@@ -63,7 +63,7 @@ class OperationsFlTree extends Operations
      */
     public function getDocName()
     {
-        return $this->{'id'};
+        return $this->operation_type;
     }
 
     /**

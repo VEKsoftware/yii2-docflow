@@ -13,9 +13,9 @@ use docflow\widgets\FlTreeWidgetWithSimpleLinks;
 
 echo FlTreeWidgetWithSimpleLinks::widget([
     'base' => [
-        'title' => (string)$document->id,
+        'title' => (string)$document->operation_type,
         'titleLink' => Yii::t('docflow', 'Пользовательские связи'),
-        'nodeName' => (string)$document->id,
+        'nodeName' => (string)$document->operation_type,
         'renderTree' => ['operations/ajax-child']
     ],
     'detailViewConfig' => [
@@ -28,13 +28,4 @@ echo FlTreeWidgetWithSimpleLinks::widget([
             'atime',
         ]
     ],
-    'buttons' => [
-        'setParent' => [
-            'name' => 'Назначить родителя',
-            'modalId' => '#myModal',
-            'childShowCheckBox' => false,
-            'parentShowCheckBox' => false,
-            'setParentUrl' => ['operations/set-parent']
-        ]
-    ]
 ]);

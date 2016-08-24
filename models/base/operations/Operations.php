@@ -36,9 +36,45 @@ use yii\db\ActiveQuery;
  * @package Docflow\Models
  *
  * @mixin StatusBehavior
+ * @mixin LinkStructuredBehavior
  */
 abstract class Operations extends OperationBase
 {
+    /**
+     * Статус "черновик"
+     */
+    const STATUS_DRAFT = 'draft';
+
+    /**
+     * Статус "создана"
+     */
+    const STATUS_CREATED = 'created';
+
+    /**
+     * Статус "выполняется"
+     */
+    const STATUS_PROCESSING = 'processing';
+
+    /**
+     * Статус завершено
+     */
+    const STATUS_FINISHED = 'finished';
+
+    /**
+     * Статус отменено
+     */
+    const STATUS_CANCELED = 'canceled';
+
+    /**
+     * Статус "провалено"
+     */
+    const STATUS_FAILED = 'failed';
+
+    /**
+     * Статус "в ожидании"
+     */
+    const STATUS_SUSPENDED = 'suspended';
+
     /**
      * Хранилище документов
      *
@@ -47,18 +83,11 @@ abstract class Operations extends OperationBase
     protected $documents = [];
 
     /**
-     * Массив подопераций
+     * Массив подопераций, содержащий имена классов подопераций
      *
      * @var array
      */
     public static $subOperations = [];
-
-    /**
-     * Список операций, где ключ - имя операции, значение - имя класса выполняющего операцию
-     *
-     * @var array
-     */
-    public static $operationsList = [];
 
     /**
      * Тип операции
@@ -230,12 +259,13 @@ abstract class Operations extends OperationBase
 
     /**
      * Получаем объект в зависимости от входящих аттрибутов
-     * TODO не понимаю, зачем нужно в такой форме ? чтобы при вызове в activerecord сразу создавать необходимый класс
+     * TODO не понимаю, зачем нужно в такой форме ? чтобы при вызове в activeRecord сразу создавать необходимый класс
      *
      * @param array $operation - массив с данными по операции
      *
      * @return operations
      */
+    /*
     public static function instantiate($operation)
     {
         $class = static::className();
@@ -244,7 +274,7 @@ abstract class Operations extends OperationBase
         }
 
         return new $class();
-    }
+    } */
 
     /**
      * Получаем номер документа
@@ -428,14 +458,22 @@ abstract class Operations extends OperationBase
      * Метод для смены статуса
      *
      * @param Statuses $statusObj - объект статутса
+     * @param bool     $safe      - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
      *
      * @return bool
      */
-    protected function changeStatus(Statuses $statusObj)
+    protected function changeStatus(Statuses $statusObj, $safe = false)
     {
         /* Устанавливаем новый статус */
         try {
-            $this->setStatus($statusObj);
+            if ($safe === false) {
+                $this->setStatus($statusObj);
+            } else {
+                $this->setStatusSafe($statusObj);
+            }
+
             $isChanged = true;
         } catch (ErrorException $e) {
             $isChanged = false;
@@ -448,17 +486,20 @@ abstract class Operations extends OperationBase
      * Устанавливаем стаус операции - черновик
      *
      * @param string $statusTag - тэг статуса
+     * @param bool   $safe      - устанавливаем статус безопасно,
+     *                          false - проверяем на возможность установки статуса,
+     *                          true - устанавливаем без проверок
      *
      * @return bool
      */
-    public function setStatuses($statusTag)
+    public function setStatuses($statusTag, $safe = false)
     {
         $status = $this->getStatusObj($statusTag);
 
         $isSet = false;
 
         if ($status instanceof Statuses) {
-            $isSet = $this->changeStatus($status);
+            $isSet = $this->changeStatus($status, $safe);
         }
 
         return $isSet;
@@ -482,12 +523,15 @@ abstract class Operations extends OperationBase
     /**
      * Создаем черновик
      *
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function draft()
+    public function draft($safe = false)
     {
-        $draftStatus = $this->getStatusObj('draft');
-        $this->status_id = $draftStatus->id;
+        $this->setStatuses(static::STATUS_DRAFT, $safe);
 
         return $this->save();
     }
@@ -495,11 +539,15 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "создана"
      *
+     * @param bool $safe - устанавливаем статус безопасно,
+     *                   false - проверяем на возможность установки статуса,
+     *                   true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function created()
+    public function created($safe = false)
     {
-        $this->setStatuses('created');
+        $this->setStatuses(static::STATUS_CREATED, $safe);
 
         return $this->save();
     }
@@ -507,11 +555,15 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "выполняется"
      *
+     * @param bool $safe          - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function processing()
+    public function processing($safe = false)
     {
-        $this->setStatuses('processing');
+        $this->setStatuses(static::STATUS_PROCESSING, $safe);
 
         return $this->save();
     }
@@ -519,11 +571,15 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "завершена"
      *
+     * @param bool $safe          - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function finish()
+    public function finish($safe = false)
     {
-        $this->setStatuses('finished');
+        $this->setStatuses(static::STATUS_FINISHED, $safe);
 
         return $this->save();
     }
@@ -531,11 +587,15 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "отменена"
      *
+     * @param bool $safe          - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function canceled()
+    public function canceled($safe = false)
     {
-        $this->setStatuses('canceled');
+        $this->setStatuses(static::STATUS_CANCELED, $safe);
 
         return $this->save();
     }
@@ -543,11 +603,15 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "провалена"
      *
+     * @param bool $safe          - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function failed()
+    public function failed($safe = false)
     {
-        $this->setStatuses('failed');
+        $this->setStatuses(static::STATUS_FAILED, $safe);
 
         return $this->save();
     }
@@ -555,12 +619,53 @@ abstract class Operations extends OperationBase
     /**
      * Присваиваем статус операции "в простое"
      *
+     * @param bool $safe          - устанавливаем статус безопасно,
+     *                            false - проверяем на возможность установки статуса,
+     *                            true - устанавливаем без проверок
+     *
      * @return bool
      */
-    public function suspended()
+    public function suspended($safe = false)
     {
-        $this->setStatuses('suspended');
+        $this->setStatuses(static::STATUS_SUSPENDED, $safe);
 
         return $this->save();
+    }
+
+    /**
+     * Создаем структуру
+     *
+     * @param null|Operations $parentOperation - родительская операция
+     *
+     * @return array
+     *
+     * @throws \yii\base\InvalidConfigException
+     * @throws \yii\base\ErrorException
+     */
+    public static function createStructure(Operations $parentOperation = null)
+    {
+        $operationsId = [];
+
+        /* Создаем операцию */
+        $operation = new static;
+        $operation->setStatuses('created', true);
+        $operation->save();
+
+        /* Массив с id операций */
+        $operationsId[] = $operation->id;
+
+        /* Создаем связь */
+        if ($parentOperation !== null) {
+            $parentOperation->setChild($operation);
+        }
+
+        /* @var Operations $operation */
+        if (count(static::$subOperations) > 0) {
+            foreach (static::$subOperations as $operationChild) {
+                $operationsId = array_merge($operationsId, $operationChild::createStructure($operation));
+            }
+        }
+
+        return $operationsId;
     }
 }

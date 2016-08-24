@@ -69,7 +69,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_UP_NOT_HAS_AVAILABLE);
         }
 
@@ -89,7 +89,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_ORDER_DOWN_NOT_HAS_AVAILABLE);
         }
 
@@ -109,7 +109,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_UP_NOT_HAS_AVAILABLE);
         }
 
@@ -129,7 +129,7 @@ class LinkOrderedBehavior extends LinkStructuredBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::ORD_DOCUMENT_LEVEL_DOWN_NOT_HAS_AVAILABLE);
         }
 

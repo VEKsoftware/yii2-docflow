@@ -80,7 +80,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_DEL_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -107,7 +107,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -144,7 +144,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -156,7 +156,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_PARENT_NOT_HAS_AVAILABLE);
         }
 
@@ -206,7 +206,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_OWNER_GET_CHILD_NOT_HAS_AVAILABLE);
         }
 
@@ -243,7 +243,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::U_OWNER_ID_NULL_OR_NOT_INT);
         }
 
-        if (!array_key_exists($this->owner->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($this->owner->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_FROM_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 
@@ -255,7 +255,7 @@ class LinkStructuredBehavior extends LinkBaseBehavior
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NODE_ID_EMPTY_OR_NOT_INT);
         }
 
-        if (!array_key_exists($documentObj->{$this->indexBy}, $this->documents)) {
+        if (!array_key_exists($documentObj->{$this->indexBy}, $this->getDocuments()->all())) {
             throw new ErrorException(BehaviorsMessages::STR_DOCUMENT_TO_SET_CHILD_NOT_HAS_AVAILABLE);
         }
 

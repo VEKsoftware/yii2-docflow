@@ -648,7 +648,7 @@ abstract class Operations extends OperationBase
 
         /* Создаем операцию */
         $operation = new static;
-        $operation->setStatuses('created', true);
+        $operation->setStatuses(static::STATUS_CREATED, true);
         $operation->save();
 
         /* Массив с id операций */

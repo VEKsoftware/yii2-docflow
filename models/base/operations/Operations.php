@@ -678,7 +678,7 @@ abstract class Operations extends OperationBase
      *
      * @return null|Operations
      */
-    protected static function createOperation($created = true)
+    public static function createOperation($created = true)
     {
         /* Выбираем статус */
         $status = ($created === true)

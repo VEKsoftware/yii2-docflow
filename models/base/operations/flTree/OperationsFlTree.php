@@ -35,42 +35,6 @@ use yii\db\Connection;
 class OperationsFlTree extends Operations
 {
     /**
-     * {@inheritdoc}
-     *
-     * @return array
-     */
-    public function behaviors()
-    {
-        return array_merge(
-            parent::behaviors(),
-            [
-                'simple' => [
-                    'class' => LinkSimpleBehavior::className(),
-                    'linkClass' => OperationsLinksSimpleNope::className(),
-                    'documentQuery' => function (ActiveQuery $query) {
-                        /* True - конечный результат будет All(); null, false - one() */
-                        $query->multiple = true;
-
-                        return $query;
-                    },
-                    'indexBy' => 'tag'
-                ],
-                'structure' => [
-                    'class' => LinkStructuredBehavior::className(),
-                    'linkClass' => OperationsLinksFlTreeNope::className(),
-                    'documentQuery' => function (ActiveQuery $query) {
-                        /* True - конечный результат будет All(); null, false - one() */
-                        $query->multiple = true;
-
-                        return $query;
-                    },
-                    'indexBy' => 'id'
-                ],
-            ]
-        );
-    }
-
-    /**
      * Имя операции
      *
      * @return mixed

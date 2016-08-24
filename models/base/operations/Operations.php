@@ -10,10 +10,12 @@ namespace docflow\models\base\operations;
 
 use docflow\base\JsonB;
 use docflow\behaviors\LinkSimpleBehavior;
+use docflow\behaviors\LinkStructuredBehavior;
 use docflow\behaviors\LogMultiple;
 use docflow\behaviors\StatusBehavior;
 use docflow\models\base\doc_type\DocTypes;
 use docflow\models\base\OperationBase;
+use docflow\models\base\operations\flTree\links\OperationsLinksFlTreeNope;
 use docflow\models\base\operations\flTree\links\OperationsLinksSimpleNope;
 use docflow\models\statuses\Statuses;
 use yii;
@@ -117,9 +119,20 @@ abstract class Operations extends OperationBase
                     'statusIdField' => 'status_id',
                     'statusRootTag' => 'operations'
                 ],
-                'simpleLink' => [
+                'simple' => [
                     'class' => LinkSimpleBehavior::className(),
                     'linkClass' => OperationsLinksSimpleNope::className(),
+                    'documentQuery' => function (ActiveQuery $query) {
+                        /* True - конечный результат будет All(); null, false - one() */
+                        $query->multiple = true;
+
+                        return $query;
+                    },
+                    'indexBy' => 'id'
+                ],
+                'structure' => [
+                    'class' => LinkStructuredBehavior::className(),
+                    'linkClass' => OperationsLinksFlTreeNope::className(),
                     'documentQuery' => function (ActiveQuery $query) {
                         /* True - конечный результат будет All(); null, false - one() */
                         $query->multiple = true;

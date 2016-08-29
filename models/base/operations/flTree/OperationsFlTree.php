@@ -45,25 +45,13 @@ class OperationsFlTree extends Operations
     }
 
     /**
-     * Получае БД используемую в модуле
-     * Пример содержания:
-     *      return Docflow::getInstance->db
-     *
-     * @return Connection
-     */
-    public static function getModuleDb()
-    {
-        return '';
-    }
-
-    /**
      * Return field name which use how Document `name`
      *
      * @return string Document name
      */
     public function getDocName()
     {
-        return $this->operation_type;
+        return $this->id;
     }
 
     /**
@@ -78,5 +66,17 @@ class OperationsFlTree extends Operations
         return static::find()
             ->where(['id' => $name])
             ->one();
+    }
+
+    /**
+     * Работа с документом и статусом операции
+     *
+     * @param object $document - документ
+     *
+     * @return mixed
+     */
+    protected function work($document)
+    {
+        // Метод в данном классе не нужный
     }
 }

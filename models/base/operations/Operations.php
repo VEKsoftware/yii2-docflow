@@ -13,14 +13,18 @@ use docflow\behaviors\LinkSimpleBehavior;
 use docflow\behaviors\LinkStructuredBehavior;
 use docflow\behaviors\LogMultiple;
 use docflow\behaviors\StatusBehavior;
+use docflow\helpers\PostgresArrayTypeHelper;
 use docflow\models\base\doc_type\DocTypes;
+use docflow\models\base\Document;
 use docflow\models\base\OperationBase;
 use docflow\models\base\operations\flTree\links\OperationsLinksFlTreeNope;
 use docflow\models\base\operations\flTree\links\OperationsLinksSimpleNope;
 use docflow\models\statuses\Statuses;
 use yii;
 use yii\base\ErrorException;
+use yii\base\ExitException;
 use yii\db\ActiveQuery;
+use yii\helpers\ArrayHelper;
 
 /**
  * Class Operations
@@ -37,6 +41,9 @@ use yii\db\ActiveQuery;
  *
  * @mixin StatusBehavior
  * @mixin LinkStructuredBehavior
+ *
+ * TODO метод проверки что документ уже работает над подобной операцией
+ * TODO метод удаления операций из документа
  */
 abstract class Operations extends OperationBase
 {
@@ -76,6 +83,19 @@ abstract class Operations extends OperationBase
     const STATUS_SUSPENDED = 'suspended';
 
     /**
+     * Лимит количества документов, над которыми можно провести операцию
+     */
+    const DOCUMENT_LIMIT = 50;
+
+    /**
+     * Объект статуса "finished"
+     * Статика нужна для того, чтобы было доступно во всех наследниках
+     *
+     * @var Statuses
+     */
+    protected static $finishStatus;
+
+    /**
      * Хранилище документов
      *
      * @var array
@@ -95,6 +115,15 @@ abstract class Operations extends OperationBase
      * @var string
      */
     public $operationType;
+
+    /**
+     * Содержит именна классов операций
+     * ключ - operationType
+     * значение - имя класса и пространством имени
+     *
+     * @var array
+     */
+    public static $allOperations = [];
 
     /**
      * Имя таблицы
@@ -226,6 +255,30 @@ abstract class Operations extends OperationBase
     }
 
     /**
+     * Получаем документы
+     *
+     * @return array
+     */
+    public function getDocuments()
+    {
+        return $this->documents;
+    }
+
+    /**
+     * Получаем значение скрытого свойства
+     *
+     * @return \docflow\models\statuses\Statuses|null
+     */
+    public function getFinishStatus()
+    {
+        if (self::$finishStatus === null) {
+            self::$finishStatus = Statuses::find()->where(['tag' => 'finished'])->one();
+        }
+
+        return self::$finishStatus;
+    }
+
+    /**
      * Получаем документ по его идентификатору
      *
      * @param integer $nodeId - id документа
@@ -258,103 +311,21 @@ abstract class Operations extends OperationBase
     /* abstract public function operationPermitted($operation); */
 
     /**
-     * Получаем объект в зависимости от входящих аттрибутов
-     * TODO не понимаю, зачем нужно в такой форме ? чтобы при вызове в activeRecord сразу создавать необходимый класс
-     *
-     * @param array $operation - массив с данными по операции
-     *
-     * @return operations
-     */
-    /*
-    public static function instantiate($operation)
-    {
-        $class = static::className();
-        if (array_key_exists($operation['operation_type'], static::$operationsList)) {
-            $class = static::$operationsList[$operation['operation_type']];
-        }
-
-        return new $class();
-    } */
-
-    /**
-     * Получаем номер документа
-     *
-     * @return mixed
-     */
-    public function getDocNumber()
-    {
-        return $this->id;
-    }
-
-    /**
-     * Устанавуливаем номер документа
-     *
-     * @param integer $num - номер документа
-     *
-     * @return void
-     */
-    public function setDocNumber($num)
-    {
-        $this->id = $num;
-    }
-
-    /**
      * Добавляем item-ы
      *
      * @param array $items - итемы
      *
      * @return void
      *
-     * @throws ErrorException Вызывается если массовое добавление в БД не произошло (ошибка)
+     * @throws ErrorException Вызывается если при добавлении документов будет превышен лимит на максимальное количество документов
      */
     public function addDocuments(array $items)
     {
-        $this->documents = array_merge($this->documents, $items);
-
-        if (count($this->documents) > 100) {
-            $batch = $this->batchInsertItems($this->documents);
-
-            if ($batch === false) {
-                throw new ErrorException('Массовое добавление Items в БД не удалось');
-            }
-
-            $this->documents = [];
+        if ((count($this->documents) + count($items)) > static::DOCUMENT_LIMIT) {
+            throw new ErrorException('Превышен лимит максимального количества одновременно обрабатываемых документов');
         }
-    }
 
-    /**
-     * Массово добавляем итемы в таблицу БД
-     *
-     * @param array $items - итемы
-     *
-     * @return mixed
-     */
-    protected function batchInsertItems(array $items)
-    {
-        $columns = $this->getAttributes();
-        unset($columns['id'], $columns['atime'], $columns['version']);
-
-        /* TODO подумать над тем, как правильно указывать подключения в модулях, в данном случае подключение по компоненту db */
-
-        return \Yii::$app->db
-            ->createCommand()
-            ->batchInsert(
-                static::tableName(),
-                $columns,
-                $items
-            );
-    }
-
-    /**
-     * Удаляем item-ы
-     *
-     * @return void
-     */
-    public function deleteItems()
-    {
-        $this->documents = [];
-        /* TODO Косяк, надо продумать */
-        static::deleteAll(['invoice_id' => $this->id]);
+        $this->documents = array_merge($this->documents, $items);
     }
 
     /**
@@ -644,17 +615,17 @@ abstract class Operations extends OperationBase
      */
     public static function createStructure(Operations $parentOperation = null)
     {
-        $operationsId = [];
+        $operations = [];
 
         /* Создаем операцию */
-        $operation = static::createOperation(true);
+        $operation = static::createOperation(static::STATUS_CREATED);
 
         if ($operation === null) {
             throw new ErrorException('Операция ' . static::className() . ' не создалась');
         }
 
-        /* Массив с id операций */
-        $operationsId[] = $operation->id;
+        /* Массив с операциями */
+        $operations[$operation['operation_type']] = $operation;
 
         /* Создаем связь */
         if ($parentOperation !== null) {
@@ -664,27 +635,23 @@ abstract class Operations extends OperationBase
         /* @var Operations $operation */
         if (count(static::$subOperations) > 0) {
             foreach (static::$subOperations as $operationChild) {
-                $operationsId = array_merge($operationsId, $operationChild::createStructure($operation));
+                /* @noinspection SlowArrayOperationsInLoopInspection */
+                $operations = array_merge($operations, $operationChild::createStructure($operation));
             }
         }
 
-        return $operationsId;
+        return $operations;
     }
 
     /**
      * Создаем операцию (запись в базе)
      *
-     * @param bool $created - true - статус "создано", false - статус "черновик"
+     * @param bool $status - статус, с которым будет создана операция
      *
      * @return null|Operations
      */
-    public static function createOperation($created = true)
+    public static function createOperation($status)
     {
-        /* Выбираем статус */
-        $status = ($created === true)
-            ? static::STATUS_CREATED
-            : static::STATUS_DRAFT;
-
         $operation = new static;
 
         /* Устанавливаем статус */
@@ -700,5 +667,103 @@ abstract class Operations extends OperationBase
         }
 
         return $return;
+    }
+
+    /**
+     * Запускаем выполнение операции
+     *
+     * @return void
+     */
+    public function run()
+    {
+        foreach ($this->documents as $document) {
+            $this->work($document);
+        }
+    }
+
+    /**
+     * Работа с документом и статусом операции
+     *
+     * @param object $document - документ
+     *
+     * @return mixed
+     */
+    abstract protected function work($document);
+
+    /**
+     * Метод говорит родительскому статсу что операция закончена.
+     * Родительская операция начинает проверять состояние дел у других подчиненных операций
+     * и если все подчиненные операции завершены ставит себе статус "завершено" и говорит своему родителю и все повторяется
+     *
+     * @return void
+     *
+     * @throws \yii\base\ExitException
+     */
+    public function sayParentOperationThatIFinish()
+    {
+        try {
+            /* @var Operations $parent */
+            $parent = $this->getStatusParent()->one();
+
+            /* Выходим из исполнения, т.к текущая операция является "высшей" т.е не имеет родителя */
+            if ($parent === null) {
+                throw new ExitException();
+            }
+
+            /* @var Statuses $finishStatusId */
+            $finishStatus = $this->finishStatus;
+
+            /* @var Operations[] $childes */
+            $childes = $parent->getStatusChildren()->all();
+            $childesStatusesId = ArrayHelper::getColumn($childes, 'status_id');
+
+            $isChildesFinished = $this->checkWhatAllValuesIsFinished($childesStatusesId, $finishStatus->id);
+
+            if ($isChildesFinished) {
+                $parent->finish();
+                $parent->sayParentOperationThatIFinish();
+            }
+        } catch (ExitException $e) {
+            /* Исключение ради выхода из исполнения */
+        }
+    }
+
+    /**
+     * Проверяем все-ли подчиненные операции имеют статус finished
+     *
+     * @param integer[] $subOperationsId - массив, содержащий id статусов подопераций
+     * @param integer   $finishedId      - id статуса finished
+     *
+     * @return bool
+     */
+    protected function checkWhatAllValuesIsFinished($subOperationsId, $finishedId)
+    {
+        $return = true;
+
+        foreach ($subOperationsId as $subOperationId) {
+            if ((int)$subOperationId !== (int)$finishedId) {
+                $return = false;
+            }
+        }
+
+        return $return;
+    }
+
+    /**
+     * Получаем класс, в зависимости operation_type строки
+     *
+     * @param array $row - строка из таблицы
+     *
+     * @return mixed
+     */
+    public static function instantiate($row)
+    {
+        $class = static::className();
+
+        if (array_key_exists($row['operation_type'], static::$allOperations)) {
+            $class = static::$allOperations[$row['operation_type']];
+        }
+
+        return new $class($row);
     }
 }
